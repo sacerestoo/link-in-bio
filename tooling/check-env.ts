@@ -58,15 +58,10 @@ for (const { path, schema, allowedNames } of localFiles) {
   if (source === undefined) continue;
   const entries = readDotenvEntries(source, path);
   const extra = [...entries.keys()].filter((name) => !allowedNames.has(name));
-  const empty = [...entries]
-    .filter(([, entry]) => entry.value.trim() === "")
-    .map(([name]) => name);
   const result = v.safeParse(
     v.partial(schema),
     Object.fromEntries(
-      [...entries]
-        .filter(([, entry]) => entry.value.trim() !== "")
-        .map(([name, entry]) => [name, entry.value]),
+      [...entries].map(([name, entry]) => [name, entry.value]),
     ),
   );
   if (!result.success) {
@@ -77,11 +72,6 @@ for (const { path, schema, allowedNames } of localFiles) {
   }
   if (extra.length > 0) {
     errors.push(`Not declared for ${path}: ${extra.join(", ")}`);
-  }
-  if (empty.length > 0) {
-    errors.push(
-      `Empty values in ${path} (remove the line to leave a key unset): ${empty.join(", ")}`,
-    );
   }
 }
 

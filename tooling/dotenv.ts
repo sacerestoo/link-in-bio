@@ -30,14 +30,13 @@ export function readDotenvEntries(
       throw new Error(`${label} has an invalid entry on line ${index + 1}.`);
     const name = match[1];
     const rawValue = match[2];
-    if (name === undefined || rawValue === undefined || entries.has(name)) {
-      throw new Error(
-        `${label} has a duplicate or invalid key on line ${index + 1}.`,
-      );
+    if (name === undefined || rawValue === undefined) {
+      throw new Error(`${label} has an invalid key on line ${index + 1}.`);
     }
     const parsed = parseValue(rawValue);
     if (!parsed.valid)
       throw new Error(`${label} has an invalid value on line ${index + 1}.`);
+    // Match dotenv: the last duplicate value wins.
     entries.set(name, { value: parsed.value });
   }
   return entries;
