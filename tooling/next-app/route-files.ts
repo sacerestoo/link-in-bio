@@ -13,6 +13,10 @@ export type NextAppConfig = Readonly<{
   appRootFiles: readonly string[];
   /** Root-level request interceptor, the Next 16 replacement for middleware. */
   proxyFile: string;
+  /** API segment directory (app/api). Only apiRouteFile may live under it. */
+  apiDirectory: string;
+  /** The single catch-all route handler that delegates to the Hono app. */
+  apiRouteFile: string;
   generatedDirectories: readonly string[];
 }>;
 
@@ -94,6 +98,13 @@ function checkAppDirectory(
         ...(error === undefined
           ? checkAppDirectory(root, path, config)
           : [error]),
+      );
+    } else if (
+      display.startsWith(`${config.apiDirectory}/`) &&
+      display !== config.apiRouteFile
+    ) {
+      errors.push(
+        `Remove ${display}: ${config.apiDirectory}/ holds only ${config.apiRouteFile}. Add API routes to the Hono app in apps/web/server/routes/ instead.`,
       );
     } else if (!isAllowedAppFile(entry.name, isRoot, config)) {
       errors.push(

@@ -10,9 +10,11 @@ import {
 
 // Files that may read the environment directly. Everything else imports the
 // validated values from the app env.ts (apps/web/server/env.ts,
-// apps/cron/src/env.ts).
+// apps/cron/src/env.ts). apps/web/server/bindings.ts hands the Worker
+// bindings to the app/api route handler, which has no Hono context.
 export const envAccessAllowedFiles = [
   "apps/web/server/env.ts",
+  "apps/web/server/bindings.ts",
   "apps/cron/src/env.ts",
   "**/*.config.ts",
   "tooling/**",
