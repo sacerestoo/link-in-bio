@@ -9,5 +9,6 @@
   `drizzle()`.
 - Domain query functions go in `src/queries/<domain>.ts` and take the `Database`
   as their first argument.
-- `bun run db:generate` / `db:migrate` (from this directory) read
-  `DATABASE_URL`; migrations are applied before merging, never by a deploy.
+- `bun run db:generate` / `db:migrate` (from this directory) load `DATABASE_URL`
+  from the repo-root `.env.local`; migrations are applied before merging, never
+  by a deploy.

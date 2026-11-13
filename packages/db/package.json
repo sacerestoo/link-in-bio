@@ -9,8 +9,8 @@
     "./queries/*": "./src/queries/*.ts"
   },
   "scripts": {
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:generate": "bun --env-file=../../.env.local ./node_modules/drizzle-kit/bin.cjs generate",
+    "db:migrate": "bun --env-file=../../.env.local ./node_modules/drizzle-kit/bin.cjs migrate",
     "lint": "vp lint",
     "test": "vp test run",
     "typecheck": "tsc -p tsconfig.json"
