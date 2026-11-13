@@ -6,9 +6,10 @@ const configExtensions = [".js", ".cjs", ".mjs", ".ts", ".cts", ".mts"];
 // layers and the shape checks all read these paths.
 const directories = {
   app: "apps/web/app",
+  controllers: "apps/web/controllers",
   features: "apps/web/features",
-  server: "apps/web/server",
-  worker: "apps/web/worker",
+  lib: "apps/web/lib",
+  services: "apps/web/services",
   cron: "apps/cron/src",
   db: "packages/db/src",
   auth: "packages/auth/src",
@@ -20,9 +21,10 @@ export const architecture = {
   directories,
   applicationDirectoryKeys: [
     "app",
+    "controllers",
     "features",
-    "server",
-    "worker",
+    "lib",
+    "services",
     "cron",
     "db",
     "auth",
@@ -35,16 +37,23 @@ export const architecture = {
     "packages/db/",
     "node_modules/(?:pg|drizzle-orm)/",
   ],
-  // Only web server code (Hono, apps/web/server) and the cron worker may
-  // import the database layer. packages/db may import itself and its drivers.
+  // Only the web auth setup and cron workers may import the database layer.
+  // packages/db may import itself and its drivers.
   databaseImporterPathPatterns: [
-    "apps/web/server/",
+    "apps/web/lib/auth\\.ts$",
     "apps/cron/src/",
     "packages/db/",
     "node_modules/",
   ],
   sourceExtensions: [".ts", ".tsx"],
-  additionalRootDirectories: [".vite-hooks", ".github", "docs", "tooling"],
+  additionalRootDirectories: [
+    ".vite-hooks",
+    ".github",
+    ".vscode",
+    ".zed",
+    "docs",
+    "tooling",
+  ],
   generatedDirectories: [
     ".cloudflare",
     ".git",

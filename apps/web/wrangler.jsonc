@@ -3,7 +3,7 @@
   "name": "grabbin-web",
   "compatibility_date": "2026-11-13",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "./worker/index.ts",
+  "main": "vinext/server/fetch-handler",
   "assets": {
     "not_found_handling": "none",
     "binding": "ASSETS",
@@ -23,6 +23,6 @@
       "localConnectionString": "postgres://postgres:postgres@127.0.0.1:5432/grabbin",
     },
   ],
-  // Secrets (set with `wrangler secret put`, locally in .dev.vars):
+  // Secrets (set with `wrangler secret put`; locally in .env.local):
   // BETTER_AUTH_SECRET, CREEM_API_KEY, CREEM_WEBHOOK_SECRET
 }

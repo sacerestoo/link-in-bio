@@ -14,7 +14,7 @@
     "check:fix": "vp fmt .",
     "dev": "vp -C apps/web dev",
     "dev:cron": "vp -C apps/cron dev",
-    "lint": "vp lint tooling vite.config.ts .dependency-cruiser.ts",
+    "lint": "vp lint",
     "prepare": "vp config --no-agent",
     "push:checked": "bun run tooling/push-checked.ts",
     "typecheck": "tsc -p tsconfig.json",
@@ -26,19 +26,38 @@
     "@types/bun": "^1.4.4",
     "@types/node": "^24.0.0",
     "dependency-cruiser": "^18.7.2",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "oxlint-tsgolint": "catalog:",
     "typescript": "^7.0.2",
     "typescript-dependency-cruiser": "npm:typescript@6.0.3",
-    "valibot": "^1.5.0",
-    "vite": "npm:@voidzero-dev/vite-plus-core@1.6.0",
-    "vite-plus": "1.6.0",
-    "wrangler": "4.161.0"
+    "valibot": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "wrangler": "catalog:"
   },
   "overrides": {
-    "vite": "npm:@voidzero-dev/vite-plus-core@1.6.0",
-    "wrangler": "4.161.0"
+    "vite": "catalog:",
+    "wrangler": "catalog:"
   },
   "engines": {
     "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
   },
-  "packageManager": "bun@1.4.4"
+  "packageManager": "bun@1.4.4",
+  "catalog": {
+    "@cloudflare/vite-plugin": "1.69.1",
+    "@cloudflare/workers-types": "^5.20261113.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "better-auth": "^1.7.22",
+    "oxfmt": "0.78.0",
+    "oxlint": "1.93.0",
+    "oxlint-tsgolint": "7.0.2006",
+    "server-only": "0.0.1",
+    "valibot": "^1.5.0",
+    "vinext": "1.4.5",
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.6.0",
+    "vite-plus": "1.6.0",
+    "wrangler": "4.161.0"
+  }
 }

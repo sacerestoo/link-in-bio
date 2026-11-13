@@ -14,11 +14,11 @@
   },
   "dependencies": {
     "@grabbin/db": "workspace:*",
-    "valibot": "^1.5.0"
+    "valibot": "catalog:"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "1.69.1",
-    "@cloudflare/workers-types": "^5.20261113.1",
-    "server-only": "0.0.1"
+    "@cloudflare/vite-plugin": "catalog:",
+    "@cloudflare/workers-types": "catalog:",
+    "server-only": "catalog:"
   }
 }

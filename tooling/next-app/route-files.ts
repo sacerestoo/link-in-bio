@@ -104,7 +104,7 @@ function checkAppDirectory(
       display !== config.apiRouteFile
     ) {
       errors.push(
-        `Remove ${display}: ${config.apiDirectory}/ holds only ${config.apiRouteFile}. Add API routes to the Hono app in apps/web/server/routes/ instead.`,
+        `Remove ${display}: ${config.apiDirectory}/ holds only ${config.apiRouteFile}. Register Hono controllers from apps/web/controllers/*.controller.ts in the catch-all route.`,
       );
     } else if (!isAllowedAppFile(entry.name, isRoot, config)) {
       errors.push(

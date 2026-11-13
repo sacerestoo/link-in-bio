@@ -21,7 +21,7 @@ const files = {
   "apps/web/features/items/contracts.ts": contract,
   "apps/web/features/items/model.ts":
     'import { pgTable } from "drizzle-orm/pg-core";\nimport { createSelectSchema } from "drizzle-valibot";\n\nexport const model = [pgTable, createSelectSchema];\n',
-  "apps/web/server/env.ts": "export const mode = process.env.NODE_ENV;\n",
+  "apps/web/lib/env.ts": "export const mode = process.env.NODE_ENV;\n",
   "packages/ui/src/lib/mode.ts": "export const mode = process.env.NODE_ENV;\n",
   "packages/db/drizzle.config.ts":
     "export const url = process.env.DATABASE_URL;\n",
@@ -41,8 +41,12 @@ const files = {
     '"use server";\n\nimport { parseInput } from "@/shared/lib/contract";\nimport { createItemInput } from "./contracts";\n\nexport const createItem = async (raw: unknown): Promise<string> => {\n  const input = parseInput(createItemInput, raw);\n  return input.name;\n};\n',
   "packages/db/src/client.ts":
     'import "server-only";\n\nexport const client = {};\n',
-  "apps/web/server/database.ts":
-    'import { createDatabase } from "@grabbin/db";\n\nexport const database = createDatabase;\n',
+  "apps/web/app/api/[[...route]]/route.ts":
+    'import { Hono } from "hono";\nimport { env } from "cloudflare:workers";\nconst app = new Hono();\nexport const GET = (request: Request) => app.fetch(request, env);\n',
+  "apps/web/controllers/auth.controller.ts":
+    'import { createDatabase } from "@grabbin/db";\nexport const authController = createDatabase;\n',
+  "apps/web/lib/auth.ts":
+    'import { createDatabase } from "@grabbin/db";\nexport const service = createDatabase;\n',
   "apps/cron/src/jobs.ts":
     'import { createDatabase } from "@grabbin/db";\n\nexport const database = createDatabase;\n',
   "apps/web/app/page.tsx":
@@ -67,7 +71,10 @@ describe("env access wiring", (): void => {
     expect(codesFor("apps/web/features/items/ui/region.tsx")).toContain(
       "env-access(no-direct-env)",
     );
-    expect(codesFor("apps/web/server/env.ts")).not.toContain(
+    expect(codesFor("apps/web/lib/env.ts")).not.toContain(
+      "env-access(no-direct-env)",
+    );
+    expect(codesFor("apps/web/app/api/[[...route]]/route.ts")).not.toContain(
       "env-access(no-direct-env)",
     );
     expect(codesFor("packages/db/drizzle.config.ts")).not.toContain(
@@ -124,11 +131,14 @@ describe("lint config wiring", (): void => {
 });
 
 describe("database boundary wiring", (): void => {
-  it("allows packages/db only in apps/web/server and apps/cron", (): void => {
-    expect(codesFor("apps/web/server/database.ts")).not.toContain(
+  it("allows packages/db only in web auth setup and apps/cron", (): void => {
+    expect(codesFor("apps/web/lib/auth.ts")).not.toContain(
       "eslint(no-restricted-imports)",
     );
     expect(codesFor("apps/cron/src/jobs.ts")).not.toContain(
+      "eslint(no-restricted-imports)",
+    );
+    expect(codesFor("apps/web/controllers/auth.controller.ts")).toContain(
       "eslint(no-restricted-imports)",
     );
   });

@@ -51,42 +51,45 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
 ## Import boundaries
 
 - `packages/db` (and `drizzle-orm`, `pg`) may be imported only from
-  `apps/web/server/**` and `apps/cron/src/**`. Pages, features, `worker/`,
-  `packages/ui`, `packages/auth` and `packages/shared` reach data through
-  `apps/web/server`.
+  `apps/web/lib/auth.ts` and `apps/cron/src/**`. Pages, feature UI,
+  `packages/ui`, `packages/auth` and `packages/shared` reach data through the
+  web API.
 - `packages/ui` must never import `packages/db`, `packages/auth`, or app code.
 - `packages/auth` builds Better Auth from settings and a database adapter that
-  `apps/web/server/auth.ts` creates; it never imports `packages/db`.
+  `apps/web/lib/auth.ts` creates; it never imports `packages/db`.
 - `packages/shared` imports no other workspace code. Packages never import
   `apps/*`; `apps/web` and `apps/cron` never import each other.
 - Inside `apps/web`: `app/` holds only Next.js route and metadata files; only
   `app/` imports `app/`; features do not import other features; feature UI never
-  imports `packages/db`, `packages/auth`, or `apps/web/server`.
+  imports `packages/db` or `packages/auth`.
 
 ## vinext and Workers
 
 - Write standard Next.js App Router code under `apps/web/app/`. Check vinext's
   docs before relying on a Next.js feature it may not support yet.
-- `apps/web/worker/index.ts` is the Worker entry and hands every request to
-  vinext. `/api/*` reaches the Hono app (`apps/web/server/app.ts`, basePath
-  `/api`) through one catch-all route handler,
-  `apps/web/app/api/[[...route]]/route.ts`, which exports
-  GET/POST/PUT/PATCH/DELETE/OPTIONS as `handleApiRequest`.
-- Add API routes only under `apps/web/server/routes/` and mount them in
-  `server/app.ts`. `bun run check:architecture` rejects any other file under
-  `apps/web/app/api/`, so feature route handlers are not allowed.
-- The route handler has no Hono context, so it gets the Worker bindings from
-  `getBindings()` (`apps/web/server/bindings.ts`); Hono routes use `c.env`.
+- `apps/web/wrangler.jsonc` `main` points at `vinext/server/fetch-handler`,
+  vinext's Worker entry (it resolves to the App Router handler). `/api/*`
+  reaches the Hono app created in `apps/web/app/api/[[...route]]/route.ts`,
+  which exports GET/POST/PUT/PATCH/DELETE/OPTIONS as `handleApiRequest`.
+- Put domain Hono routers in `apps/web/controllers/<domain>.controller.ts` and
+  domain services in `apps/web/services/`. The catch-all `route.ts` creates the
+  root Hono app and registers controllers with `.route()`.
+  `bun run check:architecture` rejects any other file under `apps/web/app/api/`,
+  so feature route handlers are not allowed.
+- The catch-all route reads Worker bindings from `cloudflare:workers` because it
+  creates the root Hono app outside a Hono context; controllers use `c.env`.
 - Bindings and plain vars live in each app's `wrangler.jsonc`.
   `vp run -r typegen` writes `worker-configuration.d.ts` (gitignored) from it.
-- Read settings only through `readWebEnv()` (`apps/web/server/env.ts`) or
+- Read settings only through `readWebEnv()` (`apps/web/lib/env.ts`) or
   `readCronEnv()` (`apps/cron/src/env.ts`). The `env-access/no-direct-env` rule
   rejects `process.env`, `import.meta.env` and `cloudflare:workers` `env`
-  elsewhere, except `apps/web/server/bindings.ts`, `*.config.ts` and `tooling/`.
+  elsewhere, except `apps/web/app/api/[[...route]]/route.ts`, `*.config.ts` and
+  `tooling/`.
 - To add a setting, add it to the env schema, `.env.example` (fake value) and,
-  for a plain value, `wrangler.jsonc` vars. Secrets go in `.dev.vars` locally
-  and `wrangler secret put` in production. `bun run check:env` fails when the
-  schemas and `.env.example` drift. Never commit a real secret.
+  for a plain value, `wrangler.jsonc` vars. Web local settings go in
+  `apps/web/.env.local`; cron local settings go in `apps/cron/.dev.vars`.
+  Production secrets go in `wrangler secret put`. `bun run check:env` fails when
+  the schemas and `.env.example` drift. Never commit a real secret.
 
 ## Code conventions
 
@@ -108,8 +111,8 @@ here only with its enforcer and a test that proves it catches a violation.
 
 | Rule                                                                                             | Enforcer                                                                                                 | Test                                              |
 | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| `packages/db`, `drizzle-orm`, `pg` only from `apps/web/server/**`, `apps/cron/src/**`            | oxlint `no-restricted-imports` (`tooling/lint/next-app.ts`) and dependency-cruiser                       | `lint-config.test.ts`, `dependency-rules.test.ts` |
-| `packages/ui` never imports `packages/db`, `packages/auth`, or server code                       | dependency-cruiser `ui-not-to-database`, `ui-only-to-shared` + oxlint                                    | `dependency-rules.test.ts`                        |
+| `packages/db`, `drizzle-orm`, `pg` only from web auth setup and cron                             | oxlint `no-restricted-imports` (`tooling/lint/next-app.ts`) and dependency-cruiser                       | `lint-config.test.ts`, `dependency-rules.test.ts` |
+| `packages/ui` never imports `packages/db`, `packages/auth`, or app code                          | dependency-cruiser `ui-not-to-database`, `ui-only-to-shared` + oxlint                                    | `dependency-rules.test.ts`                        |
 | Packages never import apps; apps never import each other; `shared` imports no workspace code     | dependency-cruiser                                                                                       | `dependency-rules.test.ts`                        |
 | Every `@grabbin/*` import resolves (declared dependency)                                         | dependency-cruiser `workspace-imports-must-resolve`                                                      | `dependency-rules.test.ts`                        |
 | Approved workspace packages, root folders, one config file per expected path                     | `tooling/architecture/check.ts`                                                                          | `check.test.ts`                                   |
@@ -123,8 +126,8 @@ here only with its enforcer and a test that proves it catches a violation.
 | `app/api/` holds only `[[...route]]/route.ts` (the Hono handler); no other API route handlers    | `tooling/next-app/route-files.ts`                                                                        | `route-files.test.ts`                             |
 | `"use client"`/`"use server"` only at the top; no inline server actions; no success-flag effects | `next-app/*` rules                                                                                       | `next-app-rules.test.ts`                          |
 | Server-only modules import `server-only`; no `"use client"` module reaches them                  | `checkServerOnlyMarkers`, `tooling/next-app/client-boundary.ts`                                          | `client-boundary.test.ts`                         |
-| Env reads only in the app `env.ts` files, `server/bindings.ts`, `*.config.ts`, `tooling/`        | `env-access/no-direct-env`                                                                               | `env-access.test.ts`, `lint-config.test.ts`       |
-| `fetch` only in `features/<domain>/api.ts`, `apps/web/server/**`, `apps/cron/src/**`             | oxlint `no-restricted-globals`                                                                           | `lint-config.test.ts`                             |
+| Env reads only in app `env.ts`, the API route, `*.config.ts` and `tooling/`                      | `env-access/no-direct-env`                                                                               | `env-access.test.ts`, `lint-config.test.ts`       |
+| `fetch` only in `features/<domain>/api.ts`, the web API route, `apps/cron/src/**`                | oxlint `no-restricted-globals`                                                                           | `lint-config.test.ts`                             |
 | Naming (PascalCase types, hook names, kebab files), no `.js` sources, test file names            | `codebase/*`, `react-codebase/*`, `testing/*`, `unicorn/filename-case`                                   | `naming/__tests__`, `testing.test.ts`             |
 | Next.js core-web-vitals, React Compiler and TanStack Query rules                                 | oxlint `nextjs`, `react`, `@tanstack/query`, `query/*`                                                   | `query.test.ts`                                   |
 | Type errors anywhere                                                                             | `vp check` (type-aware lint with `typeCheck`) and `vp run -r typecheck`                                  | —                                                 |

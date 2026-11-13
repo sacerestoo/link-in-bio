@@ -1,17 +1,12 @@
 import "server-only";
+import { readWebEnv } from "@/lib/env";
 import { createAuth, type Auth } from "@grabbin/auth";
-import { schema } from "@grabbin/db";
+import { createDatabase, schema } from "@grabbin/db";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { getDatabase } from "./database";
-import { readWebEnv } from "./env";
 
-/**
- * Builds Better Auth for one request. Returns undefined until
- * BETTER_AUTH_SECRET is set, so local dev runs without auth configured.
- */
-export const getAuth = (bindings: Readonly<Env>): Auth | undefined => {
+export const getAuth = (bindings: Readonly<Env>): Auth => {
   const settings = readWebEnv(bindings);
-  if (settings.BETTER_AUTH_SECRET === undefined) return undefined;
+
   const creem =
     settings.CREEM_API_KEY !== undefined &&
     settings.CREEM_WEBHOOK_SECRET !== undefined
@@ -21,13 +16,14 @@ export const getAuth = (bindings: Readonly<Env>): Auth | undefined => {
           testMode: settings.CREEM_TEST_MODE,
         }
       : undefined;
+
   return createAuth({
     baseURL: settings.BETTER_AUTH_URL,
     secret: settings.BETTER_AUTH_SECRET,
-    database: drizzleAdapter(getDatabase(bindings), {
-      provider: "pg",
-      schema,
-    }),
+    database: drizzleAdapter(
+      createDatabase(bindings.HYPERDRIVE.connectionString),
+      { provider: "pg", schema },
+    ),
     ...(creem === undefined ? {} : { creem }),
   });
 };

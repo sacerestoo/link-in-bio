@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@creem_io/better-auth": "^2.0.5",
-    "better-auth": "^1.7.22",
-    "server-only": "0.0.1"
+    "better-auth": "catalog:",
+    "server-only": "catalog:"
   }
 }

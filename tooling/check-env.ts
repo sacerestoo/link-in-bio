@@ -1,52 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import * as v from "valibot";
 import { cronEnvSchema } from "../apps/cron/src/env.ts";
-import { webEnvSchema } from "../apps/web/server/env.ts";
-
-type EnvEntry = { value: string };
-
-function parseValue(rawValue: string): { valid: boolean; value: string } {
-  const trimmed = rawValue.trim();
-  const quote = trimmed[0];
-  if (quote === "'" || quote === '"') {
-    const closingQuote = trimmed.indexOf(quote, 1);
-    if (closingQuote < 0) return { valid: false, value: "" };
-    const trailing = trimmed.slice(closingQuote + 1).trim();
-    return {
-      valid: trailing === "" || trailing.startsWith("#"),
-      value: trimmed.slice(1, closingQuote),
-    };
-  }
-  return { valid: true, value: (trimmed.split("#", 1)[0] ?? "").trim() };
-}
-
-function readDotenvEntries(
-  source: string,
-  label: string,
-): Map<string, EnvEntry> {
-  const entries = new Map<string, EnvEntry>();
-  for (const [index, line] of source.split(/\r?\n/u).entries()) {
-    const trimmed = line.trim();
-    if (trimmed === "" || trimmed.startsWith("#")) continue;
-    const match = /^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/u.exec(
-      trimmed,
-    );
-    if (!match)
-      throw new Error(`${label} has an invalid entry on line ${index + 1}.`);
-    const name = match[1];
-    const rawValue = match[2];
-    if (name === undefined || rawValue === undefined || entries.has(name)) {
-      throw new Error(
-        `${label} has a duplicate or invalid key on line ${index + 1}.`,
-      );
-    }
-    const parsed = parseValue(rawValue);
-    if (!parsed.valid)
-      throw new Error(`${label} has an invalid value on line ${index + 1}.`);
-    entries.set(name, { value: parsed.value });
-  }
-  return entries;
-}
+import { webEnvSchema } from "../apps/web/lib/env.ts";
+import { readDotenvEntries } from "./dotenv.ts";
 
 const root = new URL("../", import.meta.url);
 const read = (path: string): string | undefined => {
@@ -75,7 +31,7 @@ if (exampleSource === undefined) {
   const missing = [...schemaNames].filter((name) => !names.has(name));
   if (extra.length > 0) {
     errors.push(
-      `Not declared in apps/web/server/env.ts or apps/cron/src/env.ts: ${extra.join(", ")}`,
+      `Not declared in apps/web/lib/env.ts or apps/cron/src/env.ts: ${extra.join(", ")}`,
     );
   }
   if (missing.length > 0) {
@@ -86,25 +42,26 @@ if (exampleSource === undefined) {
 // Validate local Worker settings with the same schemas the apps use at
 // runtime. Report key names and issue kinds only, never the values.
 const localFiles = [
-  { path: "apps/web/.dev.vars", schema: webEnvSchema },
-  { path: "apps/cron/.dev.vars", schema: cronEnvSchema },
+  {
+    path: "apps/web/.env.local",
+    schema: webEnvSchema,
+    allowedNames: schemaNames,
+  },
+  {
+    path: "apps/cron/.dev.vars",
+    schema: cronEnvSchema,
+    allowedNames: new Set(Object.keys(cronEnvSchema.entries)),
+  },
 ] as const;
-for (const { path, schema } of localFiles) {
+for (const { path, schema, allowedNames } of localFiles) {
   const source = read(path);
   if (source === undefined) continue;
   const entries = readDotenvEntries(source, path);
-  const extra = [...entries.keys()].filter(
-    (name) => !Object.hasOwn(schema.entries, name),
-  );
-  const empty = [...entries]
-    .filter(([, entry]) => entry.value.trim() === "")
-    .map(([name]) => name);
+  const extra = [...entries.keys()].filter((name) => !allowedNames.has(name));
   const result = v.safeParse(
     v.partial(schema),
     Object.fromEntries(
-      [...entries]
-        .filter(([, entry]) => entry.value.trim() !== "")
-        .map(([name, entry]) => [name, entry.value]),
+      [...entries].map(([name, entry]) => [name, entry.value]),
     ),
   );
   if (!result.success) {
@@ -115,11 +72,6 @@ for (const { path, schema } of localFiles) {
   }
   if (extra.length > 0) {
     errors.push(`Not declared for ${path}: ${extra.join(", ")}`);
-  }
-  if (empty.length > 0) {
-    errors.push(
-      `Empty values in ${path} (remove the line to leave a key unset): ${empty.join(", ")}`,
-    );
   }
 }
 
