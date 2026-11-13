@@ -2,11 +2,13 @@
 
 Link-in-bio service, rebuilt as a [Vite+](https://viteplus.dev) (`vp`) monorepo
 for Cloudflare Workers. The previous implementation lives on the `v1` branch
-(reference only; see `AGENTS.md`).
+(reference for UI copy, layout and visual design only; see `AGENTS.md`).
 
 - `apps/web`: [vinext](https://github.com/cloudflare/vinext) (Next.js App Router
-  on Vite) with a Hono API under `/api/*`, served by one Worker.
-- `apps/cron`: a Worker with a daily `scheduled` handler.
+  on Vite) with a Hono API under `/api/*` (via one catch-all route handler),
+  served by one Worker.
+- `apps/cron`: a Worker with a `scheduled` handler, daily at 06:00 UTC (15:00
+  KST).
 - `packages/db` (Drizzle), `packages/auth` (Better Auth + Creem), `packages/ui`
   (shadcn), `packages/shared` (types and schemas).
 

@@ -5,8 +5,8 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "./src/index.ts",
   "observability": { "enabled": true },
-  // Daily at 00:00 UTC (09:00 Asia/Seoul).
-  "triggers": { "crons": ["0 0 * * *"] },
+  // Daily at 06:00 UTC (15:00 Asia/Seoul).
+  "triggers": { "crons": ["0 6 * * *"] },
   // Placeholder Hyperdrive id; see apps/web/wrangler.jsonc.
   "hyperdrive": [
     {

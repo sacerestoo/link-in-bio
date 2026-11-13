@@ -62,7 +62,7 @@ tester.run("no-direct-env", envAccessPlugin.rules["no-direct-env"], {
   ],
 });
 
-it("enables the rule everywhere except the app env.ts files, config files, and tooling", () => {
+it("enables the rule everywhere except the app env.ts files, server bindings, config files, and tooling", () => {
   const config = createLintConfig({
     react: false,
     vitePlus: false,
@@ -73,6 +73,7 @@ it("enables the rule everywhere except the app env.ts files, config files, and t
   expect(config.overrides).toContainEqual({
     files: [
       "apps/web/server/env.ts",
+      "apps/web/server/bindings.ts",
       "apps/cron/src/env.ts",
       "**/*.config.ts",
       "tooling/**",

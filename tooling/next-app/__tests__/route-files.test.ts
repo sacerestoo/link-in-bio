@@ -10,6 +10,8 @@ const config: NextAppConfig = {
   appDirectory: "app",
   appRootFiles: ["providers.tsx", "globals.css"],
   proxyFile: "proxy.ts",
+  apiDirectory: "app/api",
+  apiRouteFile: "app/api/[[...route]]/route.ts",
   generatedDirectories: ["node_modules"],
 };
 
@@ -26,12 +28,34 @@ const validAppFiles = [
   "app/items/[itemId]/opengraph-image.tsx",
   "app/docs/[[...slug]]/page.tsx",
   "app/@modal/default.tsx",
-  "app/api/auth/[...all]/route.ts",
+  "app/api/[[...route]]/route.ts",
   "app/sitemap.ts",
   "proxy.ts",
 ] as const;
 
 afterEach(removeFixtures);
+
+describe("checkNextAppShape app/api", (): void => {
+  it("allows only the catch-all Hono handler under app/api", (): void => {
+    const { root, write } = createFixture("next-app-");
+    write("app/api/[[...route]]/route.ts");
+    write("app/api/auth/[...all]/route.ts");
+    write("app/api/health/route.ts");
+    write("app/api/page.tsx");
+
+    const removed = checkNextAppShape(root, config).map(
+      (error) => /^Remove (\S+):/u.exec(error)?.[1],
+    );
+    expect(new Set(removed)).toEqual(
+      new Set([
+        "app/api/auth/[...all]/route.ts",
+        "app/api/health/route.ts",
+        "app/api/page.tsx",
+      ]),
+    );
+    expect(removed).toHaveLength(3);
+  });
+});
 
 describe("checkNextAppShape", (): void => {
   it("accepts App Router route, metadata, and root files", (): void => {
