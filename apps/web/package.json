@@ -18,21 +18,21 @@
     "@grabbin/db": "workspace:*",
     "@grabbin/shared": "workspace:*",
     "@grabbin/ui": "workspace:*",
-    "better-auth": "^1.7.22",
+    "better-auth": "catalog:",
     "hono": "^4.13.18",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-server-dom-webpack": "^19.3.1",
-    "server-only": "0.0.1",
-    "valibot": "^1.5.0",
-    "vinext": "1.4.5"
+    "server-only": "catalog:",
+    "valibot": "catalog:",
+    "vinext": "catalog:"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "1.69.1",
-    "@cloudflare/workers-types": "^5.20261113.1",
+    "@cloudflare/vite-plugin": "catalog:",
+    "@cloudflare/workers-types": "catalog:",
     "@tailwindcss/vite": "^4.3.5",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "^6.3.0",
     "@vitejs/plugin-rsc": "^0.5.39"
   }
