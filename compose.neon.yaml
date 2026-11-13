@@ -1,0 +1,9 @@
+services:
+  neon-local:
+    image: neondatabase/neon_local:latest
+    ports:
+      - "127.0.0.1:15433:5432"
+    environment:
+      NEON_API_KEY: ${NEON_API_KEY:?Set NEON_API_KEY in .env.local}
+      NEON_PROJECT_ID: ${NEON_PROJECT_ID:?Set NEON_PROJECT_ID in .env.local}
+      BRANCH_ID: ${NEON_DEV_BRANCH_ID:?Set NEON_DEV_BRANCH_ID in .env.local}

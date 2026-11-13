@@ -13,4 +13,4 @@
   directly because it creates the root Hono app outside a Hono context.
 - Local dev: `vp dev` from here (or `bun run dev` at the root) on
   http://localhost:3000. Put local settings in `apps/web/.env.local`
-  (gitignored), names from `.env.example`.
+  (gitignored), names from `apps/web/.env.example`.

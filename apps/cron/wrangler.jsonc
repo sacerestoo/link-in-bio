@@ -3,17 +3,20 @@
   "name": "grabbin-cron",
   "compatibility_date": "2026-11-13",
   "compatibility_flags": ["nodejs_compat"],
+  "placement": { "region": "aws:ap-southeast-1" },
   "main": "./src/index.ts",
   "observability": { "enabled": true },
   // Daily at 06:00 UTC (15:00 Asia/Seoul).
   "triggers": { "crons": ["0 6 * * *"] },
-  // Production uses the existing grabbin Hyperdrive; local dev connects to
-  // the Supabase database running in Docker.
+  // Replace this existing Hyperdrive with the Neon production branch.
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
       "id": "dd7809a8db2a4b69aa50dcc5f0bfdb5f",
-      "localConnectionString": "postgres://postgres:postgres@127.0.0.1:54322/postgres",
+      "localConnectionString": "postgres://neon:npg@127.0.0.1:15433/neondb?sslmode=no-verify",
     },
   ],
+  "r2_buckets": [{ "binding": "R2_BUCKET", "bucket_name": "grabbin" }],
+  // Local settings and secrets go in .env.local; production secrets use
+  // `wrangler secret put`.
 }

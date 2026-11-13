@@ -10,32 +10,40 @@ const read = (path: string): string | undefined => {
   return existsSync(url) ? readFileSync(url, "utf8") : undefined;
 };
 
-// DATABASE_URL is for drizzle-kit (packages/db/drizzle.config.ts), not a
-// Worker setting.
-const schemaNames = new Set([
-  ...Object.keys(webEnvSchema.entries),
-  ...Object.keys(cronEnvSchema.entries),
+const rootNames = new Set([
+  "NEON_API_KEY",
+  "NEON_PROJECT_ID",
+  "NEON_DEV_BRANCH_ID",
+  "NEON_RUNTIME_ROLE_PASSWORD",
   "DATABASE_URL",
 ]);
 const errors: string[] = [];
 
-// .env.example must list exactly the settings the env schemas declare.
-const exampleSource = read(".env.example");
-if (exampleSource === undefined) {
-  errors.push("Add .env.example with every setting name.");
-} else {
-  const names = new Set(
-    readDotenvEntries(exampleSource, ".env.example").keys(),
-  );
-  const extra = [...names].filter((name) => !schemaNames.has(name));
-  const missing = [...schemaNames].filter((name) => !names.has(name));
+const examples = [
+  { path: ".env.example", names: rootNames },
+  {
+    path: "apps/web/.env.example",
+    names: new Set(Object.keys(webEnvSchema.entries)),
+  },
+  {
+    path: "apps/cron/.env.example",
+    names: new Set(Object.keys(cronEnvSchema.entries)),
+  },
+] as const;
+for (const { path, names: expectedNames } of examples) {
+  const source = read(path);
+  if (source === undefined) {
+    errors.push(`Add ${path} with every setting name.`);
+    continue;
+  }
+  const names = new Set(readDotenvEntries(source, path).keys());
+  const extra = [...names].filter((name) => !expectedNames.has(name));
+  const missing = [...expectedNames].filter((name) => !names.has(name));
   if (extra.length > 0) {
-    errors.push(
-      `Not declared in apps/web/lib/env.ts or apps/cron/src/env.ts: ${extra.join(", ")}`,
-    );
+    errors.push(`Not declared for ${path}: ${extra.join(", ")}`);
   }
   if (missing.length > 0) {
-    errors.push(`Missing from .env.example: ${missing.join(", ")}`);
+    errors.push(`Missing from ${path}: ${missing.join(", ")}`);
   }
 }
 
@@ -45,10 +53,10 @@ const localFiles = [
   {
     path: "apps/web/.env.local",
     schema: webEnvSchema,
-    allowedNames: schemaNames,
+    allowedNames: new Set(Object.keys(webEnvSchema.entries)),
   },
   {
-    path: "apps/cron/.dev.vars",
+    path: "apps/cron/.env.local",
     schema: cronEnvSchema,
     allowedNames: new Set(Object.keys(cronEnvSchema.entries)),
   },

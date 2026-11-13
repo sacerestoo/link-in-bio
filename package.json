@@ -10,8 +10,11 @@
   "scripts": {
     "check": "bun run typegen && vp check && bun run check:architecture",
     "check:architecture": "bun run tooling/check-architecture.ts",
+    "check:bundle": "wrangler deploy --dry-run --config apps/web/dist/server/wrangler.json && wrangler deploy --dry-run --config apps/cron/dist/grabbin_cron/wrangler.json",
     "check:env": "bun --conditions=react-server tooling/check-env.ts",
     "check:fix": "vp lint --fix && vp fmt .",
+    "db:local": "docker compose --env-file .env.local -f compose.neon.yaml up -d",
+    "db:local:stop": "docker compose --env-file .env.local -f compose.neon.yaml down",
     "dev": "vp -C apps/web dev",
     "dev:cron": "vp -C apps/cron dev",
     "lint": "vp lint",
@@ -19,7 +22,7 @@
     "push:checked": "bun run tooling/push-checked.ts",
     "typecheck": "tsc -p tsconfig.json",
     "typegen": "vp run --no-cache -r typegen",
-    "verify": "bun run check && bun run check:env && vp run -r typecheck && vp run -r test && vp run -r build"
+    "verify": "bun run check && bun run check:env && vp run -r typecheck && vp run -r test && vp run -r build && bun run check:bundle"
   },
   "devDependencies": {
     "@tanstack/eslint-plugin-query": "^5.107.1",

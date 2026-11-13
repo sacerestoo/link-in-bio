@@ -85,11 +85,14 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
   rejects `process.env`, `import.meta.env` and `cloudflare:workers` `env`
   elsewhere, except `apps/web/app/api/[[...route]]/route.ts`, `*.config.ts` and
   `tooling/`.
-- To add a setting, add it to the env schema, `.env.example` (fake value) and,
-  for a plain value, `wrangler.jsonc` vars. Web local settings go in
-  `apps/web/.env.local`; cron local settings go in `apps/cron/.dev.vars`.
-  Production secrets go in `wrangler secret put`. `bun run check:env` fails when
-  the schemas and `.env.example` drift. Never commit a real secret.
+- Keep fake examples next to their use: Neon Local and Drizzle Kit settings in
+  the root `.env.example`, web settings in `apps/web/.env.example`, and cron
+  settings in `apps/cron/.env.example`. Put real local values in the matching
+  `.env.local` file. Never copy `NEON_API_KEY` into an app env file.
+- To add an app setting, update its env schema and matching `.env.example`; for
+  a plain Worker value, also update `wrangler.jsonc` vars. Production secrets go
+  in `wrangler secret put`. `bun run check:env` fails when schemas and their
+  examples drift. Never commit a real secret.
 
 ## Code conventions
 
