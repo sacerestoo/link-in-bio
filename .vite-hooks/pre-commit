@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+vp staged
+bun run check:fix
+vp staged
+bun run check
+bun run check:env

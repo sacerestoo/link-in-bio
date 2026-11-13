@@ -1,0 +1,18 @@
+#!/bin/sh
+
+set -e
+
+if [ -n "$(git status --porcelain)" ]; then
+  echo "Commit or stash local changes before pushing."
+  exit 1
+fi
+
+vp run -r test
+bun run check:fix
+
+if [ -n "$(git status --porcelain)" ]; then
+  echo "Quality fixes changed files. Commit them, then run push again."
+  exit 1
+fi
+
+vp run -r build

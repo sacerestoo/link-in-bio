@@ -1,0 +1,36 @@
+import type { ComponentProps, ReactElement } from "react";
+import { cn } from "@grabbin/ui/lib/utils";
+
+type LoadingProps = Omit<ComponentProps<"span">, "children">;
+
+export default function Loading({
+  className,
+  ...props
+}: Readonly<LoadingProps>): ReactElement {
+  return (
+    <span
+      role="status"
+      className={cn("box-border inline-block size-5", className)}
+      {...props}
+    >
+      <span
+        aria-hidden="true"
+        className="relative top-1/2 left-1/2 block size-full"
+      >
+        {[...Array.from({ length: 12 }).keys()].map((index): ReactElement => (
+          <span
+            key={index}
+            className="absolute top-[-3.9%] left-[-10%] block h-[8%] w-[24%] rounded-(--radius) bg-current"
+            style={{
+              transform: `rotate(${index * 30}deg) translate(146%)`,
+              animation:
+                "loading-ui-classic-fade var(--duration, 1.2s) linear infinite",
+              animationDelay: `calc(var(--duration, 1.2s) / 12 * ${index - 12})`,
+            }}
+          />
+        ))}
+      </span>
+      <span className="sr-only">Loading</span>
+    </span>
+  );
+}

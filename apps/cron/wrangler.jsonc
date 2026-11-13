@@ -1,0 +1,18 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "grabbin-cron",
+  "compatibility_date": "2026-11-13",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "./src/index.ts",
+  "observability": { "enabled": true },
+  // Daily at 00:00 UTC (09:00 Asia/Seoul).
+  "triggers": { "crons": ["0 0 * * *"] },
+  // Placeholder Hyperdrive id; see apps/web/wrangler.jsonc.
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "00000000000000000000000000000000",
+      "localConnectionString": "postgres://postgres:postgres@127.0.0.1:5432/grabbin",
+    },
+  ],
+}

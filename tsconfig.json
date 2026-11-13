@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["bun"]
+  },
+  "include": ["tooling/**/*.ts", "vite.config.ts", ".dependency-cruiser.ts"],
+  "exclude": ["node_modules", "**/dist"]
+}

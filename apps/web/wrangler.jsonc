@@ -1,0 +1,28 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "grabbin-web",
+  "compatibility_date": "2026-11-13",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "./worker/index.ts",
+  "assets": {
+    "not_found_handling": "none",
+    "binding": "ASSETS",
+  },
+  "observability": { "enabled": true },
+  "vars": {
+    "BETTER_AUTH_URL": "https://grabbin.me",
+    "CREEM_TEST_MODE": "true",
+  },
+  // Placeholder Hyperdrive id. Create the real config once (dashboard or
+  // `wrangler hyperdrive create`) and replace it. localConnectionString is a
+  // local Postgres for `vp dev`, not a production credential.
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "00000000000000000000000000000000",
+      "localConnectionString": "postgres://postgres:postgres@127.0.0.1:5432/grabbin",
+    },
+  ],
+  // Secrets (set with `wrangler secret put`, locally in .dev.vars):
+  // BETTER_AUTH_SECRET, CREEM_API_KEY, CREEM_WEBHOOK_SECRET
+}

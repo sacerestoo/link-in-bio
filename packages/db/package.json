@@ -1,0 +1,27 @@
+{
+  "name": "@grabbin/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/client.ts",
+    "./schema/*": "./src/schema/*.ts",
+    "./queries/*": "./src/queries/*.ts"
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "lint": "vp lint",
+    "test": "vp test run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.4",
+    "pg": "^8.23.1",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "^0.31.11"
+  }
+}

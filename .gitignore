@@ -1,0 +1,20 @@
+# dependencies
+node_modules
+
+# env files
+.env
+.env.*
+!.env.example
+.dev.vars*
+
+# build output
+.next
+next-env.d.ts
+dist/
+.vinext/
+.cloudflare/
+.wrangler/
+*.tsbuildinfo
+.DS_Store
+.vitest/
+worker-configuration.d.ts

@@ -1,0 +1,20 @@
+{
+  "name": "@grabbin/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./creem": "./src/creem.ts"
+  },
+  "scripts": {
+    "lint": "vp lint",
+    "test": "vp test run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@creem_io/better-auth": "^2.0.5",
+    "better-auth": "^1.7.22",
+    "server-only": "0.0.1"
+  }
+}

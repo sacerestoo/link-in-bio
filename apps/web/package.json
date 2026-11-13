@@ -1,0 +1,39 @@
+{
+  "name": "@grabbin/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vp build",
+    "deploy": "vp build && wrangler deploy --config dist/server/wrangler.json",
+    "dev": "vp dev",
+    "lint": "vp lint",
+    "preview": "vp preview",
+    "test": "vp test run",
+    "typecheck": "tsc -p tsconfig.json",
+    "typegen": "wrangler types --include-runtime=false"
+  },
+  "dependencies": {
+    "@grabbin/auth": "workspace:*",
+    "@grabbin/db": "workspace:*",
+    "@grabbin/shared": "workspace:*",
+    "@grabbin/ui": "workspace:*",
+    "better-auth": "^1.7.22",
+    "hono": "^4.13.18",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-server-dom-webpack": "^19.3.1",
+    "server-only": "0.0.1",
+    "valibot": "^1.5.0",
+    "vinext": "1.4.5"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.69.1",
+    "@cloudflare/workers-types": "^5.20261113.1",
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.3.0",
+    "@vitejs/plugin-rsc": "^0.5.39"
+  }
+}

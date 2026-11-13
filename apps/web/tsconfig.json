@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": [
+      "vinext/types",
+      "vite/client",
+      "@cloudflare/workers-types",
+      "./worker-configuration.d.ts"
+    ],
+    "paths": {
+      "@/*": ["./*"],
+      "@grabbin/ui/*": ["../../packages/ui/src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "dist", ".vinext", ".wrangler"]
+}
