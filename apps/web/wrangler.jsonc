@@ -13,14 +13,13 @@
     "BETTER_AUTH_URL": "https://grabbin.me",
     "CREEM_TEST_MODE": "true",
   },
-  // Placeholder Hyperdrive id. Create the real config once (dashboard or
-  // `wrangler hyperdrive create`) and replace it. localConnectionString is a
-  // local Postgres for `vp dev`, not a production credential.
+  // Production uses the existing grabbin Hyperdrive; local dev connects to
+  // the Supabase database running in Docker.
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
-      "id": "00000000000000000000000000000000",
-      "localConnectionString": "postgres://postgres:postgres@127.0.0.1:5432/grabbin",
+      "id": "dd7809a8db2a4b69aa50dcc5f0bfdb5f",
+      "localConnectionString": "postgres://postgres:postgres@127.0.0.1:54322/postgres",
     },
   ],
   // Secrets (set with `wrangler secret put`; locally in .env.local):

@@ -7,12 +7,13 @@
   "observability": { "enabled": true },
   // Daily at 06:00 UTC (15:00 Asia/Seoul).
   "triggers": { "crons": ["0 6 * * *"] },
-  // Placeholder Hyperdrive id; see apps/web/wrangler.jsonc.
+  // Production uses the existing grabbin Hyperdrive; local dev connects to
+  // the Supabase database running in Docker.
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
-      "id": "00000000000000000000000000000000",
-      "localConnectionString": "postgres://postgres:postgres@127.0.0.1:5432/grabbin",
+      "id": "dd7809a8db2a4b69aa50dcc5f0bfdb5f",
+      "localConnectionString": "postgres://postgres:postgres@127.0.0.1:54322/postgres",
     },
   ],
 }

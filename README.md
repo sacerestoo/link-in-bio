@@ -19,8 +19,9 @@ for Cloudflare Workers. The previous implementation lives on the `v1` branch
 2. For local settings, create `apps/web/.env.local` (and `apps/cron/.dev.vars`
    if needed) with names from `.env.example`, then run `bun run check:env`.
    Never commit real values.
-3. Replace the placeholder Hyperdrive id in both `wrangler.jsonc` files before
-   the first deploy.
+3. The web and cron Workers already use the existing `grabbin` Hyperdrive config
+   for deployment. Local Wrangler development connects directly to Supabase
+   Local on `127.0.0.1:54322`.
 
 ## Scripts
 
