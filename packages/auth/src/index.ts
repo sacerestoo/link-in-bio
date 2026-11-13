@@ -7,7 +7,7 @@ export type AuthSettings = Readonly<{
   baseURL: string;
   secret: string;
   /**
-   * Built by the caller (apps/web/server) with drizzleAdapter, so this package
+   * Built by apps/web/lib/auth.ts with drizzleAdapter, so this package
    * never imports packages/db.
    */
   database: ReturnType<typeof drizzleAdapter>;

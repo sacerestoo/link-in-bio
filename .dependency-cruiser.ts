@@ -12,8 +12,9 @@ const directory = (key: keyof typeof architectureDirectories): string =>
   escapePattern(architectureDirectories[key]);
 
 const appPath = directory("app");
+const controllerPath = directory("controllers");
 const featurePath = directory("features");
-const serverPath = directory("server");
+const servicePath = directory("services");
 const cronPath = directory("cron");
 const databasePath = directory("db");
 const authPath = directory("auth");
@@ -32,7 +33,7 @@ export default {
     {
       name: "database-modules-only-from-configured-boundary",
       comment:
-        "packages/db, pg and drizzle-orm may only be imported by apps/web/server/** and apps/cron/src/**.",
+        "packages/db, pg and drizzle-orm may only be imported by apps/web/features/auth/service.ts and apps/cron/src/**.",
       severity: "error",
       from: { pathNot: databaseImporterPath },
       to: { path: databaseModulePath },
@@ -69,11 +70,11 @@ export default {
     {
       name: "ui-only-to-shared",
       comment:
-        "packages/ui renders on the client; it may use packages/shared but not db, auth, or server code.",
+        "packages/ui renders on the client; it may use packages/shared but not db, auth, or app code.",
       severity: "error",
       from: { path: `^${uiPath}/` },
       to: {
-        path: `^(?:${databasePath}|${authPath}|${serverPath}|${cronPath})/`,
+        path: `^(?:${databasePath}|${authPath}|${cronPath})/`,
       },
     },
     {
@@ -119,23 +120,24 @@ export default {
       to: { path: `^${appPath}/` },
     },
     {
-      name: "feature-ui-not-to-server-modules",
+      name: "feature-ui-not-to-data-modules",
       comment:
-        "Feature UI renders on the client; it reaches data through actions.ts or api.ts, never packages/db, packages/auth, or apps/web/server.",
+        "Feature UI renders on the client; it reaches data through actions.ts or api.ts, never packages/db or packages/auth.",
       severity: "error",
       from: { path: `^${featurePath}/[^/]+/ui/` },
       to: {
-        path: `^(?:${databasePath}|${authPath}|${serverPath})/`,
+        path: `^(?:${databasePath}|${authPath})/`,
         dependencyTypesNot: ["type-only"],
       },
     },
     {
       name: "no-orphans-in-web-code",
-      comment: "Feature and server source files should be used by the app.",
+      comment:
+        "Controller, service and feature source files should be used by the app.",
       severity: "error",
       from: {
         orphan: true,
-        path: `^(?:${featurePath}|${serverPath})/`,
+        path: `^(?:${controllerPath}|${servicePath}|${featurePath})/`,
         pathNot: testPath,
       },
       to: {},

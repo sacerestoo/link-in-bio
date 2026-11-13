@@ -16,15 +16,15 @@ for Cloudflare Workers. The previous implementation lives on the `v1` branch
 
 1. Install [Bun](https://bun.sh) 1.4 and Node.js 24 (Vite+ needs `>=22.18`),
    then run `bun install`. This also installs the Git hooks in `.vite-hooks/`.
-2. For local secrets, create `apps/web/.dev.vars` (and `apps/cron/.dev.vars` if
-   needed) with names from `.env.example`, then run `bun run check:env`. Never
-   commit real values.
+2. For local settings, create `apps/web/.env.local` (and `apps/cron/.dev.vars`
+   if needed) with names from `.env.example`, then run `bun run check:env`.
+   Never commit real values.
 3. Replace the placeholder Hyperdrive id in both `wrangler.jsonc` files before
    the first deploy.
 
 ## Scripts
 
-- `bun run dev` starts the web app (vinext + Hono) on <http://127.0.0.1:5173>;
+- `bun run dev` starts the web app (vinext + Hono) on <http://localhost:3000>;
   `bun run dev:cron` starts the cron Worker.
 - `bun run check` generates Worker types, runs `vp check` (format, lint, type
   check) and `check:architecture` (layout rules and dependency-cruiser).

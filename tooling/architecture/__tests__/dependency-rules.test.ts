@@ -10,8 +10,10 @@ const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
 
 const sourceRoots = [
   "apps/web/app",
+  "apps/web/controllers",
   "apps/web/features",
-  "apps/web/server",
+  "apps/web/lib",
+  "apps/web/services",
   "apps/cron/src",
   "packages/db/src",
   "packages/auth/src",
@@ -75,14 +77,12 @@ beforeAll((): void => {
 afterEach(removeFixtures);
 
 describe("dependency-cruiser database boundary", (): void => {
-  it("allows packages/db only from apps/web/server and apps/cron", (): void => {
+  it("allows packages/db only from web auth setup and apps/cron", (): void => {
     const fixture = createFixture("depcruise-db-allowed-");
     writeAll(fixture, {
       "packages/db/src/client.ts": "export const schema = {};\n",
-      "apps/web/server/database.ts":
-        'import { schema } from "@grabbin/db";\nexport const database = schema;\n',
-      "apps/web/app/page.tsx":
-        'import { database } from "@/server/database";\nexport const page = database;\n',
+      "apps/web/lib/auth.ts":
+        'import { schema } from "@grabbin/db";\nexport const service = schema;\n',
       "apps/cron/src/index.ts":
         'import { schema } from "@grabbin/db";\nexport const job = schema;\n',
     });
@@ -90,12 +90,16 @@ describe("dependency-cruiser database boundary", (): void => {
     expect(cruiseViolations(fixture)).toEqual(new Set());
   });
 
-  it("rejects packages/db from pages, packages/ui, and packages/auth", (): void => {
+  it("rejects packages/db outside auth setup, cron, and packages/db", (): void => {
     const fixture = createFixture("depcruise-db-");
     writeAll(fixture, {
       "packages/db/src/client.ts": "export const schema = {};\n",
       "apps/web/app/page.tsx":
         'import { schema } from "@grabbin/db";\nexport const page = schema;\n',
+      "apps/web/app/api/[[...route]]/route.ts":
+        'import { authController } from "@/controllers/auth.controller";\nexport const GET = authController;\n',
+      "apps/web/controllers/auth.controller.ts":
+        'import { schema } from "@grabbin/db";\nexport const authController = schema;\n',
       "packages/ui/src/components/leak.tsx":
         'import { schema } from "@grabbin/db";\nexport const leak = schema;\n',
       "packages/auth/src/index.ts":
@@ -132,7 +136,7 @@ describe("dependency-cruiser layering", (): void => {
     const fixture = createFixture("depcruise-layers-");
     writeAll(fixture, {
       "apps/web/app/layout.tsx": "export const layout = true;\n",
-      "apps/web/server/env.ts": "export const env = true;\n",
+      "apps/web/lib/env.ts": "export const env = true;\n",
       "packages/shared/src/types/leak.ts":
         'import { cn } from "@grabbin/ui/lib/utils";\nexport const leak = cn;\n',
       "packages/ui/src/lib/utils.ts":
@@ -140,9 +144,9 @@ describe("dependency-cruiser layering", (): void => {
       "packages/db/src/client.ts":
         'import { cn } from "@grabbin/ui/lib/utils";\nexport const schema = cn;\n',
       "apps/cron/src/index.ts":
-        'import { env } from "../../web/server/env";\nexport const job = env;\n',
+        'import { env } from "../../web/lib/env";\nexport const job = env;\n',
       "apps/web/features/auth/ui/form.tsx":
-        'import { env } from "@/server/env";\nexport const form = env;\n',
+        'import { schema } from "@grabbin/db";\nexport const form = schema;\n',
     });
 
     expect(cruiseViolations(fixture)).toEqual(
@@ -151,8 +155,9 @@ describe("dependency-cruiser layering", (): void => {
         "apps-not-to-other-apps",
         "shared-not-to-app-code",
         "database-not-to-web-code",
+        "database-modules-only-from-configured-boundary",
         "app-only-from-app",
-        "feature-ui-not-to-server-modules",
+        "feature-ui-not-to-data-modules",
       ]),
     );
   });

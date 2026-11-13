@@ -72,8 +72,8 @@ it("enables the rule everywhere except the app env.ts files, server bindings, co
   expect(config.rules["env-access/no-direct-env"]).toBe("error");
   expect(config.overrides).toContainEqual({
     files: [
-      "apps/web/server/env.ts",
-      "apps/web/server/bindings.ts",
+      "apps/web/lib/env.ts",
+      "apps/web/app/api/**/route.ts",
       "apps/cron/src/env.ts",
       "**/*.config.ts",
       "tooling/**",

@@ -9,12 +9,12 @@ import {
 } from "./naming/ast-utils.ts";
 
 // Files that may read the environment directly. Everything else imports the
-// validated values from the app env.ts (apps/web/server/env.ts,
-// apps/cron/src/env.ts). apps/web/server/bindings.ts hands the Worker
-// bindings to the app/api route handler, which has no Hono context.
+// validated values from the app env.ts (apps/web/lib/env.ts,
+// apps/cron/src/env.ts). The catch-all route reads Worker bindings because it
+// creates the root Hono app outside a Hono context.
 export const envAccessAllowedFiles = [
-  "apps/web/server/env.ts",
-  "apps/web/server/bindings.ts",
+  "apps/web/lib/env.ts",
+  "apps/web/app/api/**/route.ts",
   "apps/cron/src/env.ts",
   "**/*.config.ts",
   "tooling/**",

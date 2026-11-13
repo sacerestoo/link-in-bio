@@ -4,7 +4,7 @@ import {
   architectureDirectories,
 } from "../architecture/paths.ts";
 
-const { app, features, server, cron, db, ui } = architectureDirectories;
+const { app, controllers, features, cron, db, ui } = architectureDirectories;
 
 export const nextAppJsPlugins = [
   { name: "next-app", specifier: "./tooling/lint/next-app-rules.ts" },
@@ -49,7 +49,7 @@ type RestrictedPattern = Readonly<{
 }>;
 
 const databaseBoundaryMessage =
-  "packages/db is server-only: import it only from apps/web/server/** (Hono and server modules) or apps/cron/src/**. Pages, features, packages/ui, packages/auth and packages/shared must reach data through apps/web/server.";
+  "packages/db is server-only: import it only from apps/web/lib/auth.ts or apps/cron/src/**. Pages, feature UI, packages/ui, packages/auth and packages/shared must reach data through the web API.";
 
 // The database layer: the workspace package and the drivers behind it.
 export const databaseImports = ["@grabbin/db", "drizzle-orm", "pg"] as const;
@@ -168,22 +168,22 @@ export const nextAppOverrides = [
   {
     files: [
       `${app}/**/route.ts`,
+      `${controllers}/**`,
       `${features}/*/actions.ts`,
       `${features}/*/api.ts`,
-      `${server}/routes/**`,
       "apps/web/proxy.ts",
     ],
     rules: { "boundary/no-raw-body-read": "error" },
   },
   {
-    // Client code calls Route Handlers from api.ts; server code (Hono, cron)
-    // calls external services directly.
-    files: [`${features}/*/api.ts`, `${server}/**`, `${cron}/**`],
+    // Client code calls Route Handlers from api.ts; Hono and cron call external
+    // services directly.
+    files: [`${features}/*/api.ts`, `${controllers}/**`, `${cron}/**`],
     rules: { "eslint/no-restricted-globals": "off" },
   },
   {
-    // The only places outside packages/db that may import the database layer.
-    files: [`${server}/**`, `${cron}/**`],
+    // Web auth setup and cron are the only app code allowed to import data.
+    files: ["apps/web/lib/auth.ts", `${cron}/**`],
     rules: {
       "eslint/no-restricted-imports": restrictedImportsRule(databaseImports),
     },
