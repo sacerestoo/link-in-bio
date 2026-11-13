@@ -11,7 +11,7 @@
     "check": "bun run typegen && vp check && bun run check:architecture",
     "check:architecture": "bun run tooling/check-architecture.ts",
     "check:env": "bun --conditions=react-server tooling/check-env.ts",
-    "check:fix": "vp fmt .",
+    "check:fix": "vp lint --fix && vp fmt .",
     "dev": "vp -C apps/web dev",
     "dev:cron": "vp -C apps/cron dev",
     "lint": "vp lint",

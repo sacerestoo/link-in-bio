@@ -29,7 +29,8 @@ for Cloudflare Workers. The previous implementation lives on the `v1` branch
   `bun run dev:cron` starts the cron Worker.
 - `bun run check` generates Worker types, runs `vp check` (format, lint, type
   check) and `check:architecture` (layout rules and dependency-cruiser).
-- `bun run check:fix` formats the code.
+- `bun run check:fix` applies safe lint fixes and formats the code. Run
+  `bun run verify` afterward to check for remaining issues.
 - `vp run -r build | test | lint | typecheck` runs a task in every package.
 - `bun run verify` runs everything CI runs.
 - `bun run --cwd packages/db db:generate` / `db:migrate` manage migrations.
