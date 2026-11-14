@@ -11,7 +11,6 @@ const config: NextAppConfig = {
   appRootFiles: ["providers.tsx", "globals.css"],
   proxyFile: "proxy.ts",
   apiDirectory: "app/api",
-  apiRouteFile: "app/api/[[...route]]/route.ts",
   generatedDirectories: ["node_modules"],
 };
 
@@ -28,7 +27,6 @@ const validAppFiles = [
   "app/items/[itemId]/opengraph-image.tsx",
   "app/docs/[[...slug]]/page.tsx",
   "app/@modal/default.tsx",
-  "app/api/[[...route]]/route.ts",
   "app/sitemap.ts",
   "proxy.ts",
 ] as const;
@@ -36,9 +34,8 @@ const validAppFiles = [
 afterEach(removeFixtures);
 
 describe("checkNextAppShape app/api", (): void => {
-  it("allows only the catch-all Hono handler under app/api", (): void => {
+  it("rejects route handlers after API extraction", (): void => {
     const { root, write } = createFixture("next-app-");
-    write("app/api/[[...route]]/route.ts");
     write("app/api/auth/[...all]/route.ts");
     write("app/api/health/route.ts");
     write("app/api/page.tsx");
@@ -48,6 +45,7 @@ describe("checkNextAppShape app/api", (): void => {
     );
     expect(new Set(removed)).toEqual(
       new Set([
+        "app/api/[[...route]]/route.ts",
         "app/api/auth/[...all]/route.ts",
         "app/api/health/route.ts",
         "app/api/page.tsx",

@@ -1,0 +1,36 @@
+{
+  "name": "@grabbin/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/app.ts"
+    }
+  },
+  "scripts": {
+    "build": "vp build",
+    "deploy": "bun ../../tooling/deploy-worker.ts server",
+    "dev": "vp dev",
+    "lint": "vp lint",
+    "preview": "vp preview",
+    "test": "vp test run",
+    "typecheck": "tsc -p tsconfig.json",
+    "typegen": "wrangler types --include-runtime=false"
+  },
+  "dependencies": {
+    "@grabbin/auth": "workspace:*",
+    "@grabbin/db": "workspace:*",
+    "@grabbin/shared": "workspace:*",
+    "@sentry/cloudflare": "^11.12.0",
+    "better-auth": "catalog:",
+    "evlog": "^2.35.1",
+    "hono": "^4.13.18",
+    "server-only": "catalog:",
+    "valibot": "catalog:"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "catalog:",
+    "@cloudflare/workers-types": "catalog:"
+  }
+}

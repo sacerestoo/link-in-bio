@@ -1,12 +1,11 @@
 import "server-only";
-import { readWebEnv } from "@/lib/env";
 import { createAuth, type Auth } from "@grabbin/auth";
 import { createDatabase, schema } from "@grabbin/db";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { readServerEnv, type ServerBindings } from "./env";
 
-export const getAuth = (bindings: Readonly<Env>): Auth => {
-  const settings = readWebEnv(bindings);
-
+export const getAuth = (bindings: Readonly<ServerBindings>): Auth => {
+  const settings = readServerEnv(bindings);
   const creem =
     settings.CREEM_API_KEY !== undefined &&
     settings.CREEM_WEBHOOK_SECRET !== undefined

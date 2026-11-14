@@ -1,6 +1,3 @@
-import { authController } from "@/controllers/auth.controller";
-import { healthController } from "@/controllers/health.controller";
-import { env } from "cloudflare:workers";
 import { initLogger } from "evlog";
 import { evlog, type EvlogVariables } from "evlog/hono";
 import { Hono } from "hono";
@@ -8,11 +5,14 @@ import { HTTPException } from "hono/http-exception";
 import { prettyJSON } from "hono/pretty-json";
 import { timing } from "hono/timing";
 import { trimTrailingSlash } from "hono/trailing-slash";
+import type { ServerBindings } from "./lib/env";
+import { authController } from "./controllers/auth.controller";
+import { healthController } from "./controllers/health.controller";
 
-initLogger({ env: { service: "grabbin-web" } });
+initLogger({ env: { service: "grabbin-server" } });
 
 const app = new Hono<{
-  Bindings: Env;
+  Bindings: ServerBindings;
   Variables: EvlogVariables["Variables"];
 }>()
   .basePath("/api")
@@ -52,14 +52,4 @@ const app = new Hono<{
 
 export type AppType = typeof app;
 
-const handleApiRequest = (request: Request): Response | Promise<Response> =>
-  app.fetch(request, env);
-
-export {
-  handleApiRequest as GET,
-  handleApiRequest as POST,
-  handleApiRequest as PUT,
-  handleApiRequest as PATCH,
-  handleApiRequest as DELETE,
-  handleApiRequest as OPTIONS,
-};
+export default app;

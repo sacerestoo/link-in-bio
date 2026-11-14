@@ -49,7 +49,7 @@ type RestrictedPattern = Readonly<{
 }>;
 
 const databaseBoundaryMessage =
-  "packages/db is server-only: import it only from apps/web/lib/auth.ts or apps/cron/src/**. Pages, feature UI, packages/ui, packages/auth and packages/shared must reach data through the web API.";
+  "packages/db is server-only: import it only from apps/server/src/** or apps/cron/src/**. Web pages and feature UI reach data through the server API.";
 
 // The database layer: the workspace package and the drivers behind it.
 export const databaseImports = ["@grabbin/db", "drizzle-orm", "pg"] as const;
@@ -178,12 +178,17 @@ export const nextAppOverrides = [
   {
     // Client code calls Route Handlers from api.ts; Hono and cron call external
     // services directly.
-    files: [`${features}/*/api.ts`, `${controllers}/**`, `${cron}/**`],
+    files: [
+      `${features}/*/api.ts`,
+      `${architectureDirectories.server}/**`,
+      `${controllers}/**`,
+      `${cron}/**`,
+    ],
     rules: { "eslint/no-restricted-globals": "off" },
   },
   {
-    // Web auth setup and cron are the only app code allowed to import data.
-    files: ["apps/web/lib/auth.ts", `${cron}/**`],
+    // Server and cron are the only apps allowed to import data.
+    files: ["apps/server/src/**", `${cron}/**`],
     rules: {
       "eslint/no-restricted-imports": restrictedImportsRule(databaseImports),
     },

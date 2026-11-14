@@ -7,7 +7,6 @@ export const nextAppArchitecture: NextAppConfig = {
   appRootFiles: ["providers.tsx", "globals.css"],
   proxyFile: "apps/web/proxy.ts",
   apiDirectory: `${architecture.directories.app}/api`,
-  apiRouteFile: `${architecture.directories.app}/api/[[...route]]/route.ts`,
   generatedDirectories: architecture.generatedDirectories,
 };
 
@@ -22,8 +21,8 @@ export const databaseArchitecture: DatabaseConfig = {
 /** Modules holding secrets or database access; never bundled for the client. */
 export const serverOnlyModules = [
   `${architecture.directories.auth}/index.ts`,
-  "apps/web/lib/auth.ts",
-  "apps/web/controllers/auth.controller.ts",
-  "apps/web/controllers/health.controller.ts",
+  "apps/server/src/lib/auth.ts",
+  "apps/server/src/controllers/auth.controller.ts",
+  "apps/server/src/controllers/health.controller.ts",
   `${architecture.directories.db}/client.ts`,
 ] as const;

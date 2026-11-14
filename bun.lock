@@ -36,18 +36,35 @@
         "server-only": "catalog:",
       },
     },
-    "apps/web": {
-      "name": "@grabbin/web",
+    "apps/server": {
+      "name": "@grabbin/server",
       "version": "0.0.0",
       "dependencies": {
         "@grabbin/auth": "workspace:*",
         "@grabbin/db": "workspace:*",
         "@grabbin/shared": "workspace:*",
+        "@sentry/cloudflare": "^11.12.0",
+        "better-auth": "catalog:",
+        "evlog": "^2.35.1",
+        "hono": "^4.13.18",
+        "server-only": "catalog:",
+        "valibot": "catalog:",
+      },
+      "devDependencies": {
+        "@cloudflare/vite-plugin": "catalog:",
+        "@cloudflare/workers-types": "catalog:",
+      },
+    },
+    "apps/web": {
+      "name": "@grabbin/web",
+      "version": "0.0.0",
+      "dependencies": {
+        "@grabbin/server": "workspace:*",
+        "@grabbin/shared": "workspace:*",
         "@grabbin/ui": "workspace:*",
         "@sentry/cloudflare": "^11.12.0",
         "@sentry/react": "^11.12.0",
         "@tanstack/react-query": "^5.107.1",
-        "better-auth": "catalog:",
         "evlog": "^2.35.1",
         "hono": "^4.13.18",
         "overlay-kit": "^1.9.0",
@@ -349,6 +366,8 @@
     "@grabbin/cron": ["@grabbin/cron@workspace:apps/cron"],
 
     "@grabbin/db": ["@grabbin/db@workspace:packages/db"],
+
+    "@grabbin/server": ["@grabbin/server@workspace:apps/server"],
 
     "@grabbin/shared": ["@grabbin/shared@workspace:packages/shared"],
 

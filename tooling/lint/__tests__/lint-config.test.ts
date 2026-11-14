@@ -41,10 +41,10 @@ const files = {
     '"use server";\n\nimport { parseInput } from "@/shared/lib/contract";\nimport { createItemInput } from "./contracts";\n\nexport const createItem = async (raw: unknown): Promise<string> => {\n  const input = parseInput(createItemInput, raw);\n  return input.name;\n};\n',
   "packages/db/src/client.ts":
     'import "server-only";\n\nexport const client = {};\n',
-  "apps/web/app/api/[[...route]]/route.ts":
-    'import { Hono } from "hono";\nimport { env } from "cloudflare:workers";\nconst app = new Hono();\nexport const GET = (request: Request) => app.fetch(request, env);\n',
-  "apps/web/controllers/auth.controller.ts":
+  "apps/server/src/controllers/auth.controller.ts":
     'import { createDatabase } from "@grabbin/db";\nexport const authController = createDatabase;\n',
+  "apps/server/src/lib/auth.ts":
+    'import { createDatabase } from "@grabbin/db";\nexport const service = createDatabase;\n',
   "apps/web/lib/auth.ts":
     'import { createDatabase } from "@grabbin/db";\nexport const service = createDatabase;\n',
   "apps/cron/src/jobs.ts":
@@ -74,7 +74,7 @@ describe("env access wiring", (): void => {
     expect(codesFor("apps/web/lib/env.ts")).not.toContain(
       "env-access(no-direct-env)",
     );
-    expect(codesFor("apps/web/app/api/[[...route]]/route.ts")).not.toContain(
+    expect(codesFor("apps/server/src/lib/auth.ts")).not.toContain(
       "env-access(no-direct-env)",
     );
     expect(codesFor("packages/db/drizzle.config.ts")).not.toContain(
@@ -131,14 +131,14 @@ describe("lint config wiring", (): void => {
 });
 
 describe("database boundary wiring", (): void => {
-  it("allows packages/db only in web auth setup and apps/cron", (): void => {
-    expect(codesFor("apps/web/lib/auth.ts")).not.toContain(
+  it("allows packages/db only in server and apps/cron", (): void => {
+    expect(codesFor("apps/server/src/lib/auth.ts")).not.toContain(
       "eslint(no-restricted-imports)",
     );
     expect(codesFor("apps/cron/src/jobs.ts")).not.toContain(
       "eslint(no-restricted-imports)",
     );
-    expect(codesFor("apps/web/controllers/auth.controller.ts")).toContain(
+    expect(codesFor("apps/web/lib/auth.ts")).toContain(
       "eslint(no-restricted-imports)",
     );
   });

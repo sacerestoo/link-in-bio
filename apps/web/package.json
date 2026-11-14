@@ -14,14 +14,12 @@
     "typegen": "wrangler types --include-runtime=false"
   },
   "dependencies": {
-    "@grabbin/auth": "workspace:*",
-    "@grabbin/db": "workspace:*",
+    "@grabbin/server": "workspace:*",
     "@grabbin/shared": "workspace:*",
     "@grabbin/ui": "workspace:*",
     "@sentry/cloudflare": "^11.12.0",
     "@sentry/react": "^11.12.0",
     "@tanstack/react-query": "^5.107.1",
-    "better-auth": "catalog:",
     "evlog": "^2.35.1",
     "hono": "^4.13.18",
     "overlay-kit": "^1.9.0",

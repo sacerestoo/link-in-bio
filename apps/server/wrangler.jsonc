@@ -1,0 +1,33 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "grabbin-server",
+  "compatibility_date": "2026-11-13",
+  "compatibility_flags": ["nodejs_compat"],
+  "placement": { "region": "aws:ap-southeast-1" },
+  "main": "./src/index.ts",
+  "workers_dev": false,
+  "version_metadata": { "binding": "CF_VERSION_METADATA" },
+  "observability": { "enabled": true },
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "dd7809a8db2a4b69aa50dcc5f0bfdb5f",
+      "localConnectionString": "postgres://neon:npg@127.0.0.1:15433/neondb?sslmode=no-verify",
+    },
+  ],
+  "env": {
+    "staging": {
+      "name": "grabbin-server-staging",
+      "workers_dev": false,
+      "hyperdrive": [
+        { "binding": "HYPERDRIVE", "id": "b645324e7cbe4a9c96e5ffddb23de57d" },
+      ],
+      "vars": {
+        "BETTER_AUTH_URL": "https://grabbin-staging.zentechie7.workers.dev",
+        "CREEM_TEST_MODE": "true",
+      },
+      "observability": { "enabled": true },
+    },
+  },
+  // Production secrets are loaded by the Deploy job; local secrets go in .env.local.
+}

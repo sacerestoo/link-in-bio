@@ -8,8 +8,6 @@ const optionalSetting = v.optional(
 );
 
 export const webEnvSchema = v.object({
-  BETTER_AUTH_URL: v.pipe(v.string(), v.url()),
-  BETTER_AUTH_SECRET: v.pipe(v.string(), v.minLength(32)),
   NEXT_PUBLIC_DOMAIN: optionalSetting,
   DOMAIN: optionalSetting,
   NEXT_PUBLIC_R2_PUBLIC_URL: optionalSetting,
@@ -21,17 +19,6 @@ export const webEnvSchema = v.object({
   SENTRY_AUTH_TOKEN: optionalSetting,
   SENTRY_WEB_ORG: optionalSetting,
   SENTRY_WEB_PROJECT: optionalSetting,
-  CREEM_API_KEY: optionalSetting,
-  CREEM_WEBHOOK_SECRET: optionalSetting,
-  CREEM_TEST_MODE: v.optional(
-    v.pipe(
-      v.string(),
-      v.transform((value) => (value.trim() === "" ? "true" : value)),
-      v.picklist(["true", "false"]),
-      v.transform((value) => value === "true"),
-    ),
-    "true",
-  ),
   CREEM_SUCCESS_URL: optionalSetting,
   NEXT_PUBLIC_CREEM_PRO_MONTHLY_PRODUCT_ID: optionalSetting,
   NEXT_PUBLIC_CREEM_PRO_YEARLY_PRODUCT_ID: optionalSetting,

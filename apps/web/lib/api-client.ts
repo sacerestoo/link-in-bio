@@ -1,4 +1,4 @@
-import type { AppType } from "@/app/api/[[...route]]/route";
+import type { AppType } from "@grabbin/server";
 import { DetailedError, hc } from "hono/client";
 
 const getErrorMessage = (data: unknown, response: Response): string => {
@@ -34,4 +34,4 @@ const fetchWithHttpErrors: typeof globalThis.fetch = async (
   return response;
 };
 
-export const api = hc<AppType>("/api", { fetch: fetchWithHttpErrors });
+export const api = hc<AppType>("", { fetch: fetchWithHttpErrors });

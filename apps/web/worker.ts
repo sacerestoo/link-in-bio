@@ -4,7 +4,11 @@ import handler from "vinext/server/app-router-entry";
 
 const appWorker = {
   async fetch(request: Request, env: Env, context: ExecutionContext) {
-    const response = await handler.fetch(request, env, context);
+    const path = new URL(request.url).pathname;
+    const response =
+      path === "/api" || path.startsWith("/api/")
+        ? await env.SERVER.fetch(request)
+        : await handler.fetch(request, env, context);
     const headers = new Headers(response.headers);
     headers.set("x-worker-version", env.CF_VERSION_METADATA.id);
     return new Response(response.body, {

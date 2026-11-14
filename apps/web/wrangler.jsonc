@@ -15,14 +15,7 @@
   "r2_buckets": [{ "binding": "R2_BUCKET", "bucket_name": "grabbin" }],
   "observability": { "enabled": true },
   // Production vars are supplied and checked by tooling/deploy-worker.ts.
-  // Replace this existing Hyperdrive with the Neon production branch.
-  "hyperdrive": [
-    {
-      "binding": "HYPERDRIVE",
-      "id": "dd7809a8db2a4b69aa50dcc5f0bfdb5f",
-      "localConnectionString": "postgres://neon:npg@127.0.0.1:15433/neondb?sslmode=no-verify",
-    },
-  ],
+  "services": [{ "binding": "SERVER", "service": "grabbin-server" }],
   "env": {
     "staging": {
       "name": "grabbin-staging",
@@ -37,19 +30,11 @@
       "r2_buckets": [
         { "binding": "R2_BUCKET", "bucket_name": "grabbin-staging" },
       ],
-      "hyperdrive": [
-        {
-          "binding": "HYPERDRIVE",
-          "id": "b645324e7cbe4a9c96e5ffddb23de57d",
-        },
+      "services": [
+        { "binding": "SERVER", "service": "grabbin-server-staging" },
       ],
-      "vars": {
-        "BETTER_AUTH_URL": "https://grabbin-staging.zentechie7.workers.dev",
-        "CREEM_TEST_MODE": "true",
-      },
       "observability": { "enabled": true },
     },
   },
   // Production secrets are loaded by the Deploy job; local secrets go in .env.local.
-  // BETTER_AUTH_SECRET, CREEM_API_KEY, CREEM_WEBHOOK_SECRET
 }

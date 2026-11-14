@@ -1,7 +1,6 @@
 # packages/db
 
-- Server-only. Importable only from `apps/web/lib/auth.ts` and
-  `apps/cron/src/**`.
+- Server-only. Importable only from `apps/server/src/**` and `apps/cron/src/**`.
 - `src/` holds only `client.ts`, `schema/`, `queries/` and `migrations/`
   (`check:architecture`). Tests live in `__tests__/` beside `src/`.
 - Each table or enum lives in a flat `src/schema/<domain>.ts` (no barrel), and

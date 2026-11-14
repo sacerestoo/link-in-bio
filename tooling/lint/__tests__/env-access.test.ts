@@ -74,7 +74,9 @@ it("enables the rule everywhere except the app env.ts files, server bindings, co
     files: [
       "apps/web/lib/env.ts",
       "apps/web/features/app-shell/ui/providers.tsx",
-      "apps/web/app/api/**/route.ts",
+      "apps/server/src/index.ts",
+      "apps/server/src/lib/env.ts",
+      "apps/server/env.config.ts",
       "apps/cron/src/env.ts",
       "**/*.config.ts",
       "tooling/**",

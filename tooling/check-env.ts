@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import * as v from "valibot";
 import { cronEnvSchema } from "../apps/cron/src/env.ts";
+import { serverEnvSchema } from "../apps/server/src/lib/env.ts";
 import { webEnvSchema } from "../apps/web/lib/env.ts";
 import { readDotenvEntries } from "./dotenv.ts";
 
@@ -28,6 +29,10 @@ const examples = [
   {
     path: "apps/cron/.env.example",
     names: new Set(Object.keys(cronEnvSchema.entries)),
+  },
+  {
+    path: "apps/server/.env.example",
+    names: new Set(Object.keys(serverEnvSchema.entries)),
   },
 ] as const;
 for (const { path, names: expectedNames } of examples) {
@@ -59,6 +64,11 @@ const localFiles = [
     path: "apps/cron/.env.local",
     schema: cronEnvSchema,
     allowedNames: new Set(Object.keys(cronEnvSchema.entries)),
+  },
+  {
+    path: "apps/server/.env.local",
+    schema: serverEnvSchema,
+    allowedNames: new Set(Object.keys(serverEnvSchema.entries)),
   },
 ] as const;
 for (const { path, schema, allowedNames } of localFiles) {

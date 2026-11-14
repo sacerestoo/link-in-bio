@@ -10,10 +10,10 @@ const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
 
 const sourceRoots = [
   "apps/web/app",
-  "apps/web/controllers",
+  "apps/server/src",
   "apps/web/features",
   "apps/web/lib",
-  "apps/web/services",
+  "apps/server/src/services",
   "apps/cron/src",
   "packages/db/src",
   "packages/auth/src",
@@ -30,6 +30,7 @@ const tsconfig = JSON.stringify({
       "@/*": ["./apps/web/*"],
       "@grabbin/db": ["./packages/db/src/client.ts"],
       "@grabbin/auth": ["./packages/auth/src/index.ts"],
+      "@grabbin/server": ["./apps/server/src/app.ts"],
       "@grabbin/ui/*": ["./packages/ui/src/*"],
       "@grabbin/shared/*": ["./packages/shared/src/*"],
     },
@@ -77,11 +78,11 @@ beforeAll((): void => {
 afterEach(removeFixtures);
 
 describe("dependency-cruiser database boundary", (): void => {
-  it("allows packages/db only from web auth setup and apps/cron", (): void => {
+  it("allows packages/db only from server and apps/cron", (): void => {
     const fixture = createFixture("depcruise-db-allowed-");
     writeAll(fixture, {
       "packages/db/src/client.ts": "export const schema = {};\n",
-      "apps/web/lib/auth.ts":
+      "apps/server/src/lib/auth.ts":
         'import { schema } from "@grabbin/db";\nexport const service = schema;\n',
       "apps/cron/src/index.ts":
         'import { schema } from "@grabbin/db";\nexport const job = schema;\n',
@@ -90,15 +91,15 @@ describe("dependency-cruiser database boundary", (): void => {
     expect(cruiseViolations(fixture)).toEqual(new Set());
   });
 
-  it("rejects packages/db outside auth setup, cron, and packages/db", (): void => {
+  it("rejects packages/db outside server, cron, and packages/db", (): void => {
     const fixture = createFixture("depcruise-db-");
     writeAll(fixture, {
       "packages/db/src/client.ts": "export const schema = {};\n",
       "apps/web/app/page.tsx":
         'import { schema } from "@grabbin/db";\nexport const page = schema;\n',
-      "apps/web/app/api/[[...route]]/route.ts":
-        'import { authController } from "@/controllers/auth.controller";\nexport const GET = authController;\n',
-      "apps/web/controllers/auth.controller.ts":
+      "apps/web/lib/api-client.ts":
+        'import type { AppType } from "@grabbin/server";\nexport type Client = AppType;\n',
+      "apps/server/src/controllers/auth.controller.ts":
         'import { schema } from "@grabbin/db";\nexport const authController = schema;\n',
       "packages/ui/src/components/leak.tsx":
         'import { schema } from "@grabbin/db";\nexport const leak = schema;\n',

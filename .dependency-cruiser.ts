@@ -33,7 +33,7 @@ export default {
     {
       name: "database-modules-only-from-configured-boundary",
       comment:
-        "packages/db, pg and drizzle-orm may only be imported by apps/web/features/auth/service.ts and apps/cron/src/**.",
+        "packages/db, pg and drizzle-orm may only be imported by apps/server/src/** and apps/cron/src/**.",
       severity: "error",
       from: { pathNot: databaseImporterPath },
       to: { path: databaseModulePath },
@@ -62,10 +62,15 @@ export default {
     },
     {
       name: "apps-not-to-other-apps",
-      comment: "apps/web and apps/cron must not import each other.",
+      comment:
+        "Apps must not import one another, except web may import the server app type.",
       severity: "error",
       from: { path: "^apps/([^/]+)/" },
-      to: { path: "^apps/", pathNot: "^apps/$1/" },
+      to: {
+        path: "^apps/",
+        pathNot: "^apps/$1/",
+        dependencyTypesNot: ["type-only"],
+      },
     },
     {
       name: "ui-only-to-shared",

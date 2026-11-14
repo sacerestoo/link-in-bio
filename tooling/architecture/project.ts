@@ -6,10 +6,11 @@ const configExtensions = [".js", ".cjs", ".mjs", ".ts", ".cts", ".mts"];
 // layers and the shape checks all read these paths.
 const directories = {
   app: "apps/web/app",
-  controllers: "apps/web/controllers",
+  controllers: "apps/server/src/controllers",
+  server: "apps/server/src",
   features: "apps/web/features",
   lib: "apps/web/lib",
-  services: "apps/web/services",
+  services: "apps/server/src/services",
   cron: "apps/cron/src",
   db: "packages/db/src",
   auth: "packages/auth/src",
@@ -22,6 +23,7 @@ export const architecture = {
   applicationDirectoryKeys: [
     "app",
     "controllers",
+    "server",
     "features",
     "lib",
     "services",
@@ -37,10 +39,10 @@ export const architecture = {
     "packages/db/",
     "node_modules/(?:pg|drizzle-orm)/",
   ],
-  // Only the web auth setup and cron workers may import the database layer.
+  // Only the server Worker and cron may import the database layer.
   // packages/db may import itself and its drivers.
   databaseImporterPathPatterns: [
-    "apps/web/lib/auth\\.ts$",
+    "apps/server/src/",
     "apps/cron/src/",
     "packages/db/",
     "node_modules/",
@@ -74,6 +76,7 @@ export const architecture = {
       expectedPaths: [
         "vite.config.ts",
         "apps/web/vite.config.ts",
+        "apps/server/vite.config.ts",
         "apps/cron/vite.config.ts",
       ],
       prefix: "vite.config.",
@@ -87,7 +90,11 @@ export const architecture = {
     },
     {
       name: "Wrangler config",
-      expectedPaths: ["apps/web/wrangler.jsonc", "apps/cron/wrangler.jsonc"],
+      expectedPaths: [
+        "apps/web/wrangler.jsonc",
+        "apps/server/wrangler.jsonc",
+        "apps/cron/wrangler.jsonc",
+      ],
       prefix: "wrangler.",
       extensions: [".json", ".jsonc", ".toml"],
     },
@@ -103,6 +110,7 @@ export const architecture = {
     patterns: ["apps/*", "packages/*"],
     packages: [
       "apps/web",
+      "apps/server",
       "apps/cron",
       "packages/auth",
       "packages/db",
