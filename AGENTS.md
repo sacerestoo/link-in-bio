@@ -26,16 +26,16 @@ Codex reads this file and the nested `AGENTS.md` files in `apps/*` and
 
 Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
 
-| Path              | Role                                                                      |
-| ----------------- | ------------------------------------------------------------------------- |
-| `apps/web`        | vinext (Next.js App Router on Vite), routes `/api/*` to the server Worker |
-| `apps/server`     | Hono API and Better Auth on its own Cloudflare Worker                     |
-| `apps/cron`       | Cloudflare Worker, `scheduled` daily at 06:00 UTC (15:00 KST)             |
-| `packages/db`     | Drizzle schema, client and queries. Server-only                           |
-| `packages/auth`   | Better Auth + Creem factory. Takes its database adapter from callers      |
-| `packages/ui`     | shadcn components, `cn`, hooks and the Tailwind stylesheet                |
-| `packages/shared` | Types and valibot schemas shared by apps and packages                     |
-| `tooling/`        | Lint plugins, architecture checks and their tests                         |
+| Path              | Role                                                                     |
+| ----------------- | ------------------------------------------------------------------------ |
+| `apps/web`        | vinext (Next.js App Router on Vite), routes `/v1/*` to the server Worker |
+| `apps/server`     | Hono API and Better Auth on its own Cloudflare Worker                    |
+| `apps/cron`       | Cloudflare Worker, `scheduled` daily at 06:00 UTC (15:00 KST)            |
+| `packages/db`     | Drizzle schema, client and queries. Server-only                          |
+| `packages/auth`   | Better Auth + Creem factory. Takes its database adapter from callers     |
+| `packages/ui`     | shadcn components, `cn`, hooks and the Tailwind stylesheet               |
+| `packages/shared` | Types and valibot schemas shared by apps and packages                    |
+| `tooling/`        | Lint plugins, architecture checks and their tests                        |
 
 - Add a workspace package only by also adding it to
   `tooling/architecture/project.ts`; `bun run check:architecture` rejects
@@ -69,7 +69,7 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
 - Write standard Next.js App Router code under `apps/web/app/`. Check vinext's
   docs before relying on a Next.js feature it may not support yet.
 - `apps/web/wrangler.jsonc` `main` points at `apps/web/worker.ts`. It wraps
-  vinext's App Router handler with Sentry and forwards `/api/*` through its
+  vinext's App Router handler with Sentry and forwards `/v1/*` through its
   `SERVER` service binding.
 - Root `bun run dev` starts web on port 3000 and server on port 3001 as separate
   local Workers; the service binding connects them.
@@ -158,7 +158,7 @@ needed.
 ## Bug fixes
 
 - Never guess at a bug's cause. Reproduce it in the real app (browser for UI,
-  `curl` for `/api/*`, `wrangler dev --test-scheduled` for cron), fix it from
+  `curl` for `/v1/*`, `wrangler dev --test-scheduled` for cron), fix it from
   evidence, then verify the same reproduction again.
 
 ## Commit checks

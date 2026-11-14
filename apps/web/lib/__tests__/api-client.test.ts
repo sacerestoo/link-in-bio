@@ -14,7 +14,7 @@ describe("API client", () => {
       );
 
     try {
-      await expect(api.api.health.$get()).rejects.toBeInstanceOf(DetailedError);
+      await expect(api.v1.health.$get()).rejects.toBeInstanceOf(DetailedError);
     } finally {
       globalThis.fetch = originalFetch;
     }

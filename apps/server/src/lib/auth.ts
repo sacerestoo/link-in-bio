@@ -1,6 +1,7 @@
 import "server-only";
 import { createAuth, type Auth } from "@grabbin/auth";
 import { createDatabase, schema } from "@grabbin/db";
+import { API_VERSION } from "@grabbin/shared/api-version";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { readServerEnv, type ServerBindings } from "./env";
 
@@ -18,6 +19,7 @@ export const getAuth = (bindings: Readonly<ServerBindings>): Auth => {
 
   return createAuth({
     baseURL: settings.BETTER_AUTH_URL,
+    basePath: `/${API_VERSION}/auth`,
     secret: settings.BETTER_AUTH_SECRET,
     database: drizzleAdapter(
       createDatabase(bindings.HYPERDRIVE.connectionString),

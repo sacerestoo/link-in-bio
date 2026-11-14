@@ -1,3 +1,4 @@
+import { API_VERSION } from "@grabbin/shared/api-version";
 import { initLogger } from "evlog";
 import { evlog, type EvlogVariables } from "evlog/hono";
 import { Hono } from "hono";
@@ -15,7 +16,7 @@ const app = new Hono<{
   Bindings: ServerBindings;
   Variables: EvlogVariables["Variables"];
 }>()
-  .basePath("/api")
+  .basePath(`/${API_VERSION}`)
   .use("*", trimTrailingSlash())
   .use("*", prettyJSON())
   .use("*", evlog())

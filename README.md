@@ -5,7 +5,7 @@ for Cloudflare Workers. The previous implementation lives on the `v1` branch
 (reference for UI copy, layout and visual design only; see `AGENTS.md`).
 
 - `apps/web`: [vinext](https://github.com/cloudflare/vinext) (Next.js App Router
-  on Vite) with a Hono API under `/api/*` (via one catch-all route handler),
+  on Vite) with a Hono API under `/v1/*` (via one catch-all route handler),
   served by one Worker.
 - `apps/cron`: a Worker with a `scheduled` handler, daily at 06:00 UTC (15:00
   KST).

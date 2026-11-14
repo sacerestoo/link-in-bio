@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./api-version": "./src/api-version.ts",
     "./observability": "./src/observability.ts",
     "./types/*": "./src/types/*.ts",
     "./schemas/*": "./src/schemas/*.ts"
