@@ -36,6 +36,7 @@ afterEach(removeFixtures);
 describe("checkNextAppShape app/api", (): void => {
   it("rejects route handlers after API extraction", (): void => {
     const { root, write } = createFixture("next-app-");
+    write("app/api/[[...route]]/route.ts");
     write("app/api/auth/[...all]/route.ts");
     write("app/api/health/route.ts");
     write("app/api/page.tsx");
@@ -51,7 +52,7 @@ describe("checkNextAppShape app/api", (): void => {
         "app/api/page.tsx",
       ]),
     );
-    expect(removed).toHaveLength(3);
+    expect(removed).toHaveLength(4);
   });
 });
 

@@ -99,6 +99,7 @@ describe("dependency-cruiser database boundary", (): void => {
         'import { schema } from "@grabbin/db";\nexport const page = schema;\n',
       "apps/web/lib/api-client.ts":
         'import type { AppType } from "@grabbin/server";\nexport type Client = AppType;\n',
+      "apps/server/src/app.ts": "export type AppType = unknown;\n",
       "apps/server/src/controllers/auth.controller.ts":
         'import { schema } from "@grabbin/db";\nexport const authController = schema;\n',
       "packages/ui/src/components/leak.tsx":
