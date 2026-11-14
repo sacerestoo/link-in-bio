@@ -78,7 +78,9 @@ function checkAppDirectory(
   directory: string,
   config: NextAppConfig,
 ): string[] {
-  const entries = readdirSync(directory, { withFileTypes: true });
+  const entries = readdirSync(directory, { withFileTypes: true }).toSorted(
+    (a, b) => a.name.localeCompare(b.name),
+  );
   const isRoot = directory === join(root, config.appDirectory);
   const errors: string[] = [];
   const files = new Set(
@@ -120,15 +122,17 @@ function findFiles(
   generated: Readonly<Set<string>>,
   matches: (fileName: string) => boolean,
 ): string[] {
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) {
-      return generated.has(entry.name)
-        ? []
-        : findFiles(path, generated, matches);
-    }
-    return matches(entry.name) ? [path] : [];
-  });
+  return readdirSync(directory, { withFileTypes: true })
+    .toSorted((a, b) => a.name.localeCompare(b.name))
+    .flatMap((entry) => {
+      const path = join(directory, entry.name);
+      if (entry.isDirectory()) {
+        return generated.has(entry.name)
+          ? []
+          : findFiles(path, generated, matches);
+      }
+      return matches(entry.name) ? [path] : [];
+    });
 }
 
 function checkRequestInterceptors(

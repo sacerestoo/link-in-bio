@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/inter";
+@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 
 @import "./auth-success.css";
 @import "./loading.css";
@@ -19,7 +19,7 @@
 
 @theme inline {
   --font-heading: var(--font-sans);
-  --font-sans: "Inter Variable", sans-serif;
+  --font-sans: "Pretendard Variable", sans-serif;
   --font-weight-semimedium: 450;
   --color-brand: var(--brand);
   --color-brand-green: var(--brand-green);

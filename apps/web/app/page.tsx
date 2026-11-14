@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
-import { Button } from "@grabbin/ui/components/button";
 
 export default function HomePage(): ReactNode {
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-4">
-      <h1 className="text-2xl font-semibold">grabbin</h1>
-      <Button variant={"outline"}>shadcn Button from @grabbin/ui</Button>
-    </main>
+    <div className="min-h-svh">
+      <main className="mx-auto flex min-h-svh w-full max-w-7xl flex-col items-center justify-center px-6 py-20 text-center sm:px-10">
+        <p>Link in bio</p>
+      </main>
+    </div>
   );
 }
