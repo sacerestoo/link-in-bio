@@ -6,6 +6,7 @@
   "placement": { "region": "aws:ap-southeast-1" },
   "main": "./src/index.ts",
   "workers_dev": false,
+  "routes": [{ "pattern": "api.grabbin.me", "custom_domain": true }],
   "version_metadata": { "binding": "CF_VERSION_METADATA" },
   "observability": { "enabled": true },
   "hyperdrive": [
@@ -19,6 +20,7 @@
     "staging": {
       "name": "grabbin-server-staging",
       "workers_dev": false,
+      "routes": [],
       "hyperdrive": [
         { "binding": "HYPERDRIVE", "id": "b645324e7cbe4a9c96e5ffddb23de57d" },
       ],
