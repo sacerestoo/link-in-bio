@@ -19,11 +19,17 @@ function settingsFromExample(path: string): Record<string, string> {
   );
 }
 
+function dotenv(settings: Record<string, string>): string {
+  return Object.entries(settings)
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n");
+}
+
 const validBindings = {
   CLOUDFLARE_API_TOKEN: "test-token",
   CLOUDFLARE_ACCOUNT_ID: "0123456789abcdef0123456789abcdef",
-  WEB_ENV_JSON: JSON.stringify(settingsFromExample("apps/web/.env.example")),
-  CRON_ENV_JSON: JSON.stringify(settingsFromExample("apps/cron/.env.example")),
+  WEB_ENV_PRODUCTION: dotenv(settingsFromExample("apps/web/.env.example")),
+  CRON_ENV_PRODUCTION: dotenv(settingsFromExample("apps/cron/.env.example")),
 };
 
 describe("getProductionKeyErrors accepts", (): void => {
@@ -39,14 +45,14 @@ describe("getProductionKeyErrors reports", (): void => {
     const errors = getProductionKeyErrors({
       ...validBindings,
       CLOUDFLARE_API_TOKEN: "",
-      WEB_ENV_JSON: JSON.stringify(webSettings),
+      WEB_ENV_PRODUCTION: dotenv(webSettings),
     });
 
     expect(errors).toContain(
       "Missing production setting: CLOUDFLARE_API_TOKEN",
     );
     expect(errors).toContain(
-      "WEB_ENV_JSON is missing setting: BETTER_AUTH_SECRET",
+      "WEB_ENV_PRODUCTION is missing setting: BETTER_AUTH_SECRET",
     );
     expect(errors.join(" ")).not.toContain(
       "test-secret-that-is-at-least-32-characters",
@@ -64,23 +70,25 @@ describe("getProductionKeyErrors rejects", (): void => {
     };
     const errors = getProductionKeyErrors({
       ...validBindings,
-      WEB_ENV_JSON: JSON.stringify(webSettings),
+      WEB_ENV_PRODUCTION: dotenv(webSettings),
     });
 
     expect(errors).toContain(
-      "WEB_ENV_JSON has an undeclared setting: EXTRA_SETTING",
+      "WEB_ENV_PRODUCTION has an undeclared setting: EXTRA_SETTING",
     );
     expect(errors).toContain(
-      "WEB_ENV_JSON has an empty or non-text value for: SENTRY_DSN",
+      "WEB_ENV_PRODUCTION has an empty or non-text value for: SENTRY_DSN",
     );
     expect(
       errors.some((error) => error.includes("BETTER_AUTH_URL (url)")),
     ).toBe(true);
   });
 
-  it("malformed settings JSON", (): void => {
+  it("malformed dotenv settings", (): void => {
     expect(
-      getProductionKeyErrors({ ...validBindings, CRON_ENV_JSON: "{" }),
-    ).toContain("CRON_ENV_JSON must be valid JSON.");
+      getProductionKeyErrors({ ...validBindings, CRON_ENV_PRODUCTION: "{" }),
+    ).toContain(
+      "CRON_ENV_PRODUCTION is invalid dotenv: CRON_ENV_PRODUCTION has an invalid entry on line 1.",
+    );
   });
 });

@@ -41,11 +41,11 @@ for Cloudflare Workers. The previous implementation lives on the `v1` branch
   built Workers.
 - `bun run check:prod-keys` checks the production deployment settings without
   printing their values. Set `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`,
-  `WEB_ENV_JSON` and `CRON_ENV_JSON` in the GitHub `production` environment.
-  Each JSON value must contain real values for every key in the matching Worker
-  `.env.example`. The deploy workflow checks the names, blank values and env
-  schema before building or deploying. The root `.env.local` is for Neon Local
-  and is never deployed.
+  `WEB_ENV_PRODUCTION` and `CRON_ENV_PRODUCTION` in the GitHub `production`
+  environment. Each secret uses dotenv format and must contain real values for
+  every key in the matching Worker `.env.example`. The deploy workflow checks
+  the names, blank values and env schema before building or deploying. The root
+  `.env.local` is for Neon Local and is never deployed.
 - `bun run --cwd packages/db db:generate` / `db:migrate` manage migrations.
 - `bun run --cwd apps/web deploy` / `bun run --cwd apps/cron deploy` deploy a
   Worker. Nothing deploys on push.

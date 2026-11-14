@@ -7,17 +7,18 @@ import {
   getProductionKeyErrors,
   productionSecretKeys,
 } from "./check-prod-keys.ts";
+import { readDotenvEntries } from "./dotenv.ts";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const workers = {
   web: {
-    env: "WEB_ENV_JSON",
+    env: "WEB_ENV_PRODUCTION",
     config: "apps/web/wrangler.jsonc",
     builtConfig: "apps/web/dist/server/wrangler.json",
     secrets: productionSecretKeys.web,
   },
   cron: {
-    env: "CRON_ENV_JSON",
+    env: "CRON_ENV_PRODUCTION",
     config: "apps/cron/wrangler.jsonc",
     builtConfig: "apps/cron/dist/grabbin_cron/wrangler.json",
     secrets: productionSecretKeys.cron,
@@ -25,15 +26,6 @@ const workers = {
 } as const;
 
 type Worker = keyof typeof workers;
-
-function isStringRecord(value: unknown): value is Record<string, string> {
-  return (
-    value !== null &&
-    typeof value === "object" &&
-    !Array.isArray(value) &&
-    Object.values(value).every((entry) => typeof entry === "string")
-  );
-}
 
 function run(command: string, args: string[], env = process.env): void {
   const result = spawnSync(command, args, {
@@ -51,8 +43,8 @@ function run(command: string, args: string[], env = process.env): void {
 
 function workerDeployEnv(): NodeJS.ProcessEnv {
   const env = { ...process.env };
-  delete env.WEB_ENV_JSON;
-  delete env.CRON_ENV_JSON;
+  delete env.WEB_ENV_PRODUCTION;
+  delete env.CRON_ENV_PRODUCTION;
   return env;
 }
 
@@ -68,20 +60,28 @@ function readSettings(worker: Worker): Record<string, string> {
   if (raw === undefined || raw.trim() === "") {
     throw new Error(`Missing production setting: ${workers[worker].env}`);
   }
-  const value: unknown = JSON.parse(raw);
-  if (!isStringRecord(value)) {
-    throw new Error(`${workers[worker].env} must be a JSON object.`);
-  }
-  return value;
+  return Object.fromEntries(
+    [...readDotenvEntries(raw, workers[worker].env)].map(([key, entry]) => [
+      key,
+      entry.value,
+    ]),
+  );
 }
 
-function runBuild(worker: Worker, vars: Array<[string, string]>): void {
+function runBuild(
+  worker: Worker,
+  vars: Array<[string, string]>,
+  settings: Record<string, string>,
+): void {
   const buildEnv = { ...process.env };
   delete buildEnv.CLOUDFLARE_API_TOKEN;
   delete buildEnv.CLOUDFLARE_ACCOUNT_ID;
-  delete buildEnv.WEB_ENV_JSON;
-  delete buildEnv.CRON_ENV_JSON;
+  delete buildEnv.WEB_ENV_PRODUCTION;
+  delete buildEnv.CRON_ENV_PRODUCTION;
   Object.assign(buildEnv, Object.fromEntries(vars));
+  if (worker === "web" && settings.SENTRY_AUTH_TOKEN) {
+    buildEnv.SENTRY_AUTH_TOKEN = settings.SENTRY_AUTH_TOKEN;
+  }
   run("bun", ["run", "--cwd", `apps/${worker}`, "build"], buildEnv);
 }
 
@@ -160,7 +160,7 @@ function deploy(worker: Worker): void {
       `${key}:${value}`,
     ]);
 
-    runBuild(worker, vars);
+    runBuild(worker, vars, settings);
     runDryRun(worker, varArgs, buildCheckEnv());
     uploadSecrets(worker, secretsFile, deployEnv);
     deployBuild(worker, varArgs, deployEnv);

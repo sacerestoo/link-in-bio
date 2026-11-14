@@ -8,13 +8,13 @@ const root = new URL("../", import.meta.url);
 const workerSettings = [
   {
     name: "web",
-    input: "WEB_ENV_JSON",
+    input: "WEB_ENV_PRODUCTION",
     example: "apps/web/.env.example",
     schema: webEnvSchema,
   },
   {
     name: "cron",
-    input: "CRON_ENV_JSON",
+    input: "CRON_ENV_PRODUCTION",
     example: "apps/cron/.env.example",
     schema: cronEnvSchema,
   },
@@ -23,6 +23,7 @@ const workerSettings = [
 export const productionSecretKeys = {
   web: new Set([
     "BETTER_AUTH_SECRET",
+    "SENTRY_DSN",
     "SENTRY_AUTH_TOKEN",
     "CREEM_API_KEY",
     "CREEM_WEBHOOK_SECRET",
@@ -39,21 +40,18 @@ export const productionSecretKeys = {
     "CLOUDFLARE_SAAS_API_TOKEN",
     "GA_MEASUREMENT_PROTOCOL_API_SECRET",
   ]),
-  cron: new Set(["CLOUDFLARE_SAAS_API_TOKEN", "CREEM_API_KEY"]),
+  cron: new Set(["SENTRY_DSN", "CLOUDFLARE_SAAS_API_TOKEN", "CREEM_API_KEY"]),
 } as const;
 
 const deployKeys = ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"] as const;
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-function parseSettings(raw: string, input: string): Record<string, unknown> {
-  const parsed: unknown = JSON.parse(raw);
-  if (!isRecord(parsed)) {
-    throw new Error(`${input} must be a JSON object.`);
-  }
-  return parsed;
+function parseSettings(raw: string, input: string): Record<string, string> {
+  return Object.fromEntries(
+    [...readDotenvEntries(raw, input)].map(([key, entry]) => [
+      key,
+      entry.value,
+    ]),
+  );
 }
 
 function validateDeployKeys(
@@ -116,13 +114,7 @@ function validateWorkerSettings(
   try {
     settings = parseSettings(raw, worker.input);
   } catch (error) {
-    return [
-      error instanceof SyntaxError
-        ? `${worker.input} must be valid JSON.`
-        : error instanceof Error
-          ? error.message
-          : `${worker.input} must be a JSON object.`,
-    ];
+    return [`${worker.input} is invalid dotenv: ${errorMessage(error)}`];
   }
 
   const errors = validateSettingNames(
@@ -140,6 +132,10 @@ function validateWorkerSettings(
     }
   }
   return errors;
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "check the file format.";
 }
 
 export function getProductionKeyErrors(

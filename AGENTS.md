@@ -92,10 +92,11 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
 - To add an app setting, update its env schema and matching `.env.example`; for
   a plain Worker value, also update `wrangler.jsonc` vars. Local settings go in
   matching `.env.local` files. Production values belong in the GitHub
-  `production` environment as `WEB_ENV_JSON` and `CRON_ENV_JSON`. The Deploy job
-  checks them against every key in each Worker `.env.example` and its schema,
-  then loads secrets with `wrangler secret bulk`. `bun run check:env` fails when
-  schemas and examples drift. Never commit a real secret.
+  `production` environment as `WEB_ENV_PRODUCTION` and `CRON_ENV_PRODUCTION`.
+  The Deploy job checks them against every key in each Worker `.env.example` and
+  its schema, then loads secrets with `wrangler secret bulk`.
+  `bun run check:env` fails when schemas and examples drift. Never commit a real
+  secret.
 
 ## Code conventions
 
