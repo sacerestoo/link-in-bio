@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "vp build",
-    "deploy": "vp build && wrangler deploy --config dist/grabbin_cron/wrangler.json",
+    "deploy": "bun ../../tooling/deploy-worker.ts cron",
     "dev": "vp dev",
     "lint": "vp lint",
     "test": "vp test run",

@@ -14,10 +14,7 @@
   "version_metadata": { "binding": "CF_VERSION_METADATA" },
   "r2_buckets": [{ "binding": "R2_BUCKET", "bucket_name": "grabbin" }],
   "observability": { "enabled": true },
-  "vars": {
-    "BETTER_AUTH_URL": "https://grabbin.me",
-    "CREEM_TEST_MODE": "true",
-  },
+  // Production vars are supplied and checked by tooling/deploy-worker.ts.
   // Replace this existing Hyperdrive with the Neon production branch.
   "hyperdrive": [
     {
@@ -53,6 +50,6 @@
       "observability": { "enabled": true },
     },
   },
-  // Secrets (set with `wrangler secret put`; locally in .env.local):
+  // Production secrets are loaded by the Deploy job; local secrets go in .env.local.
   // BETTER_AUTH_SECRET, CREEM_API_KEY, CREEM_WEBHOOK_SECRET
 }

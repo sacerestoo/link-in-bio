@@ -90,9 +90,12 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
   settings in `apps/cron/.env.example`. Put real local values in the matching
   `.env.local` file. Never copy `NEON_API_KEY` into an app env file.
 - To add an app setting, update its env schema and matching `.env.example`; for
-  a plain Worker value, also update `wrangler.jsonc` vars. Production secrets go
-  in `wrangler secret put`. `bun run check:env` fails when schemas and their
-  examples drift. Never commit a real secret.
+  a plain Worker value, also update `wrangler.jsonc` vars. Local settings go in
+  matching `.env.local` files. Production values belong in the GitHub
+  `production` environment as `WEB_ENV_JSON` and `CRON_ENV_JSON`. The Deploy job
+  checks them against every key in each Worker `.env.example` and its schema,
+  then loads secrets with `wrangler secret bulk`. `bun run check:env` fails when
+  schemas and examples drift. Never commit a real secret.
 
 ## Code conventions
 

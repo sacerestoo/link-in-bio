@@ -17,6 +17,6 @@
     },
   ],
   "r2_buckets": [{ "binding": "R2_BUCKET", "bucket_name": "grabbin" }],
-  // Local settings and secrets go in .env.local; production secrets use
-  // `wrangler secret put`.
+  // Local settings and secrets go in .env.local; Deploy loads production
+  // secrets with `wrangler secret bulk`.
 }
