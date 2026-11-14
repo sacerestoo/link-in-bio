@@ -49,6 +49,9 @@ export default defineConfig(({ mode, command }) => {
           ),
           "empty.js",
         ),
+        "cloudflare:workers": fileURLToPath(
+          new URL("test-env.ts", import.meta.url),
+        ),
       },
     },
     // Unit tests run in Node; the Workers runtime is only needed by dev,
