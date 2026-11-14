@@ -1,16 +1,24 @@
 import { authController } from "@/controllers/auth.controller";
 import { healthController } from "@/controllers/health.controller";
 import { env } from "cloudflare:workers";
+import { initLogger } from "evlog";
+import { evlog, type EvlogVariables } from "evlog/hono";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { prettyJSON } from "hono/pretty-json";
 import { timing } from "hono/timing";
 import { trimTrailingSlash } from "hono/trailing-slash";
 
-const app = new Hono<{ Bindings: Env }>()
+initLogger({ env: { service: "grabbin-web" } });
+
+const app = new Hono<{
+  Bindings: Env;
+  Variables: EvlogVariables["Variables"];
+}>()
   .basePath("/api")
   .use("*", trimTrailingSlash())
   .use("*", prettyJSON())
+  .use("*", evlog())
   .use("*", timing())
   .onError((error, c) => {
     const status = error instanceof HTTPException ? error.status : 500;

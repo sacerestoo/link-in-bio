@@ -73,6 +73,7 @@ it("enables the rule everywhere except the app env.ts files, server bindings, co
   expect(config.overrides).toContainEqual({
     files: [
       "apps/web/lib/env.ts",
+      "apps/web/features/app-shell/ui/providers.tsx",
       "apps/web/app/api/**/route.ts",
       "apps/cron/src/env.ts",
       "**/*.config.ts",

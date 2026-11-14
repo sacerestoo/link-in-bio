@@ -4,7 +4,7 @@
   "compatibility_date": "2026-11-13",
   "compatibility_flags": ["nodejs_compat"],
   "placement": { "region": "aws:ap-southeast-1" },
-  "main": "vinext/server/fetch-handler",
+  "main": "./worker.ts",
   "routes": [{ "pattern": "grabbin.me", "custom_domain": true }],
   "assets": {
     "not_found_handling": "none",

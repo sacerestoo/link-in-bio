@@ -2,8 +2,8 @@
 
 - `app/` holds Next.js route files. `controllers/` holds Hono controllers,
   `services/` holds web domain services and `lib/` holds app wiring such as
-  settings and auth. The Worker entry is `vinext/server/fetch-handler`, set as
-  `main` in `wrangler.jsonc`.
+  settings and auth. The Worker entry is `worker.ts`, set as `main` in
+  `wrangler.jsonc`; it wraps vinext's App Router handler with Sentry.
 - `/api/*` is served by `app/api/[[...route]]/route.ts`. It is the only file
   allowed under `app/api/`, creates the root Hono app, and registers domain
   controllers from `controllers/*.controller.ts`.

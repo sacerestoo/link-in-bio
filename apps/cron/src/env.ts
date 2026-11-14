@@ -2,6 +2,7 @@ import * as v from "valibot";
 
 // Settings the cron worker reads. Bindings come from wrangler.jsonc.
 export const cronEnvSchema = v.object({
+  SENTRY_DSN: v.optional(v.string()),
   CLOUDFLARE_SAAS_ZONE_ID: v.optional(v.string()),
   CLOUDFLARE_SAAS_API_TOKEN: v.optional(v.string()),
   CREEM_API_KEY: v.optional(v.string()),

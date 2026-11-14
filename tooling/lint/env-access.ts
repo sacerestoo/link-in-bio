@@ -14,6 +14,7 @@ import {
 // creates the root Hono app outside a Hono context.
 export const envAccessAllowedFiles = [
   "apps/web/lib/env.ts",
+  "apps/web/features/app-shell/ui/providers.tsx",
   "apps/web/app/api/**/route.ts",
   "apps/cron/src/env.ts",
   "**/*.config.ts",

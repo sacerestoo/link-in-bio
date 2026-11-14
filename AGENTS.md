@@ -67,10 +67,11 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
 
 - Write standard Next.js App Router code under `apps/web/app/`. Check vinext's
   docs before relying on a Next.js feature it may not support yet.
-- `apps/web/wrangler.jsonc` `main` points at `vinext/server/fetch-handler`,
-  vinext's Worker entry (it resolves to the App Router handler). `/api/*`
-  reaches the Hono app created in `apps/web/app/api/[[...route]]/route.ts`,
-  which exports GET/POST/PUT/PATCH/DELETE/OPTIONS as `handleApiRequest`.
+- `apps/web/wrangler.jsonc` `main` points at `apps/web/worker.ts`. It wraps
+  vinext's App Router handler with Sentry and adds Worker version metadata.
+  `/api/*` reaches the Hono app created in
+  `apps/web/app/api/[[...route]]/route.ts`, which exports
+  GET/POST/PUT/PATCH/DELETE/OPTIONS as `handleApiRequest`.
 - Put domain Hono routers in `apps/web/controllers/<domain>.controller.ts` and
   domain services in `apps/web/services/`. The catch-all `route.ts` creates the
   root Hono app and registers controllers with `.route()`.

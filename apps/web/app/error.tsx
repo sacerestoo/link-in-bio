@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@grabbin/ui/components/button";
+import * as Sentry from "@sentry/react";
 import { useEffect } from "react";
 
 export default function RootError({
@@ -12,6 +13,7 @@ export default function RootError({
 }) {
   useEffect(() => {
     console.error(error);
+    Sentry.captureException(error);
   }, [error]);
 
   return (
