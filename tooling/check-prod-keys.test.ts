@@ -29,30 +29,33 @@ const validBindings = {
   CLOUDFLARE_API_TOKEN: "test-token",
   CLOUDFLARE_ACCOUNT_ID: "0123456789abcdef0123456789abcdef",
   WEB_ENV_PRODUCTION: dotenv(settingsFromExample("apps/web/.env.example")),
+  SERVER_ENV_PRODUCTION: dotenv(
+    settingsFromExample("apps/server/.env.example"),
+  ),
   CRON_ENV_PRODUCTION: dotenv(settingsFromExample("apps/cron/.env.example")),
 };
 
 describe("getProductionKeyErrors accepts", (): void => {
-  it("complete settings matching both Worker examples", (): void => {
+  it("complete settings matching all Worker examples", (): void => {
     expect(getProductionKeyErrors(validBindings)).toEqual([]);
   });
 });
 
 describe("getProductionKeyErrors reports", (): void => {
   it("missing settings without exposing values", (): void => {
-    const webSettings = settingsFromExample("apps/web/.env.example");
-    delete webSettings.BETTER_AUTH_SECRET;
+    const serverSettings = settingsFromExample("apps/server/.env.example");
+    delete serverSettings.BETTER_AUTH_SECRET;
     const errors = getProductionKeyErrors({
       ...validBindings,
       CLOUDFLARE_API_TOKEN: "",
-      WEB_ENV_PRODUCTION: dotenv(webSettings),
+      SERVER_ENV_PRODUCTION: dotenv(serverSettings),
     });
 
     expect(errors).toContain(
       "Missing production setting: CLOUDFLARE_API_TOKEN",
     );
     expect(errors).toContain(
-      "WEB_ENV_PRODUCTION is missing setting: BETTER_AUTH_SECRET",
+      "SERVER_ENV_PRODUCTION is missing setting: BETTER_AUTH_SECRET",
     );
     expect(errors.join(" ")).not.toContain(
       "test-secret-that-is-at-least-32-characters",
@@ -62,22 +65,22 @@ describe("getProductionKeyErrors reports", (): void => {
 
 describe("getProductionKeyErrors rejects", (): void => {
   it("undeclared, blank, and invalidly formatted settings", (): void => {
-    const webSettings = {
-      ...settingsFromExample("apps/web/.env.example"),
+    const serverSettings = {
+      ...settingsFromExample("apps/server/.env.example"),
       BETTER_AUTH_URL: "not a URL",
       EXTRA_SETTING: "not declared",
       SENTRY_DSN: " ",
     };
     const errors = getProductionKeyErrors({
       ...validBindings,
-      WEB_ENV_PRODUCTION: dotenv(webSettings),
+      SERVER_ENV_PRODUCTION: dotenv(serverSettings),
     });
 
     expect(errors).toContain(
-      "WEB_ENV_PRODUCTION has an undeclared setting: EXTRA_SETTING",
+      "SERVER_ENV_PRODUCTION has an undeclared setting: EXTRA_SETTING",
     );
     expect(errors).toContain(
-      "WEB_ENV_PRODUCTION has an empty or non-text value for: SENTRY_DSN",
+      "SERVER_ENV_PRODUCTION has an empty or non-text value for: SENTRY_DSN",
     );
     expect(
       errors.some((error) => error.includes("BETTER_AUTH_URL (url)")),

@@ -17,6 +17,12 @@ const workers = {
     builtConfig: "apps/web/dist/server/wrangler.json",
     secrets: productionSecretKeys.web,
   },
+  server: {
+    env: "SERVER_ENV_PRODUCTION",
+    config: "apps/server/wrangler.jsonc",
+    builtConfig: "apps/server/dist/grabbin_server/wrangler.json",
+    secrets: productionSecretKeys.server,
+  },
   cron: {
     env: "CRON_ENV_PRODUCTION",
     config: "apps/cron/wrangler.jsonc",
@@ -44,6 +50,7 @@ function run(command: string, args: string[], env = process.env): void {
 function workerDeployEnv(): NodeJS.ProcessEnv {
   const env = { ...process.env };
   delete env.WEB_ENV_PRODUCTION;
+  delete env.SERVER_ENV_PRODUCTION;
   delete env.CRON_ENV_PRODUCTION;
   return env;
 }
@@ -77,6 +84,7 @@ function runBuild(
   delete buildEnv.CLOUDFLARE_API_TOKEN;
   delete buildEnv.CLOUDFLARE_ACCOUNT_ID;
   delete buildEnv.WEB_ENV_PRODUCTION;
+  delete buildEnv.SERVER_ENV_PRODUCTION;
   delete buildEnv.CRON_ENV_PRODUCTION;
   Object.assign(buildEnv, Object.fromEntries(vars));
   if (worker === "web" && settings.SENTRY_AUTH_TOKEN) {
@@ -171,8 +179,8 @@ function deploy(worker: Worker): void {
 
 function main(): void {
   const worker = process.argv[2];
-  if (worker !== "web" && worker !== "cron") {
-    throw new Error("Choose one Worker: web or cron.");
+  if (worker !== "web" && worker !== "server" && worker !== "cron") {
+    throw new Error("Choose one Worker: web, server or cron.");
   }
   const errors = getProductionKeyErrors(process.env);
   if (errors.length > 0) {

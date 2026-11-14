@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import * as v from "valibot";
 import { cronEnvSchema } from "../apps/cron/src/env.ts";
+import { serverEnvSchema } from "../apps/server/src/lib/env.ts";
 import { webEnvSchema } from "../apps/web/lib/env.ts";
 import { readDotenvEntries } from "./dotenv.ts";
 
@@ -18,15 +19,18 @@ const workerSettings = [
     example: "apps/cron/.env.example",
     schema: cronEnvSchema,
   },
+  {
+    name: "server",
+    input: "SERVER_ENV_PRODUCTION",
+    example: "apps/server/.env.example",
+    schema: serverEnvSchema,
+  },
 ] as const;
 
 export const productionSecretKeys = {
   web: new Set([
-    "BETTER_AUTH_SECRET",
     "SENTRY_DSN",
     "SENTRY_AUTH_TOKEN",
-    "CREEM_API_KEY",
-    "CREEM_WEBHOOK_SECRET",
     "RESEND_API_KEY",
     "GOOGLE_CLIENT_SECRET",
     "CHZZK_CLIENT_SECRET",
@@ -41,6 +45,12 @@ export const productionSecretKeys = {
     "GA_MEASUREMENT_PROTOCOL_API_SECRET",
   ]),
   cron: new Set(["SENTRY_DSN", "CLOUDFLARE_SAAS_API_TOKEN", "CREEM_API_KEY"]),
+  server: new Set([
+    "BETTER_AUTH_SECRET",
+    "SENTRY_DSN",
+    "CREEM_API_KEY",
+    "CREEM_WEBHOOK_SECRET",
+  ]),
 } as const;
 
 const deployKeys = ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"] as const;
