@@ -3,7 +3,7 @@ import { authClient } from "@grabbin/auth/client";
 
 export type SocialProvider = "google" | "line" | "twitter";
 
-const getCallbackURL = (redirectTo?: string): string => {
+export const getAuthCallbackURL = (redirectTo?: string): string => {
   if (redirectTo === undefined || !redirectTo.startsWith("/")) {
     return "/sign-in";
   }
@@ -25,11 +25,21 @@ export const signInWithSocial = (
 ) => {
   return authClient.signIn.social({
     provider,
-    callbackURL: getCallbackURL(redirectTo),
+    callbackURL: getAuthCallbackURL(redirectTo),
     requestSignUp: handle !== undefined,
     ...(handle === undefined ? {} : { additionalData: { handle } }),
   });
 };
+
+export const sendEmailOtp = (email: string) =>
+  authClient.emailOtp.sendVerificationOtp({ email, type: "sign-in" });
+
+export const verifyEmailOtp = (email: string, otp: string, name?: string) =>
+  authClient.signIn.emailOtp({
+    email,
+    otp,
+    ...(name === undefined ? {} : { name }),
+  });
 
 export const checkHandleAvailability = (handle: string) =>
   api.v1.pages.handles[":handle"].availability.$get({ param: { handle } });

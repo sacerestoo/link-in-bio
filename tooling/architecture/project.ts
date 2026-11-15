@@ -14,6 +14,7 @@ const directories = {
   cron: "apps/cron/src",
   db: "packages/db/src",
   auth: "packages/auth/src",
+  email: "packages/email/src",
   ui: "packages/ui/src",
   shared: "packages/shared/src",
 } as const;
@@ -30,6 +31,7 @@ export const architecture = {
     "cron",
     "db",
     "auth",
+    "email",
     "ui",
     "shared",
   ],
@@ -113,6 +115,7 @@ export const architecture = {
       "apps/server",
       "apps/cron",
       "packages/auth",
+      "packages/email",
       "packages/db",
       "packages/ui",
       "packages/shared",

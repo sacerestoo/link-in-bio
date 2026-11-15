@@ -92,8 +92,19 @@ export const readSignupHandle = async (): Promise<Username> => {
 
 export const ensureHandleAvailable = async (
   database: Database,
+  rawHandle?: unknown,
 ): Promise<Username> => {
-  const handle = await readSignupHandle();
+  const parsedHandle = v.safeParse(
+    usernameSchema,
+    rawHandle === undefined ? await readSignupHandle() : rawHandle,
+  );
+  if (!parsedHandle.success) {
+    throw new APIError("BAD_REQUEST", {
+      message: parsedHandle.issues.map((issue) => issue.message).join(" "),
+    });
+  }
+
+  const handle = parsedHandle.output;
   const result = v.safeParse(
     availableUsernameSchema(await isPageHandleAvailable(database, handle)),
     handle,

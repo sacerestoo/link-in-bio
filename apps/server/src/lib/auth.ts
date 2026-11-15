@@ -1,6 +1,7 @@
 import "server-only";
-import { createAuth, type Auth } from "@grabbin/auth";
+import { createAuth, type Auth, type AuthSettings } from "@grabbin/auth";
 import { createDatabase, schema } from "@grabbin/db";
+import { sendOtpEmail } from "@grabbin/email/otp";
 import { API_VERSION } from "@grabbin/shared/api-version";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import {
@@ -16,6 +17,19 @@ const socialProvider = (
   clientId === undefined || clientSecret === undefined
     ? undefined
     : { clientId, clientSecret };
+
+const createOtpEmailSender =
+  (
+    apiKey: string | undefined,
+    from: string | undefined,
+  ): AuthSettings["sendVerificationOTP"] =>
+  async ({ email, otp }) => {
+    if (apiKey === undefined || from === undefined) {
+      throw new Error("Email sign-in is not configured.");
+    }
+
+    await sendOtpEmail({ apiKey, from, email, otp });
+  };
 
 export const getAuth = (bindings: Readonly<ServerBindings>): Auth => {
   const settings = readServerEnv(bindings);
@@ -51,6 +65,16 @@ export const getAuth = (bindings: Readonly<ServerBindings>): Auth => {
     onOAuthCallback: async (userId, handle) => {
       await ensurePageForUser(database, userId, handle);
     },
+    onBeforeEmailOtpUserCreated: async (handle) => {
+      await ensureHandleAvailable(database, handle);
+    },
+    onEmailOtpCallback: async (userId, handle) => {
+      await ensurePageForUser(database, userId, handle);
+    },
+    sendVerificationOTP: createOtpEmailSender(
+      settings.RESEND_API_KEY,
+      settings.RESEND_FROM_EMAIL,
+    ),
     ...(creem === undefined ? {} : { creem }),
   });
 };

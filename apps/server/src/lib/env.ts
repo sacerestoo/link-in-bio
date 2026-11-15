@@ -16,6 +16,8 @@ export const serverEnvSchema = v.object({
   LINE_CLIENT_SECRET: optionalSetting,
   TWITTER_CLIENT_ID: optionalSetting,
   TWITTER_CLIENT_SECRET: optionalSetting,
+  RESEND_API_KEY: optionalSetting,
+  RESEND_FROM_EMAIL: optionalSetting,
   SENTRY_DSN: optionalSetting,
   CREEM_API_KEY: optionalSetting,
   CREEM_WEBHOOK_SECRET: optionalSetting,
@@ -42,6 +44,8 @@ export type ServerBindings = {
   LINE_CLIENT_SECRET?: string;
   TWITTER_CLIENT_ID?: string;
   TWITTER_CLIENT_SECRET?: string;
+  RESEND_API_KEY?: string;
+  RESEND_FROM_EMAIL?: string;
   SENTRY_DSN?: string;
   CREEM_API_KEY?: string;
   CREEM_WEBHOOK_SECRET?: string;

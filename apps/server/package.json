@@ -21,6 +21,7 @@
   "dependencies": {
     "@grabbin/auth": "workspace:*",
     "@grabbin/db": "workspace:*",
+    "@grabbin/email": "workspace:*",
     "@grabbin/shared": "workspace:*",
     "@sentry/cloudflare": "^11.12.0",
     "better-auth": "catalog:",

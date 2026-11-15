@@ -2,7 +2,7 @@ import "server-only";
 import type { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { betterAuth } from "better-auth";
 import { createAuthMiddleware, getOAuthState } from "better-auth/api";
-import { genericOAuth, line } from "better-auth/plugins";
+import { emailOTP, genericOAuth, line } from "better-auth/plugins";
 import { creemPlugin, disabledCreemPaths, type CreemKeys } from "./creem";
 
 export type AuthSettings = Readonly<{
@@ -16,6 +16,13 @@ export type AuthSettings = Readonly<{
   database: ReturnType<typeof drizzleAdapter>;
   onBeforeUserCreated?: () => Promise<void>;
   onOAuthCallback?: (userId: string, handle: unknown) => Promise<void>;
+  onBeforeEmailOtpUserCreated?: (handle: string) => Promise<void>;
+  onEmailOtpCallback?: (userId: string, handle: string) => Promise<void>;
+  sendVerificationOTP: (input: {
+    email: string;
+    otp: string;
+    type: "change-email" | "email-verification" | "sign-in" | "forget-password";
+  }) => Promise<void>;
   google?: { clientId: string; clientSecret: string };
   line?: { clientId: string; clientSecret: string };
   twitter?: { clientId: string; clientSecret: string };
@@ -23,18 +30,38 @@ export type AuthSettings = Readonly<{
   creem?: CreemKeys;
 }>;
 
-const createOAuthCallbackHook = (settings: AuthSettings) =>
+const createAuthAfterHook = (settings: AuthSettings) =>
   createAuthMiddleware(async (ctx) => {
-    if (ctx.path !== "/callback/:id" || !ctx.context.newSession) return;
+    const session = ctx.context.newSession;
+    if (!session) return;
 
-    const oauthState = await getOAuthState<{ handle?: unknown }>();
-    if (oauthState?.handle === undefined) return;
-
-    await settings.onOAuthCallback?.(
-      ctx.context.newSession.user.id,
-      oauthState.handle,
-    );
+    if (ctx.path === "/callback/:id") {
+      const oauthState = await getOAuthState<{ handle?: unknown }>();
+      if (oauthState?.handle !== undefined) {
+        await settings.onOAuthCallback?.(session.user.id, oauthState.handle);
+      }
+    } else if (ctx.path === "/sign-in/email-otp") {
+      await settings.onEmailOtpCallback?.(session.user.id, session.user.name);
+    }
   });
+
+type BetterAuthOptions = Parameters<typeof betterAuth>[0];
+
+const createDatabaseHooks = (
+  settings: AuthSettings,
+): NonNullable<BetterAuthOptions["databaseHooks"]> => ({
+  user: {
+    create: {
+      before: async (user, context) => {
+        if (context?.path === "/sign-in/email-otp") {
+          await settings.onBeforeEmailOtpUserCreated?.(user.name);
+        } else {
+          await settings.onBeforeUserCreated?.();
+        }
+      },
+    },
+  },
+});
 
 export const createAuth = (settings: AuthSettings) =>
   betterAuth({
@@ -42,17 +69,10 @@ export const createAuth = (settings: AuthSettings) =>
     basePath: settings.basePath,
     secret: settings.secret,
     database: settings.database,
-    databaseHooks: {
-      user: {
-        create: {
-          before: async () => {
-            await settings.onBeforeUserCreated?.();
-          },
-        },
-      },
-    },
+    account: { accountLinking: { enabled: true } },
+    databaseHooks: createDatabaseHooks(settings),
     hooks: {
-      after: createOAuthCallbackHook(settings),
+      after: createAuthAfterHook(settings),
     },
     emailAndPassword: { enabled: false },
     socialProviders: {
@@ -66,6 +86,7 @@ export const createAuth = (settings: AuthSettings) =>
     disabledPaths: disabledCreemPaths,
     plugins: [
       ...(settings.creem === undefined ? [] : [creemPlugin(settings.creem)]),
+      emailOTP({ sendVerificationOTP: settings.sendVerificationOTP }),
       ...(settings.line === undefined
         ? []
         : [
