@@ -61,3 +61,6 @@ export type WebEnv = v.InferOutput<typeof webEnvSchema>;
 
 export const readWebEnv = (bindings: Readonly<object>): WebEnv =>
   v.parse(webEnvSchema, bindings);
+
+export const getServerBinding = async () =>
+  (await import("cloudflare:workers")).env.SERVER;

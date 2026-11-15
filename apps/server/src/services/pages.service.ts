@@ -21,6 +21,18 @@ export const isPageHandleAvailable = async (
   return matchingPage === undefined;
 };
 
+export const findPageHandleForUser = async (
+  database: Database,
+  userId: string,
+): Promise<string | undefined> => {
+  const page = await database.query.pages.findFirst({
+    columns: { handle: true },
+    where: (pageRow, { eq }) => eq(pageRow.userId, userId),
+  });
+
+  return page?.handle;
+};
+
 export const createPageForUser = async (
   database: Database,
   userId: string,

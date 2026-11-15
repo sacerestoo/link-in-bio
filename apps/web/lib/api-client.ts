@@ -13,25 +13,34 @@ const getErrorMessage = (data: unknown, response: Response): string => {
   return `${response.status} ${response.statusText}`;
 };
 
-const fetchWithHttpErrors: typeof globalThis.fetch = async (
-  input: Parameters<typeof globalThis.fetch>[0],
-  init?: Parameters<typeof globalThis.fetch>[1],
-) => {
-  const response = await globalThis.fetch(input, init);
+const fetchWithHttpErrors =
+  (fetcher: typeof globalThis.fetch): typeof globalThis.fetch =>
+  async (
+    input: Parameters<typeof globalThis.fetch>[0],
+    init?: Parameters<typeof globalThis.fetch>[1],
+  ) => {
+    const response = await fetcher(input, init);
 
-  if (!response.ok) {
-    const data: unknown = await response
-      .clone()
-      .json()
-      .catch(() => null);
+    if (!response.ok) {
+      const data: unknown = await response
+        .clone()
+        .json()
+        .catch(() => null);
 
-    throw new DetailedError(getErrorMessage(data, response), {
-      statusCode: response.status,
-      detail: { data, statusText: response.statusText },
-    });
-  }
+      throw new DetailedError(getErrorMessage(data, response), {
+        statusCode: response.status,
+        detail: { data, statusText: response.statusText },
+      });
+    }
 
-  return response;
-};
+    return response;
+  };
 
-export const api = hc<AppType>("", { fetch: fetchWithHttpErrors });
+export const createApiClient = (
+  baseUrl: string,
+  fetcher: typeof globalThis.fetch = globalThis.fetch,
+) => hc<AppType>(baseUrl, { fetch: fetchWithHttpErrors(fetcher) });
+
+export type ApiClient = ReturnType<typeof createApiClient>;
+
+export const api = createApiClient("");

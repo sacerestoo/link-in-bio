@@ -11,7 +11,12 @@ export default function HomePage(): ReactNode {
           nativeButton={false}
           variant={"outline"}
           className={"px-4"}
-          render={<Link href={"/sign-in"} />}
+          render={
+            <Link
+              href="/redirect"
+              prefetch={false}
+            />
+          }
         >
           Sign in
         </Button>
