@@ -13,7 +13,7 @@ export default function HomePage(): ReactNode {
           className={"px-4"}
           render={
             <Link
-              href="/redirect"
+              href="/sign-in"
               prefetch={false}
             />
           }
