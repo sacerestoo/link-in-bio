@@ -2,11 +2,13 @@ import "server-only";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as authSchema from "./schema/auth";
+import * as pagesSchema from "./schema/pages";
 
 // One entry per src/schema/<domain>.ts file; check:architecture fails when a
 // domain file is missing here.
 export const schema = {
   ...authSchema,
+  ...pagesSchema,
 };
 
 export type Database = NodePgDatabase<typeof schema>;

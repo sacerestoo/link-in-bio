@@ -3,12 +3,12 @@ import { initLogger } from "evlog";
 import { evlog, type EvlogVariables } from "evlog/hono";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { prettyJSON } from "hono/pretty-json";
 import { timing } from "hono/timing";
 import { trimTrailingSlash } from "hono/trailing-slash";
 import type { ServerBindings } from "./lib/env";
 import { authController } from "./controllers/auth.controller";
 import { healthController } from "./controllers/health.controller";
+import { pagesController } from "./controllers/pages.controller";
 
 initLogger({ env: { service: "grabbin-server" } });
 
@@ -18,7 +18,6 @@ const app = new Hono<{
 }>()
   .basePath(`/${API_VERSION}`)
   .use("*", trimTrailingSlash())
-  .use("*", prettyJSON())
   .use("*", evlog())
   .use("*", timing())
   .onError((error, c) => {
@@ -49,6 +48,7 @@ const app = new Hono<{
     ),
   )
   .route("/health", healthController)
+  .route("/pages", pagesController)
   .route("/auth", authController);
 
 export type AppType = typeof app;

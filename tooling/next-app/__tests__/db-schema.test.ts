@@ -7,7 +7,6 @@ const config: DatabaseConfig = {
   schemaDirectory: "db/schema",
   clientFile: "db/client.ts",
   migrationsDirectory: "db/migrations",
-  queriesDirectory: "db/queries",
 };
 
 const client = `import * as authSchema from "./schema/auth";
@@ -33,7 +32,6 @@ describe("checkDatabaseShape", (): void => {
     write("db/schema/auth.ts");
     write("db/schema/item-listing.ts");
     write("db/migrations/0000_init.sql", "");
-    write("db/queries/item-listing.ts");
 
     expect(checkDatabaseShape(root, config)).toEqual([]);
   });

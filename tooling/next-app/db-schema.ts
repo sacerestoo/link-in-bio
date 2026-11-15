@@ -12,20 +12,15 @@ export type DatabaseConfig = Readonly<{
   schemaDirectory: string;
   clientFile: string;
   migrationsDirectory: string;
-  /** Domain query modules that server actions and route handlers call. */
-  queriesDirectory: string;
 }>;
 
 const domainFile = /^[a-z0-9]+(?:-[a-z0-9]+)*\.ts$/u;
 
 function checkDatabaseRoot(config: DatabaseConfig): (root: string) => string[] {
   const allowed = new Set(
-    [
-      config.clientFile,
-      config.schemaDirectory,
-      config.migrationsDirectory,
-      config.queriesDirectory,
-    ].map((path) => path.slice(config.databaseDirectory.length + 1)),
+    [config.clientFile, config.schemaDirectory, config.migrationsDirectory].map(
+      (path) => path.slice(config.databaseDirectory.length + 1),
+    ),
   );
   return (root) =>
     readdirSync(join(root, config.databaseDirectory))

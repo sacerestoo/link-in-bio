@@ -31,7 +31,7 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
 | `apps/web`        | vinext (Next.js App Router on Vite), routes `/v1/*` to the server Worker |
 | `apps/server`     | Hono API and Better Auth on its own Cloudflare Worker                    |
 | `apps/cron`       | Cloudflare Worker, `scheduled` daily at 06:00 UTC (15:00 KST)            |
-| `packages/db`     | Drizzle schema, client and queries. Server-only                          |
+| `packages/db`     | Drizzle schema and client. Server-only                                   |
 | `packages/auth`   | Better Auth + Creem factory. Takes its database adapter from callers     |
 | `packages/ui`     | shadcn components, `cn`, hooks and the Tailwind stylesheet               |
 | `packages/shared` | Types and valibot schemas shared by apps and packages                    |

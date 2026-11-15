@@ -5,8 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/client.ts",
-    "./schema/*": "./src/schema/*.ts",
-    "./queries/*": "./src/queries/*.ts"
+    "./schema/*": "./src/schema/*.ts"
   },
   "scripts": {
     "db:generate": "bun --env-file=../../.env.local ./node_modules/drizzle-kit/bin.cjs generate",

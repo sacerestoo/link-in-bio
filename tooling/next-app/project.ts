@@ -15,12 +15,13 @@ export const databaseArchitecture: DatabaseConfig = {
   schemaDirectory: `${architecture.directories.db}/schema`,
   clientFile: `${architecture.directories.db}/client.ts`,
   migrationsDirectory: `${architecture.directories.db}/migrations`,
-  queriesDirectory: `${architecture.directories.db}/queries`,
 };
 
 /** Modules holding secrets or database access; never bundled for the client. */
 export const serverOnlyModules = [
   `${architecture.directories.auth}/index.ts`,
+  "apps/web/features/auth/queries.ts",
+  "apps/web/lib/server-api-client.ts",
   "apps/server/src/lib/auth.ts",
   "apps/server/src/controllers/auth.controller.ts",
   "apps/server/src/controllers/health.controller.ts",
