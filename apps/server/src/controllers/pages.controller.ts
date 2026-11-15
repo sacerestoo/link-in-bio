@@ -6,7 +6,10 @@ import { HTTPException } from "hono/http-exception";
 import * as v from "valibot";
 import type { ServerBindings } from "../lib/env";
 import { getAuth } from "../lib/auth";
-import { isPageHandleAvailable } from "../services/pages.service";
+import {
+  findPageHandleForUser,
+  isPageHandleAvailable,
+} from "../services/pages.service";
 
 export const pagesController = new Hono<{
   Bindings: ServerBindings;
@@ -19,14 +22,11 @@ export const pagesController = new Hono<{
       throw new HTTPException(401, { message: "Unauthorized" });
 
     const database = createDatabase(c.env.HYPERDRIVE.connectionString);
-    const page = await database.query.pages.findFirst({
-      columns: { handle: true },
-      where: (pageRow, { eq }) => eq(pageRow.userId, session.user.id),
-    });
-    if (page === undefined)
+    const handle = await findPageHandleForUser(database, session.user.id);
+    if (handle === undefined)
       throw new HTTPException(404, { message: "Page not found" });
 
-    return c.json({ handle: page.handle });
+    return c.json({ handle });
   })
   .get("/handles/:handle/availability", async (c) => {
     const result = v.safeParse(usernameSchema, c.req.param("handle"));
