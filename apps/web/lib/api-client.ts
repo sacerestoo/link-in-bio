@@ -38,7 +38,7 @@ const fetchWithHttpErrors =
 
 export const createApiClient = (
   baseUrl: string,
-  fetcher: typeof globalThis.fetch = globalThis.fetch,
+  fetcher: typeof globalThis.fetch = (...args) => globalThis.fetch(...args),
 ) => hc<AppType>(baseUrl, { fetch: fetchWithHttpErrors(fetcher) });
 
 export type ApiClient = ReturnType<typeof createApiClient>;
