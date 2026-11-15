@@ -12,19 +12,11 @@ const AuthLayout = async ({
   const requestHeaders = await headers();
   if (getSessionCookie(requestHeaders) === null) return children;
 
-  const host =
-    requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
-  if (host === null) throw new Error("Missing request host.");
-  const protocol =
-    requestHeaders.get("x-forwarded-proto") ??
-    (host.startsWith("localhost") ? "http" : "https");
-  const api = await createServerApiClient(
-    requestHeaders,
-    `${protocol}://${host}`,
-  );
+  const api = await createServerApiClient(requestHeaders);
+
   try {
     const { handle } = await getOwnPage(api);
-    redirect(`/redirect?redirectTo=${encodeURIComponent(`/${handle}`)}`);
+    redirect(`/${encodeURIComponent(handle)}`);
   } catch (error: unknown) {
     if (!(error instanceof DetailedError && error.statusCode === 401)) {
       throw error;

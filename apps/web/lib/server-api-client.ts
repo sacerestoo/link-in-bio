@@ -4,9 +4,19 @@ import { getServerBinding } from "@/lib/env";
 
 export const createServerApiClient = async (
   requestHeaders: Pick<Headers, "get">,
-  requestOrigin: string,
 ) => {
   const server = await getServerBinding();
+
+  const host =
+    requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+  if (host === null) throw new Error("Missing request host.");
+
+  const protocol =
+    requestHeaders.get("x-forwarded-proto") ??
+    (host.startsWith("localhost") ? "http" : "https");
+
+  const requestOrigin = `${protocol}://${host}`;
+
   return createApiClient(requestOrigin, (input, init) => {
     const headers = new Headers(init?.headers);
     const cookie = requestHeaders.get("cookie");
