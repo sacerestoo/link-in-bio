@@ -9,15 +9,19 @@ export const metadata: Metadata = {
 export default async function SignUpPage({
   searchParams,
 }: Readonly<{
-  searchParams: Promise<{ handle?: string | string[] }>;
+  searchParams: Promise<{
+    handle?: string | string[];
+    redirectTo?: string | string[];
+  }>;
 }>): Promise<ReactNode> {
-  const { handle } = await searchParams;
+  const { handle, redirectTo } = await searchParams;
 
   return (
     <main className="flex min-h-svh items-center justify-center px-4 py-12">
       <SocialAuthForm
         initialHandle={typeof handle === "string" ? handle : undefined}
         mode="sign-up"
+        redirectTo={typeof redirectTo === "string" ? redirectTo : undefined}
       />
     </main>
   );

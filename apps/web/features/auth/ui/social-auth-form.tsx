@@ -29,15 +29,23 @@ const providers: ReadonlyArray<{
   { id: "line", icon: "/line-icon.svg", label: "LINE" },
 ];
 
-function SignUpLink({ mode }: Readonly<{ mode: AuthMode }>): ReactNode {
+function SignUpLink({
+  mode,
+  redirectTo,
+}: Readonly<{ mode: AuthMode; redirectTo: string | undefined }>): ReactNode {
   const isSignUp = mode === "sign-up";
+  const href = isSignUp ? "/sign-in" : "/sign-up";
+  const link =
+    redirectTo === undefined
+      ? href
+      : `${href}?redirectTo=${encodeURIComponent(redirectTo)}`;
 
   return (
     <p className="mt-6 text-center text-sm text-muted-foreground">
       {isSignUp ? "Already have an account? " : "Don't have an account? "}
       <Link
         className="font-normal text-brand underline-offset-4 hover:underline"
-        href={isSignUp ? "/sign-in" : "/sign-up"}
+        href={link}
         prefetch={false}
       >
         {isSignUp ? "Sign in" : "Register"}
@@ -87,7 +95,12 @@ function SocialProviderButtons({
 function AuthFeedback({
   mode,
   errorMessage,
-}: Readonly<{ mode: AuthMode; errorMessage: string | undefined }>): ReactNode {
+  redirectTo,
+}: Readonly<{
+  mode: AuthMode;
+  errorMessage: string | undefined;
+  redirectTo: string | undefined;
+}>): ReactNode {
   return (
     <>
       {errorMessage === undefined ? null : (
@@ -98,7 +111,10 @@ function AuthFeedback({
           {errorMessage}
         </p>
       )}
-      <SignUpLink mode={mode} />
+      <SignUpLink
+        mode={mode}
+        redirectTo={redirectTo}
+      />
     </>
   );
 }
@@ -111,25 +127,29 @@ function AuthHeading({ title }: Readonly<{ title: string }>): ReactNode {
   );
 }
 
-function AuthPanel({
-  mode,
-  initialHandle,
-  confirmedHandle,
-  pendingProvider,
-  errorMessage,
-  onConfirmed,
-  onInvalidInitialHandle,
-  onSignIn,
-}: Readonly<{
+type AuthPanelProps = Readonly<{
   mode: AuthMode;
   initialHandle: string | undefined;
+  redirectTo: string | undefined;
   confirmedHandle: string | undefined;
   pendingProvider: SocialProvider | undefined;
   errorMessage: string | undefined;
   onConfirmed: (handle: string) => void;
   onInvalidInitialHandle: () => void;
   onSignIn: (provider: SocialProvider) => void;
-}>): ReactNode {
+}>;
+
+function AuthPanel({
+  mode,
+  initialHandle,
+  redirectTo,
+  confirmedHandle,
+  pendingProvider,
+  errorMessage,
+  onConfirmed,
+  onInvalidInitialHandle,
+  onSignIn,
+}: AuthPanelProps): ReactNode {
   const isChoosingHandle = mode === "sign-up" && confirmedHandle === undefined;
   const title = isChoosingHandle
     ? "Choose your handle"
@@ -156,44 +176,61 @@ function AuthPanel({
         <AuthFeedback
           errorMessage={errorMessage}
           mode={mode}
+          redirectTo={redirectTo}
         />
       </section>
     </div>
   );
 }
 
-function useHandleConfirmation(initialHandle: string | undefined) {
+function useHandleConfirmation(
+  initialHandle: string | undefined,
+  redirectTo: string | undefined,
+) {
   const router = useRouter();
+  const redirectQuery = new URLSearchParams(
+    redirectTo === undefined ? undefined : { redirectTo },
+  ).toString();
   const onConfirmed = useCallback(
     (handle: string) => {
       if (initialHandle !== handle) {
-        router.replace(`/sign-up?handle=${encodeURIComponent(handle)}`, {
+        const query = new URLSearchParams(redirectQuery);
+        query.set("handle", handle);
+        router.replace(`/sign-up?${query.toString()}`, {
           scroll: false,
         });
       }
     },
-    [initialHandle, router],
+    [initialHandle, redirectQuery, router],
   );
   const onInvalid = useCallback(() => {
-    router.replace("/sign-up", { scroll: false });
-  }, [router]);
+    const suffix = redirectQuery.length === 0 ? "" : `?${redirectQuery}`;
+    router.replace(`/sign-up${suffix}`, { scroll: false });
+  }, [redirectQuery, router]);
   return { onConfirmed, onInvalid };
 }
+
+type SocialAuthFormProps = Readonly<{
+  mode: AuthMode;
+  initialHandle?: string;
+  redirectTo?: string;
+}>;
 
 export default function SocialAuthForm({
   mode,
   initialHandle,
-}: Readonly<{ mode: AuthMode; initialHandle?: string }>): ReactNode {
+  redirectTo,
+}: SocialAuthFormProps): ReactNode {
   const [pendingProvider, setPendingProvider] = useState<SocialProvider>();
   const [errorMessage, setErrorMessage] = useState<string>();
   const [confirmedHandle, setConfirmedHandle] = useState<string>();
-  const { onConfirmed, onInvalid } = useHandleConfirmation(initialHandle);
+  const confirmation = useHandleConfirmation(initialHandle, redirectTo);
 
   function handleSignIn(provider: SocialProvider): void {
     setErrorMessage(undefined);
     setPendingProvider(provider);
 
-    void signInWithSocial(provider, confirmedHandle)
+    void signInWithSocial(provider, confirmedHandle, redirectTo)
       .then((result) => {
         if (result.error !== null && result.error !== undefined) {
           setErrorMessage(
@@ -214,14 +251,15 @@ export default function SocialAuthForm({
     <AuthPanel
       mode={mode}
       initialHandle={initialHandle}
+      redirectTo={redirectTo}
       confirmedHandle={confirmedHandle}
       pendingProvider={pendingProvider}
       errorMessage={errorMessage}
       onConfirmed={(handle) => {
         setConfirmedHandle(handle);
-        onConfirmed(handle);
+        confirmation.onConfirmed(handle);
       }}
-      onInvalidInitialHandle={onInvalid}
+      onInvalidInitialHandle={confirmation.onInvalid}
       onSignIn={handleSignIn}
     />
   );
