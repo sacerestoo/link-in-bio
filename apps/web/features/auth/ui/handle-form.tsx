@@ -126,7 +126,6 @@ function HandleInput({
         autoComplete="off"
         aria-describedby={error === undefined ? undefined : "handle-error"}
         aria-invalid={error !== undefined}
-        className="h-11 py-2"
         disabled={disabled}
         id="page-handle"
         maxLength={30}
@@ -135,6 +134,7 @@ function HandleInput({
         }}
         placeholder="your-name"
         size="xl"
+        className="text-sm"
         value={value}
         variant="flat"
       />
