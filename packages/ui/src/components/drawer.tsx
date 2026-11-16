@@ -23,7 +23,7 @@ function useDrawer(): DrawerContextProps {
 
 function Drawer({
   modal = true,
-  showSwipeHandle = false,
+  showSwipeHandle = true,
   snapPoints,
   swipeDirection = "down",
   ...props
@@ -55,6 +55,24 @@ function Drawer({
       />
     </drawerContext.Provider>
   );
+}
+
+function DrawerProvider({
+  ...props
+}: Readonly<DrawerPrimitive.Provider.Props>): React.ReactElement {
+  return <DrawerPrimitive.Provider {...props} />;
+}
+
+function DrawerIndent({
+  ...props
+}: Readonly<DrawerPrimitive.Indent.Props>): React.ReactElement {
+  return <DrawerPrimitive.Indent {...props} />;
+}
+
+function DrawerIndentBackground({
+  ...props
+}: Readonly<DrawerPrimitive.IndentBackground.Props>): React.ReactElement {
+  return <DrawerPrimitive.IndentBackground {...props} />;
 }
 
 function DrawerTrigger({
@@ -239,6 +257,9 @@ function DrawerDescription({
 
 export {
   Drawer,
+  DrawerProvider,
+  DrawerIndent,
+  DrawerIndentBackground,
   DrawerPortal,
   DrawerOverlay,
   DrawerSwipeHandle,

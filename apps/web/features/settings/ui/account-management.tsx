@@ -17,6 +17,7 @@ import {
   InputGroupInput,
 } from "@grabbin/ui/components/input-group";
 import { Separator } from "@grabbin/ui/components/separator";
+import { DeleteAccountSection } from "./delete-account-section";
 import { NameField } from "./name-field";
 
 export function AccountManagement({
@@ -30,7 +31,7 @@ export function AccountManagement({
       <NameField initialName={user.name} />
       <EmailField email={user.email} />
       <PasswordField />
-      <DeleteAccountField />
+      <DeleteAccountSection email={user.email} />
     </div>
   );
 }
@@ -141,32 +142,6 @@ function PasswordField() {
           disabled
         >
           Update
-        </Button>
-      </div>
-    </Field>
-  );
-}
-
-function DeleteAccountField() {
-  return (
-    <Field className="rounded-2xl shadow-default">
-      <div className="flex items-center justify-between gap-4 p-4">
-        <div className="space-y-1">
-          <FieldLabel className="text-base">Delete account</FieldLabel>
-          <FieldDescription className="text-sm">
-            Permanently delete your account and all of its data. This action
-            cannot be undone.
-          </FieldDescription>
-        </div>
-        <Button
-          type="button"
-          variant="danger"
-          size="lg"
-          className="shrink-0 rounded-full px-3"
-          disabled
-          title="Account deletion is not available yet."
-        >
-          Delete
         </Button>
       </div>
     </Field>

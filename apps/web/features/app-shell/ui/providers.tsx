@@ -2,6 +2,11 @@
 
 import { getQueryClient } from "@/lib/query-client";
 import { sentryPrivacyOptions } from "@grabbin/shared/observability";
+import {
+  DrawerIndent,
+  DrawerIndentBackground,
+  DrawerProvider,
+} from "@grabbin/ui/components/drawer";
 import * as Sentry from "@sentry/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { OverlayProvider } from "overlay-kit";
@@ -18,8 +23,15 @@ function initializeSentry(): void {
 export function Providers({ children }: { children: ReactNode }): ReactNode {
   useEffect(initializeSentry, []);
   return (
-    <QueryClientProvider client={getQueryClient()}>
-      <OverlayProvider>{children}</OverlayProvider>
-    </QueryClientProvider>
+    <DrawerProvider>
+      <div className="drawer-indent-root">
+        <DrawerIndentBackground className="drawer-indent-background" />
+        <DrawerIndent className="drawer-indent">
+          <QueryClientProvider client={getQueryClient()}>
+            <OverlayProvider>{children}</OverlayProvider>
+          </QueryClientProvider>
+        </DrawerIndent>
+      </div>
+    </DrawerProvider>
   );
 }
