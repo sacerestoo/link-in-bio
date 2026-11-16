@@ -8,13 +8,13 @@ import {
 import { Button } from "@grabbin/ui/components/button";
 import { Input } from "@grabbin/ui/components/input";
 import { Label } from "@grabbin/ui/components/label";
+import { debounce } from "es-toolkit/function";
 import {
   useCallback,
   useEffect,
   useRef,
   useState,
   type ReactNode,
-  type RefObject,
 } from "react";
 import * as v from "valibot";
 
@@ -27,13 +27,18 @@ type HandleFormProps = Readonly<{
 const useHandleCheck = () => {
   const [error, setError] = useState<string>();
   const [checking, setChecking] = useState(false);
+  const requestId = useRef(0);
 
   const check = useCallback(
     async (handle: string): Promise<string | undefined> => {
+      const currentRequestId = ++requestId.current;
       setError(undefined);
       const result = v.safeParse(handleSchema, handle);
       if (!result.success) {
-        setError(result.issues.map((issue) => issue.message).join(" "));
+        if (currentRequestId === requestId.current) {
+          setError(result.issues.map((issue) => issue.message).join(" "));
+          setChecking(false);
+        }
         return undefined;
       }
 
@@ -46,15 +51,19 @@ const useHandleCheck = () => {
           result.output,
         );
         if (!checked.success) {
-          setError(checked.issues.map((issue) => issue.message).join(" "));
+          if (currentRequestId === requestId.current) {
+            setError(checked.issues.map((issue) => issue.message).join(" "));
+          }
           return undefined;
         }
         return checked.output;
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : undefined);
+        if (currentRequestId === requestId.current) {
+          setError(cause instanceof Error ? cause.message : undefined);
+        }
         return undefined;
       } finally {
-        setChecking(false);
+        if (currentRequestId === requestId.current) setChecking(false);
       }
     },
     [],
@@ -65,7 +74,8 @@ const useHandleCheck = () => {
 
 function useInitialHandle(
   initialHandle: string | undefined,
-  checkedHandle: RefObject<string | undefined>,
+  checkedHandle: string | undefined,
+  setCheckedHandle: (handle: string | undefined) => void,
   check: (handle: string) => Promise<string | undefined>,
   onConfirmed: HandleFormProps["onConfirmed"],
   onInvalidInitialHandle: HandleFormProps["onInvalidInitialHandle"],
@@ -73,16 +83,13 @@ function useInitialHandle(
 ): void {
   useEffect(() => {
     let active = true;
-    if (
-      initialHandle !== undefined &&
-      initialHandle !== checkedHandle.current
-    ) {
+    if (initialHandle !== undefined && initialHandle !== checkedHandle) {
       setHandleInput(initialHandle);
       void check(initialHandle).then((handle) => {
         if (active) {
           if (handle === undefined) onInvalidInitialHandle();
           else {
-            checkedHandle.current = handle;
+            setCheckedHandle(handle);
             onConfirmed(handle);
           }
         }
@@ -98,6 +105,7 @@ function useInitialHandle(
     initialHandle,
     onConfirmed,
     onInvalidInitialHandle,
+    setCheckedHandle,
     setHandleInput,
   ]);
 }
@@ -105,12 +113,10 @@ function useInitialHandle(
 function HandleInput({
   value,
   error,
-  disabled,
   onChange,
 }: Readonly<{
   value: string;
   error: string | undefined;
-  disabled: boolean;
   onChange: (value: string) => void;
 }>): ReactNode {
   return (
@@ -126,7 +132,6 @@ function HandleInput({
         autoComplete="off"
         aria-describedby={error === undefined ? undefined : "handle-error"}
         aria-invalid={error !== undefined}
-        disabled={disabled}
         id="page-handle"
         maxLength={30}
         onChange={(event) => {
@@ -151,21 +156,29 @@ function HandleInput({
   );
 }
 
-function submitHandle(
-  event: React.SubmitEvent<HTMLFormElement>,
+function useDebouncedHandleCheck(
   handleInput: string,
+  initialHandle: string | undefined,
   check: (handle: string) => Promise<string | undefined>,
-  checkedHandle: RefObject<string | undefined>,
-  onConfirmed: HandleFormProps["onConfirmed"],
+  setCheckedHandle: (handle: string | undefined) => void,
 ): void {
-  event.preventDefault();
-  void check(handleInput).then((handle) => {
-    if (handle !== undefined) {
-      checkedHandle.current = handle;
-      onConfirmed(handle);
+  useEffect(() => {
+    let active = true;
+    const checkDebounced = debounce((handle: string) => {
+      void check(handle).then((checked) => {
+        if (active)
+          setCheckedHandle(checked === undefined ? undefined : handle);
+        return checked;
+      });
+    }, 300);
+    if (handleInput !== "" && handleInput !== initialHandle) {
+      checkDebounced(handleInput);
     }
-    return handle;
-  });
+    return () => {
+      active = false;
+      checkDebounced.cancel();
+    };
+  }, [check, handleInput, initialHandle, setCheckedHandle]);
 }
 
 export default function HandleForm({
@@ -174,11 +187,13 @@ export default function HandleForm({
   onInvalidInitialHandle,
 }: HandleFormProps): ReactNode {
   const [handleInput, setHandleInput] = useState("");
+  const [checkedHandle, setCheckedHandle] = useState<string>();
   const { check, checking, error } = useHandleCheck();
-  const checkedHandle = useRef<string | undefined>(undefined);
+  useDebouncedHandleCheck(handleInput, initialHandle, check, setCheckedHandle);
   useInitialHandle(
     initialHandle,
     checkedHandle,
+    setCheckedHandle,
     check,
     onConfirmed,
     onInvalidInitialHandle,
@@ -189,24 +204,27 @@ export default function HandleForm({
     <form
       className="space-y-3"
       onSubmit={(event) => {
-        submitHandle(event, handleInput, check, checkedHandle, onConfirmed);
+        event.preventDefault();
+        onConfirmed(handleInput);
       }}
     >
       <HandleInput
-        disabled={checking}
         error={error}
-        onChange={setHandleInput}
+        onChange={(handle) => {
+          setCheckedHandle(undefined);
+          setHandleInput(handle);
+        }}
         value={handleInput}
       />
       <Button
         className="w-full rounded-xl"
-        disabled={checking}
+        disabled={checking || checkedHandle !== handleInput}
         pending={checking}
         type="submit"
         variant="outline"
         size="xl"
       >
-        Check
+        Continue
       </Button>
     </form>
   );
