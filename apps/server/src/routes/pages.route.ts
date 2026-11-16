@@ -1,6 +1,6 @@
 import "server-only";
 import { createDatabase } from "@grabbin/db";
-import { usernameSchema } from "@grabbin/shared/schemas/profile";
+import { handleSchema } from "@grabbin/shared/schemas/page";
 import { sValidator } from "@hono/standard-validator";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
@@ -28,7 +28,7 @@ export const pagesRoute = new Hono<{
   })
   .get(
     "/handles/:handle/availability",
-    sValidator("param", v.object({ handle: usernameSchema }), (result) => {
+    sValidator("param", v.object({ handle: handleSchema }), (result) => {
       if (!result.success)
         throw new HTTPException(400, {
           message: result.error.map((issue) => issue.message).join(" "),

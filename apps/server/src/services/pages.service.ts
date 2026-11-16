@@ -2,10 +2,10 @@ import "server-only";
 import type { Database } from "@grabbin/db";
 import { pages } from "@grabbin/db/schema/pages";
 import {
-  availableUsernameSchema,
-  usernameSchema,
-  type Username,
-} from "@grabbin/shared/schemas/profile";
+  availableHandleSchema,
+  handleSchema,
+  type Handle,
+} from "@grabbin/shared/schemas/page";
 import { APIError, getOAuthState } from "better-auth/api";
 import * as v from "valibot";
 
@@ -55,7 +55,7 @@ export const ensurePageForUser = async (
   });
   if (existingPage !== undefined) return;
 
-  const handleResult = v.safeParse(usernameSchema, rawHandle);
+  const handleResult = v.safeParse(handleSchema, rawHandle);
   if (!handleResult.success) {
     throw new APIError("BAD_REQUEST", {
       message: handleResult.issues.map((issue) => issue.message).join(" "),
@@ -63,7 +63,7 @@ export const ensurePageForUser = async (
   }
 
   const availableHandleResult = v.safeParse(
-    availableUsernameSchema(
+    availableHandleSchema(
       await isPageHandleAvailable(database, handleResult.output),
     ),
     handleResult.output,
@@ -79,9 +79,9 @@ export const ensurePageForUser = async (
   await createPageForUser(database, userId, availableHandleResult.output);
 };
 
-export const readSignupHandle = async (): Promise<Username> => {
+export const readSignupHandle = async (): Promise<Handle> => {
   const oauthState = await getOAuthState<{ handle?: unknown }>();
-  const result = v.safeParse(usernameSchema, oauthState?.handle);
+  const result = v.safeParse(handleSchema, oauthState?.handle);
   if (!result.success) {
     throw new APIError("BAD_REQUEST", {
       message: result.issues.map((issue) => issue.message).join(" "),
@@ -93,9 +93,9 @@ export const readSignupHandle = async (): Promise<Username> => {
 export const ensureHandleAvailable = async (
   database: Database,
   rawHandle?: unknown,
-): Promise<Username> => {
+): Promise<Handle> => {
   const parsedHandle = v.safeParse(
-    usernameSchema,
+    handleSchema,
     rawHandle === undefined ? await readSignupHandle() : rawHandle,
   );
   if (!parsedHandle.success) {
@@ -106,7 +106,7 @@ export const ensureHandleAvailable = async (
 
   const handle = parsedHandle.output;
   const result = v.safeParse(
-    availableUsernameSchema(await isPageHandleAvailable(database, handle)),
+    availableHandleSchema(await isPageHandleAvailable(database, handle)),
     handle,
   );
   if (!result.success) {

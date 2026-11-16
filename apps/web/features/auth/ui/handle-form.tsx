@@ -2,9 +2,9 @@
 
 import { checkHandleAvailability } from "@/features/auth/api";
 import {
-  availableUsernameSchema,
-  usernameSchema,
-} from "@grabbin/shared/schemas/profile";
+  availableHandleSchema,
+  handleSchema,
+} from "@grabbin/shared/schemas/page";
 import { Button } from "@grabbin/ui/components/button";
 import { Input } from "@grabbin/ui/components/input";
 import { Label } from "@grabbin/ui/components/label";
@@ -31,7 +31,7 @@ const useHandleCheck = () => {
   const check = useCallback(
     async (handle: string): Promise<string | undefined> => {
       setError(undefined);
-      const result = v.safeParse(usernameSchema, handle);
+      const result = v.safeParse(handleSchema, handle);
       if (!result.success) {
         setError(result.issues.map((issue) => issue.message).join(" "));
         return undefined;
@@ -42,7 +42,7 @@ const useHandleCheck = () => {
         const response = await checkHandleAvailability(result.output);
         const { available } = await response.json();
         const checked = v.safeParse(
-          availableUsernameSchema(available),
+          availableHandleSchema(available),
           result.output,
         );
         if (!checked.success) {
