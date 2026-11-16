@@ -41,5 +41,7 @@ export const verifyEmailOtp = (email: string, otp: string, name?: string) =>
     ...(name === undefined ? {} : { name }),
   });
 
+export const signOut = () => authClient.signOut();
+
 export const checkHandleAvailability = (handle: string) =>
   api.v1.pages.handles[":handle"].availability.$get({ param: { handle } });

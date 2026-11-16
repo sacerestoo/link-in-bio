@@ -7,6 +7,7 @@ import {
   DrawerIndentBackground,
   DrawerProvider,
 } from "@grabbin/ui/components/drawer";
+import { Toaster } from "@grabbin/ui/components/toast";
 import * as Sentry from "@sentry/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { OverlayProvider } from "overlay-kit";
@@ -28,7 +29,9 @@ export function Providers({ children }: { children: ReactNode }): ReactNode {
         <DrawerIndentBackground className="drawer-indent-background" />
         <DrawerIndent className="drawer-indent">
           <QueryClientProvider client={getQueryClient()}>
-            <OverlayProvider>{children}</OverlayProvider>
+            <OverlayProvider>
+              <Toaster>{children}</Toaster>
+            </OverlayProvider>
           </QueryClientProvider>
         </DrawerIndent>
       </div>
