@@ -69,7 +69,9 @@ export const createAuth = (settings: AuthSettings) =>
     basePath: settings.basePath,
     secret: settings.secret,
     database: settings.database,
-    account: { accountLinking: { enabled: true } },
+    account: {
+      accountLinking: { enabled: true, trustedProviders: ["line"] },
+    },
     databaseHooks: createDatabaseHooks(settings),
     hooks: {
       after: createAuthAfterHook(settings),
