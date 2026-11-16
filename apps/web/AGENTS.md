@@ -4,7 +4,7 @@
   The Worker entry is `worker.ts`, set as `main` in `wrangler.jsonc`; it wraps
   vinext's App Router handler with Sentry.
 - `/v1/*` requests go through the `SERVER` service binding to `apps/server`. API
-  controllers and auth wiring live in that Worker.
+  route handlers and auth wiring live in that Worker.
 - `lib/api-client.ts` imports the server Hono app type only; browser requests
   still use `/v1/*` on the web origin.
 - `lib/env.ts` validates web settings. Server settings are in

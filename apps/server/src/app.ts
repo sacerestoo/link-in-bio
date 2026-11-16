@@ -6,9 +6,9 @@ import { HTTPException } from "hono/http-exception";
 import { timing } from "hono/timing";
 import { trimTrailingSlash } from "hono/trailing-slash";
 import type { ServerBindings } from "./lib/env";
-import { authController } from "./controllers/auth.controller";
-import { healthController } from "./controllers/health.controller";
-import { pagesController } from "./controllers/pages.controller";
+import { authRoute } from "./routes/auth.route";
+import { healthRoute } from "./routes/health.route";
+import { pagesRoute } from "./routes/pages.route";
 
 initLogger({ env: { service: "grabbin-server" } });
 
@@ -47,9 +47,9 @@ const app = new Hono<{
       { "Content-Type": "application/problem+json" },
     ),
   )
-  .route("/health", healthController)
-  .route("/pages", pagesController)
-  .route("/auth", authController);
+  .route("/health", healthRoute)
+  .route("/pages", pagesRoute)
+  .route("/auth", authRoute);
 
 export type AppType = typeof app;
 

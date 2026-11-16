@@ -41,8 +41,8 @@ const files = {
     '"use server";\n\nimport { parseInput } from "@/shared/lib/contract";\nimport { createItemInput } from "./contracts";\n\nexport const createItem = async (raw: unknown): Promise<string> => {\n  const input = parseInput(createItemInput, raw);\n  return input.name;\n};\n',
   "packages/db/src/client.ts":
     'import "server-only";\n\nexport const client = {};\n',
-  "apps/server/src/controllers/auth.controller.ts":
-    'import { createDatabase } from "@grabbin/db";\nexport const authController = createDatabase;\n',
+  "apps/server/src/routes/auth.route.ts":
+    'import { createDatabase } from "@grabbin/db";\nexport const authRoute = createDatabase;\n',
   "apps/server/src/lib/auth.ts":
     'import { createDatabase } from "@grabbin/db";\nexport const service = createDatabase;\n',
   "apps/web/lib/auth.ts":

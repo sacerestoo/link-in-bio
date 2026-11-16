@@ -24,7 +24,7 @@ export const serverOnlyModules = [
   "apps/web/features/auth/queries.ts",
   "apps/web/lib/server-api-client.ts",
   "apps/server/src/lib/auth.ts",
-  "apps/server/src/controllers/auth.controller.ts",
-  "apps/server/src/controllers/health.controller.ts",
+  "apps/server/src/routes/auth.route.ts",
+  "apps/server/src/routes/health.route.ts",
   `${architecture.directories.db}/client.ts`,
 ] as const;

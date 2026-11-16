@@ -101,7 +101,7 @@ function checkAppDirectory(
       );
     } else if (display.startsWith(`${config.apiDirectory}/`)) {
       errors.push(
-        `Remove ${display}: web API route handlers were removed; add Hono controllers under apps/server/src/controllers/.`,
+        `Remove ${display}: web API route handlers were removed; add Hono routes under apps/server/src/routes/.`,
       );
     } else if (!isAllowedAppFile(entry.name, isRoot, config)) {
       errors.push(

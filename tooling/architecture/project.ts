@@ -6,7 +6,7 @@ const configExtensions = [".js", ".cjs", ".mjs", ".ts", ".cts", ".mts"];
 // layers and the shape checks all read these paths.
 const directories = {
   app: "apps/web/app",
-  controllers: "apps/server/src/controllers",
+  routes: "apps/server/src/routes",
   server: "apps/server/src",
   features: "apps/web/features",
   lib: "apps/web/lib",
@@ -23,7 +23,7 @@ export const architecture = {
   directories,
   applicationDirectoryKeys: [
     "app",
-    "controllers",
+    "routes",
     "server",
     "features",
     "lib",

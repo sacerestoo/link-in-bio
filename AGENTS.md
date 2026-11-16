@@ -73,9 +73,8 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
   `SERVER` service binding.
 - Root `bun run dev` starts web on port 3000 and server on port 3001 as separate
   local Workers; the service binding connects them.
-- Put domain Hono routers in
-  `apps/server/src/controllers/<domain>.controller.ts` and domain services in
-  `apps/server/src/services/`. The API app composes them in
+- Put domain Hono routers in `apps/server/src/routes/<domain>.route.ts` and
+  domain services in `apps/server/src/services/`. The API app composes them in
   `apps/server/src/app.ts`. API route handlers do not belong under the web app.
 - `apps/server/src/lib/auth.ts` wires the Better Auth package to the server
   database. Web's `lib/api-client.ts` imports the server app type only.
