@@ -24,6 +24,7 @@
     "better-auth": "catalog:",
     "evlog": "^2.35.1",
     "hono": "^4.13.18",
+    "lucide-react": "^1.72.0",
     "overlay-kit": "^1.9.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

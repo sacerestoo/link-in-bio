@@ -16,7 +16,7 @@ const AuthLayout = async ({
 
   try {
     const { handle } = await getOwnPage(api);
-    redirect(`/${encodeURIComponent(handle)}`);
+    redirect(`/${encodeURIComponent(handle)}`, "replace");
   } catch (error: unknown) {
     if (!(error instanceof DetailedError && error.statusCode === 401)) {
       throw error;
