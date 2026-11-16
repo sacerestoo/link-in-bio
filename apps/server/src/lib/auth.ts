@@ -1,6 +1,7 @@
 import "server-only";
 import { createAuth, type Auth, type AuthSettings } from "@grabbin/auth";
 import { createDatabase, schema } from "@grabbin/db";
+import { sendAccountDeletionEmail } from "@grabbin/email/account-deletion";
 import { sendOtpEmail } from "@grabbin/email/otp";
 import { API_VERSION } from "@grabbin/shared/api-version";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -29,6 +30,18 @@ const createOtpEmailSender =
     }
 
     await sendOtpEmail({ apiKey, from, email, otp });
+  };
+
+const createAccountDeletionEmailSender =
+  (
+    apiKey: string | undefined,
+    from: string | undefined,
+  ): AuthSettings["sendDeleteAccountVerification"] =>
+  async ({ email, url }) => {
+    if (apiKey === undefined || from === undefined) {
+      throw new Error("Account deletion email is not configured.");
+    }
+    await sendAccountDeletionEmail({ apiKey, from, email, url });
   };
 
 export const getAuth = (bindings: Readonly<ServerBindings>): Auth => {
@@ -62,16 +75,18 @@ export const getAuth = (bindings: Readonly<ServerBindings>): Auth => {
     onBeforeUserCreated: async () => {
       await ensureHandleAvailable(database);
     },
-    onOAuthCallback: async (userId, handle) => {
-      await ensurePageForUser(database, userId, handle);
-    },
+    onOAuthCallback: (userId, handle) =>
+      ensurePageForUser(database, userId, handle),
     onBeforeEmailOtpUserCreated: async (handle) => {
       await ensureHandleAvailable(database, handle);
     },
-    onEmailOtpCallback: async (userId, handle) => {
-      await ensurePageForUser(database, userId, handle);
-    },
+    onEmailOtpCallback: (userId, handle) =>
+      ensurePageForUser(database, userId, handle),
     sendVerificationOTP: createOtpEmailSender(
+      settings.RESEND_API_KEY,
+      settings.RESEND_FROM_EMAIL,
+    ),
+    sendDeleteAccountVerification: createAccountDeletionEmailSender(
       settings.RESEND_API_KEY,
       settings.RESEND_FROM_EMAIL,
     ),

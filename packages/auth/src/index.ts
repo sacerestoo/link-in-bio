@@ -23,6 +23,10 @@ export type AuthSettings = Readonly<{
     otp: string;
     type: "change-email" | "email-verification" | "sign-in" | "forget-password";
   }) => Promise<void>;
+  sendDeleteAccountVerification: (input: {
+    email: string;
+    url: string;
+  }) => Promise<void>;
   google?: { clientId: string; clientSecret: string };
   line?: { clientId: string; clientSecret: string };
   twitter?: { clientId: string; clientSecret: string };
@@ -69,6 +73,13 @@ export const createAuth = (settings: AuthSettings) =>
     basePath: settings.basePath,
     secret: settings.secret,
     database: settings.database,
+    user: {
+      deleteUser: {
+        enabled: true,
+        sendDeleteAccountVerification: ({ user, url }) =>
+          settings.sendDeleteAccountVerification({ email: user.email, url }),
+      },
+    },
     account: {
       accountLinking: { enabled: true, trustedProviders: ["line"] },
     },

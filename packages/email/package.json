@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./otp": "./src/otp.ts"
+    "./otp": "./src/otp.ts",
+    "./account-deletion": "./src/account-deletion.ts"
   },
   "scripts": {
     "lint": "vp lint",
