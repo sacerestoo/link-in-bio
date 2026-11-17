@@ -61,6 +61,7 @@
       "name": "@grabbin/web",
       "version": "0.0.0",
       "dependencies": {
+        "@creem_io/better-auth": "^2.0.5",
         "@grabbin/auth": "workspace:*",
         "@grabbin/server": "workspace:*",
         "@grabbin/shared": "workspace:*",

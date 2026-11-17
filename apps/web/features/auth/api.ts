@@ -1,5 +1,5 @@
 import { api } from "@/lib/api-client";
-import { authClient } from "@grabbin/auth/client";
+import { authClient } from "@/lib/auth-client";
 
 export type SocialProvider = "google" | "line" | "twitter";
 

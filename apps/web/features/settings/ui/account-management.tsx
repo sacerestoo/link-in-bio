@@ -1,6 +1,6 @@
 "use client";
 
-import type { authClient } from "@grabbin/auth/client";
+import type { authClient } from "@/lib/auth-client";
 import {
   Avatar,
   AvatarFallback,
