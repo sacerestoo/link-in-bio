@@ -30,7 +30,7 @@ const nonVoidArchitecture: ArchitectureConfig<typeof nonVoidDirectories> = {
   sourceExtensions: [".ts", ".vue"],
   additionalRootDirectories: ["docs", "tooling"],
   generatedDirectories: [".git", "node_modules", "dist"],
-  featureSubdirectories: ["__tests__", "components"],
+  featureSubdirectories: ["__tests__", "components", "hooks"],
   featureUi: { directory: "components", extensions: [".vue"] },
   singletonFiles: [],
   packageManifest: "package.json",
@@ -107,5 +107,14 @@ describe("feature UI folders", (): void => {
     expect(checkArchitectureShape(root, nonVoidArchitecture)).toEqual([
       expect.stringMatching(/Keep CSS files inside src\/styles\//u),
     ]);
+  });
+});
+
+describe("feature hook folders", (): void => {
+  it("allows configured hook directories inside features", (): void => {
+    const root = createRoot();
+    mkdirSync(join(root, "src/features/tasks/hooks"), { recursive: true });
+
+    expect(checkArchitectureShape(root, nonVoidArchitecture)).toEqual([]);
   });
 });

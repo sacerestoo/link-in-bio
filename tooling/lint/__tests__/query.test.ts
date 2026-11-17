@@ -14,8 +14,10 @@ const tester = new RuleTester({
 });
 const canonicalQueryDefinitions =
   queryPlugin.rules["canonical-query-definitions"];
+const canonicalQueryHooks = queryPlugin.rules["canonical-query-hooks"];
 const noHardcodedQueryKeys = queryPlugin.rules["no-hardcoded-query-keys"];
 const queriesFile = "apps/web/features/projects/queries.ts";
+const queryHookFile = "apps/web/features/projects/hooks/use-projects.ts";
 
 tester.run("canonical-query-definitions", canonicalQueryDefinitions, {
   valid: [
@@ -38,6 +40,55 @@ tester.run("canonical-query-definitions", canonicalQueryDefinitions, {
       filename: "apps/web/features/projects/use-projects.ts",
       code: 'import * as query from "@tanstack/react-query"; query.queryOptions({ queryKey: [] });',
       errors: [{ message: /only from the feature/u }],
+    },
+  ],
+});
+
+tester.run("canonical-query-hooks", canonicalQueryHooks, {
+  valid: [
+    {
+      filename: queriesFile,
+      code: `import { queryOptions, useQuery } from "@tanstack/react-query";
+        const projectsQueryKey = () => ["projects"];
+        const projectsQueryOptions = () => queryOptions({
+          queryKey: projectsQueryKey(), queryFn: load
+        });
+        function useProjects() {
+          return useQuery({ ...projectsQueryOptions(), enabled: true });
+        }`,
+    },
+    {
+      filename: queriesFile,
+      code: `import { useQuery, queryOptions } from "@tanstack/react-query";
+        const projectsQueryKey = () => ["projects"];
+        function useProjects() {
+          return useQuery(queryOptions({
+            queryKey: projectsQueryKey(), queryFn: load
+          }));
+        }`,
+    },
+  ],
+  invalid: [
+    {
+      filename: "apps/web/features/projects/ui/projects.tsx",
+      code: `import { useQuery } from "@tanstack/react-query";
+        function Projects() { return useQuery({ queryKey: [], queryFn: load }); }`,
+      errors: [{ message: /feature's queries\.ts/u }],
+    },
+    {
+      filename: queryHookFile,
+      code: `import { useQuery } from "@tanstack/react-query";
+        import { projectsQueryOptions } from "../queries";
+        function useProjects() { return useQuery(projectsQueryOptions()); }`,
+      errors: [{ message: /feature's queries\.ts/u }],
+    },
+    {
+      filename: queriesFile,
+      code: `import { useQuery } from "@tanstack/react-query";
+        function useProjects() {
+          return useQuery({ queryKey: [], queryFn: load });
+        }`,
+      errors: [{ message: /using queryOptions/u }],
     },
   ],
 });
@@ -101,6 +152,7 @@ tester.run("no-hardcoded-query-keys", noHardcodedQueryKeys, {
 it("registers the canonical query rules", () => {
   expect(Object.keys(queryPlugin.rules)).toEqual([
     "canonical-query-definitions",
+    "canonical-query-hooks",
     "no-hardcoded-query-keys",
   ]);
 });

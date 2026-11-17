@@ -55,6 +55,7 @@ it("disables React rules without changing the other profiles", () => {
     "query/canonical-query-definitions",
     "error",
   );
+  expect(config.rules).toHaveProperty("query/canonical-query-hooks", "error");
   expect(config.rules).toHaveProperty("query/no-hardcoded-query-keys", "error");
 });
 
@@ -69,6 +70,7 @@ it("disables Vite+ lint rules while keeping TanStack rules", () => {
   );
   expect(config.rules).not.toHaveProperty("vite-plus/prefer-vite-plus-imports");
   expect(config.rules).not.toHaveProperty("testing/require-vite-plus-test");
+  expect(config.rules).toHaveProperty("query/canonical-query-hooks", "error");
   expect(config.rules).toHaveProperty("query/no-hardcoded-query-keys", "error");
 });
 
@@ -79,6 +81,7 @@ it("lets TanStack Query be disabled independently", () => {
   });
 
   expect(config.rules).not.toHaveProperty("query/canonical-query-definitions");
+  expect(config.rules).not.toHaveProperty("query/canonical-query-hooks");
   expect(config.rules).not.toHaveProperty("query/no-hardcoded-query-keys");
   expect(config.rules).toHaveProperty(
     "vite-plus/prefer-vite-plus-imports",

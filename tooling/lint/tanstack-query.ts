@@ -14,5 +14,6 @@ export const tanstackQueryRules = {
   "@tanstack/query/mutation-property-order": "error",
   "@tanstack/query/prefer-query-options": "error",
   "query/canonical-query-definitions": "error",
+  "query/canonical-query-hooks": "error",
   "query/no-hardcoded-query-keys": "error",
 } satisfies NonNullable<OxlintOverride["rules"]>;
