@@ -1,8 +1,13 @@
 import type { ReactNode } from "react";
 
 export const PermissionGate = ({
-  allowed,
-  children,
-}: Readonly<{ allowed: boolean; children: ReactNode }>) => {
-  return allowed ? children : null;
+  hasPermission,
+  whenAllowed,
+  whenDenied,
+}: Readonly<{
+  hasPermission: boolean;
+  whenAllowed?: ReactNode;
+  whenDenied?: ReactNode;
+}>) => {
+  return hasPermission ? whenAllowed : whenDenied;
 };
