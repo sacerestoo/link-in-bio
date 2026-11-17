@@ -1,9 +1,15 @@
 import { getOwnPage } from "@/features/auth/queries";
 import { PageAccountMenu } from "@/features/auth/ui/page-account-menu";
+import { PermissionGate } from "@/features/auth/ui/permission-gate";
 import { createServerApiClient } from "@/lib/server-api-client";
 import { getSessionCookie } from "better-auth/cookies";
 import { DetailedError } from "hono/client";
+import dynamic from "next/dynamic";
 import { headers } from "next/headers";
+
+const CreateYoursLink = dynamic(
+  () => import("@/features/auth/ui/create-yours-link"),
+);
 
 export default async function HandlePage({
   params,
@@ -12,9 +18,10 @@ export default async function HandlePage({
 }) {
   const { handle } = await params;
   const requestHeaders = await headers();
+  const hasSession = getSessionCookie(requestHeaders) !== null;
   let isOwnPage = false;
 
-  if (getSessionCookie(requestHeaders) !== null) {
+  if (hasSession) {
     try {
       const api = await createServerApiClient(requestHeaders);
       isOwnPage = (await getOwnPage(api)).handle === handle;
@@ -31,6 +38,15 @@ export default async function HandlePage({
   }
 
   return (
-    <div className="min-h-svh">{isOwnPage ? <PageAccountMenu /> : null}</div>
+    <div className="min-h-svh">
+      <div className="fixed inset-x-0 bottom-8 z-40 flex justify-start px-8">
+        <PermissionGate allowed={isOwnPage}>
+          <PageAccountMenu />
+        </PermissionGate>
+        <PermissionGate allowed={!hasSession && !isOwnPage}>
+          <CreateYoursLink />
+        </PermissionGate>
+      </div>
+    </div>
   );
 }
