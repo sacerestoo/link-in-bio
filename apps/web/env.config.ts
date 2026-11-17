@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import * as v from "valibot";
 import { readDotenvEntries, type EnvEntry } from "../../tooling/dotenv";
-import { webEnvSchema } from "./lib/env";
+import { webEnvSchema } from "./lib/env-schema";
 
 export function loadLocalEnv(): void {
   const localEnvPath = fileURLToPath(new URL(".env.local", import.meta.url));

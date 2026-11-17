@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import * as v from "valibot";
 import { cronEnvSchema } from "../apps/cron/src/env.ts";
 import { serverEnvSchema } from "../apps/server/src/lib/env.ts";
-import { webEnvSchema } from "../apps/web/lib/env.ts";
+import { webEnvSchema } from "../apps/web/lib/env-schema.ts";
 import { readDotenvEntries } from "./dotenv.ts";
 
 const root = new URL("../", import.meta.url);
