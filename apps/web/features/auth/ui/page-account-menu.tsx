@@ -1,7 +1,9 @@
 "use client";
 
 import type { ReactElement } from "react";
-import { signOut } from "@/features/auth/api";
+import { signOut } from "@/features/auth/auth";
+import { useOwnPage } from "@/features/auth/queries";
+import { ChangeHandleDialog } from "@/features/auth/ui/change-handle-dialog";
 import { Button } from "@grabbin/ui/components/button";
 import {
   DropdownMenu,
@@ -13,6 +15,7 @@ import { toast } from "@grabbin/ui/components/toast";
 import Settings2 from "lucide-react/icons/settings-2";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { overlay } from "overlay-kit";
 
 async function handleSignOut(refresh: () => void): Promise<void> {
   try {
@@ -44,28 +47,56 @@ export function PageAccountMenu(): ReactElement {
       >
         <Settings2 aria-hidden="true" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        side="top"
-        align="start"
-        sideOffset={8}
-      >
-        <DropdownMenuItem
-          className="h-12 px-3 font-normal"
-          render={<Link href="/settings" />}
-        >
-          Account
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="h-12 px-3 font-normal"
-          onClick={() => {
-            void handleSignOut(() => {
-              router.refresh();
-            });
-          }}
-        >
-          Log out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
+      <PageAccountMenuItems
+        onChangeHandle={() => {
+          overlay.open((props) => <ChangeHandleDialog {...props} />);
+        }}
+        onSignOut={() => {
+          void handleSignOut(() => {
+            router.refresh();
+          });
+        }}
+      />
     </DropdownMenu>
+  );
+}
+
+function PageAccountMenuItems({
+  onChangeHandle,
+  onSignOut,
+}: Readonly<{
+  onChangeHandle: () => void;
+  onSignOut: () => void;
+}>): ReactElement {
+  const page = useOwnPage(true);
+
+  return (
+    <DropdownMenuContent
+      side="top"
+      align="start"
+      sideOffset={8}
+    >
+      <DropdownMenuItem
+        className="flex h-12 flex-col items-start justify-center gap-0 px-3 font-normal"
+        onClick={onChangeHandle}
+      >
+        <span>Change handle</span>
+        {page.data?.handle !== undefined && (
+          <span className="text-muted-foreground">/{page.data.handle}</span>
+        )}
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        className="h-12 px-3 font-normal"
+        render={<Link href="/settings" />}
+      >
+        Account
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        className="h-12 px-3 font-normal"
+        onClick={onSignOut}
+      >
+        Log out
+      </DropdownMenuItem>
+    </DropdownMenuContent>
   );
 }
