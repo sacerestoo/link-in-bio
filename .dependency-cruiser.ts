@@ -17,7 +17,7 @@ const featurePath = directory("features");
 const servicePath = directory("services");
 const cronPath = directory("cron");
 const databasePath = directory("db");
-const authPath = directory("auth");
+const subscriptionPath = directory("subscription");
 const uiPath = directory("ui");
 const sharedPath = directory("shared");
 const testPath = "/(tests?|__tests__)/|\\.(test|spec)\\.";
@@ -75,19 +75,19 @@ export default {
     {
       name: "ui-only-to-shared",
       comment:
-        "packages/ui renders on the client; it may use packages/shared but not db, auth, or app code.",
+        "packages/ui renders on the client; it may use packages/shared but not db, subscription, or app code.",
       severity: "error",
       from: { path: `^${uiPath}/` },
       to: {
-        path: `^(?:${databasePath}|${authPath}|${cronPath})/`,
+        path: `^(?:${databasePath}|${subscriptionPath}|${cronPath})/`,
       },
     },
     {
-      name: "auth-not-to-web-code",
+      name: "subscription-not-to-web-code",
       comment:
-        "packages/auth takes its database adapter from the caller; it must not import db, ui, or app code.",
+        "packages/subscription reads through Better Auth's adapter; it must not import db, ui, or app code.",
       severity: "error",
-      from: { path: `^${authPath}/` },
+      from: { path: `^${subscriptionPath}/` },
       to: { path: `^(?:${databasePath}|${uiPath}|apps)/` },
     },
     {
@@ -111,10 +111,10 @@ export default {
     {
       name: "database-not-to-web-code",
       comment:
-        "packages/db is a low layer: schema and client must not import apps, ui, or auth.",
+        "packages/db is a low layer: schema and client must not import apps, ui, or subscription.",
       severity: "error",
       from: { path: `^${databasePath}/` },
-      to: { path: `^(?:apps|${uiPath}|${authPath})/` },
+      to: { path: `^(?:apps|${uiPath}|${subscriptionPath})/` },
     },
     {
       name: "app-only-from-app",
@@ -127,11 +127,11 @@ export default {
     {
       name: "feature-ui-not-to-data-modules",
       comment:
-        "Feature UI renders on the client; it reaches data through actions.ts or api.ts, never packages/db or packages/auth.",
+        "Feature UI renders on the client; it reaches data through actions.ts or api.ts, never packages/db or packages/subscription.",
       severity: "error",
       from: { path: `^${featurePath}/[^/]+/ui/` },
       to: {
-        path: `^(?:${databasePath}|${authPath})/`,
+        path: `^(?:${databasePath}|${subscriptionPath})/`,
         dependencyTypesNot: ["type-only"],
       },
     },

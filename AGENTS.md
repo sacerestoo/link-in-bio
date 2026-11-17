@@ -26,16 +26,16 @@ Codex reads this file and the nested `AGENTS.md` files in `apps/*` and
 
 Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
 
-| Path              | Role                                                                     |
-| ----------------- | ------------------------------------------------------------------------ |
-| `apps/web`        | vinext (Next.js App Router on Vite), routes `/v1/*` to the server Worker |
-| `apps/server`     | Hono API and Better Auth on its own Cloudflare Worker                    |
-| `apps/cron`       | Cloudflare Worker, `scheduled` daily at 06:00 UTC (15:00 KST)            |
-| `packages/db`     | Drizzle schema and client. Server-only                                   |
-| `packages/auth`   | Better Auth + Creem factory. Takes its database adapter from callers     |
-| `packages/ui`     | shadcn components, `cn`, hooks and the Tailwind stylesheet               |
-| `packages/shared` | Types and valibot schemas shared by apps and packages                    |
-| `tooling/`        | Lint plugins, architecture checks and their tests                        |
+| Path                    | Role                                                                     |
+| ----------------------- | ------------------------------------------------------------------------ |
+| `apps/web`              | vinext (Next.js App Router on Vite), routes `/v1/*` to the server Worker |
+| `apps/server`           | Hono API and Better Auth on its own Cloudflare Worker                    |
+| `apps/cron`             | Cloudflare Worker, `scheduled` daily at 06:00 UTC (15:00 KST)            |
+| `packages/db`           | Drizzle schema and client. Server-only                                   |
+| `packages/subscription` | Server-side Creem and subscription integrations                          |
+| `packages/ui`           | shadcn components, `cn`, hooks and the Tailwind stylesheet               |
+| `packages/shared`       | Types and valibot schemas shared by apps and packages                    |
+| `tooling/`              | Lint plugins, architecture checks and their tests                        |
 
 - Add a workspace package only by also adding it to
   `tooling/architecture/project.ts`; `bun run check:architecture` rejects
@@ -52,17 +52,24 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
 ## Import boundaries
 
 - `packages/db` (and `drizzle-orm`, `pg`) may be imported only from
-  `apps/server/src/**` and `apps/cron/src/**`. Pages, feature UI, `packages/ui`,
-  `packages/auth` and `packages/shared` reach data through the web API.
-- `packages/ui` must never import `packages/db`, `packages/auth`, or app code.
-- `packages/auth` builds Better Auth from settings and a database adapter that
-  `apps/server/src/lib/auth.ts` creates; it never imports `packages/db`.
+  `apps/server/src/**` and `apps/cron/src/**`. Web code, `packages/ui`,
+  `packages/subscription` and `packages/shared` do not import the database
+  layer.
+- `packages/ui` must never import `packages/db`, `packages/subscription`, or app
+  code.
+- `apps/server/src/lib/auth.ts` assembles Better Auth configuration and builds
+  the request-scoped auth instance from Worker bindings and the server database.
+  Keep provider, email, hook and subscription settings in focused modules under
+  `apps/server/src/lib/auth/`.
+- `packages/subscription` holds server-side Creem and subscription integrations.
+  It accesses subscription records through Better Auth's adapter and never
+  imports `packages/db` or app code.
 - `packages/shared` imports no other workspace code. Packages never import
   `apps/*`; apps do not import each other's runtime code. Web may import the
   server Hono app type for its API client.
 - Inside `apps/web`: `app/` holds only Next.js route and metadata files; only
   `app/` imports `app/`; features do not import other features; feature UI never
-  imports `packages/db` or `packages/auth`.
+  imports `packages/db` or `packages/subscription`.
 
 ## vinext and Workers
 
@@ -76,8 +83,8 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
 - Put domain Hono routers in `apps/server/src/routes/<domain>.route.ts` and
   domain services in `apps/server/src/services/`. The API app composes them in
   `apps/server/src/app.ts`. API route handlers do not belong under the web app.
-- `apps/server/src/lib/auth.ts` wires the Better Auth package to the server
-  database. Web's `lib/api-client.ts` imports the server app type only.
+- `apps/server/src/lib/auth.ts` owns the Better Auth configuration and server
+  database adapter. Web's `lib/api-client.ts` imports the server app type only.
 - Bindings and plain vars live in each app's `wrangler.jsonc`.
   `vp run -r typegen` writes `worker-configuration.d.ts` (gitignored) from it.
 - Read settings only through `readWebEnv()` (`apps/web/lib/env.ts`),
@@ -120,7 +127,7 @@ here only with its enforcer and a test that proves it catches a violation.
 | Rule                                                                                             | Enforcer                                                                                                 | Test                                              |
 | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
 | `packages/db`, `drizzle-orm`, `pg` only from server and cron                                     | oxlint `no-restricted-imports` (`tooling/lint/next-app.ts`) and dependency-cruiser                       | `lint-config.test.ts`, `dependency-rules.test.ts` |
-| `packages/ui` never imports `packages/db`, `packages/auth`, or app code                          | dependency-cruiser `ui-not-to-database`, `ui-only-to-shared` + oxlint                                    | `dependency-rules.test.ts`                        |
+| `packages/ui` never imports `packages/db`, `packages/subscription`, or app code                  | dependency-cruiser `ui-not-to-database`, `ui-only-to-shared` + oxlint                                    | `dependency-rules.test.ts`                        |
 | Packages never import apps; app runtime code stays separate; `shared` imports no workspace code  | dependency-cruiser                                                                                       | `dependency-rules.test.ts`                        |
 | Every `@grabbin/*` import resolves (declared dependency)                                         | dependency-cruiser `workspace-imports-must-resolve`                                                      | `dependency-rules.test.ts`                        |
 | Approved workspace packages, root folders, one config file per expected path                     | `tooling/architecture/check.ts`                                                                          | `check.test.ts`                                   |
@@ -138,6 +145,7 @@ here only with its enforcer and a test that proves it catches a violation.
 | `fetch` only in `features/<domain>/api.ts`, server and cron Worker code                          | oxlint `no-restricted-globals`                                                                           | `lint-config.test.ts`                             |
 | Naming (PascalCase types, hook names, kebab files), no `.js` sources, test file names            | `codebase/*`, `react-codebase/*`, `testing/*`, `unicorn/filename-case`                                   | `naming/__tests__`, `testing.test.ts`             |
 | Next.js core-web-vitals, React Compiler and TanStack Query rules                                 | oxlint `nextjs`, `react`, `@tanstack/query`, `query/*`                                                   | `query.test.ts`                                   |
+| Feature `queryOptions` and custom `useQuery` hooks in `features/<domain>/queries.ts`             | `query/canonical-query-*`; architecture `featureSubdirectories`                                          | `query.test.ts`, `check.test.ts`                  |
 | Type errors anywhere                                                                             | `vp check` (type-aware lint with `typeCheck`) and `vp run -r typecheck`                                  | —                                                 |
 
 Reviewed by hand: whether a picked field set is right for a contract, whether an

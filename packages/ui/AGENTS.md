@@ -9,7 +9,7 @@
   output imports `lucide-react`; change it to `lucide-react/icons/<name>`, which
   lint requires.
 - Import across this package with `@grabbin/ui/...`, the same paths apps use.
-- Never import `@grabbin/db`, `@grabbin/auth`, or anything under `apps/`.
-  Client-safe types and schemas come from `@grabbin/shared`.
+- Never import `@grabbin/db`, `@grabbin/subscription`, or anything under
+  `apps/`. Client-safe types and schemas come from `@grabbin/shared`.
 - Keep CSS in `src/styles/`. New app folders that use Tailwind classes need an
   `@source` line in `globals.css`.

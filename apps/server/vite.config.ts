@@ -9,7 +9,12 @@ export default defineConfig(({ command, mode }) => {
   if (command === "serve" && mode !== "test") loadLocalEnv();
 
   return {
-    server: { host: "localhost", port: 3001, strictPort: true },
+    server: {
+      host: "localhost",
+      port: 3001,
+      strictPort: true,
+      allowedHosts: ["ungalled-predramatic-kiesha.ngrok-free.dev"],
+    },
     resolve: {
       alias: {
         "server-only": join(

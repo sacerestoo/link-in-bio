@@ -16,7 +16,7 @@ const sourceRoots = [
   "apps/server/src/services",
   "apps/cron/src",
   "packages/db/src",
-  "packages/auth/src",
+  "packages/subscription/src",
   "packages/ui/src",
   "packages/shared/src",
 ];
@@ -29,7 +29,7 @@ const tsconfig = JSON.stringify({
     paths: {
       "@/*": ["./apps/web/*"],
       "@grabbin/db": ["./packages/db/src/client.ts"],
-      "@grabbin/auth": ["./packages/auth/src/index.ts"],
+      "@grabbin/subscription/*": ["./packages/subscription/src/*"],
       "@grabbin/server": ["./apps/server/src/app.ts"],
       "@grabbin/ui/*": ["./packages/ui/src/*"],
       "@grabbin/shared/*": ["./packages/shared/src/*"],
@@ -104,7 +104,7 @@ describe("dependency-cruiser database boundary", (): void => {
         'import { schema } from "@grabbin/db";\nexport const authRoute = schema;\n',
       "packages/ui/src/components/leak.tsx":
         'import { schema } from "@grabbin/db";\nexport const leak = schema;\n',
-      "packages/auth/src/index.ts":
+      "packages/subscription/src/creem.ts":
         'import { schema } from "@grabbin/db";\nexport const auth = schema;\n',
     });
 
@@ -113,7 +113,7 @@ describe("dependency-cruiser database boundary", (): void => {
         "database-modules-only-from-configured-boundary",
         "ui-not-to-database",
         "ui-only-to-shared",
-        "auth-not-to-web-code",
+        "subscription-not-to-web-code",
       ]),
     );
   });

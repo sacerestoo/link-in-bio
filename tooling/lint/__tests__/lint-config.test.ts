@@ -53,7 +53,7 @@ const files = {
     'import { createDatabase } from "@grabbin/db";\n\nexport const database = createDatabase;\n',
   "packages/ui/src/components/leak.tsx":
     'import { schema } from "@grabbin/db";\n\nexport const leak = schema;\n',
-  "packages/auth/src/leak.ts":
+  "packages/subscription/src/leak.ts":
     'import { profile } from "@grabbin/db/schema/profile";\n\nexport const leak = profile;\n',
   "packages/shared/src/leak.ts":
     'import { eq } from "drizzle-orm";\n\nexport const leak = eq;\n',
@@ -147,7 +147,7 @@ describe("database boundary wiring", (): void => {
     for (const path of [
       "apps/web/app/page.tsx",
       "packages/ui/src/components/leak.tsx",
-      "packages/auth/src/leak.ts",
+      "packages/subscription/src/leak.ts",
       "packages/shared/src/leak.ts",
     ] as const) {
       expect(codesFor(path)).toContain("eslint(no-restricted-imports)");

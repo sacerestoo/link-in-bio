@@ -1,9 +1,8 @@
 import "server-only";
-import type { Auth } from "@grabbin/auth";
 import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
 import type { ServerBindings } from "../lib/env";
-import { getAuth } from "../lib/auth";
+import { getAuth, type Auth } from "../lib/auth";
 
 type Session = NonNullable<Awaited<ReturnType<Auth["api"]["getSession"]>>>;
 

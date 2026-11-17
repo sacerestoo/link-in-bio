@@ -19,11 +19,19 @@ export const databaseArchitecture: DatabaseConfig = {
 
 /** Modules holding secrets or database access; never bundled for the client. */
 export const serverOnlyModules = [
-  `${architecture.directories.auth}/index.ts`,
+  `${architecture.directories.subscription}/creem.ts`,
+  `${architecture.directories.subscription}/subscription-session.ts`,
   `${architecture.directories.email}/otp.ts`,
   "apps/web/features/auth/queries.ts",
   "apps/web/lib/server-api-client.ts",
   "apps/server/src/lib/auth.ts",
+  "apps/server/src/lib/auth/core-options.ts",
+  "apps/server/src/lib/auth/email.ts",
+  "apps/server/src/lib/auth/hooks.ts",
+  "apps/server/src/lib/auth/options.ts",
+  "apps/server/src/lib/auth/plugins.ts",
+  "apps/server/src/lib/auth/providers.ts",
+  "apps/server/src/lib/auth/subscription.ts",
   "apps/server/src/routes/auth.route.ts",
   "apps/server/src/routes/health.route.ts",
   `${architecture.directories.db}/client.ts`,

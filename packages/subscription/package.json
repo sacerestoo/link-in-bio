@@ -1,12 +1,11 @@
 {
-  "name": "@grabbin/auth",
+  "name": "@grabbin/subscription",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./client": "./src/client.ts",
-    "./creem": "./src/creem.ts"
+    "./creem": "./src/creem.ts",
+    "./subscription-session": "./src/subscription-session.ts"
   },
   "scripts": {
     "lint": "vp lint",
@@ -16,6 +15,8 @@
   "dependencies": {
     "@creem_io/better-auth": "^2.0.5",
     "better-auth": "catalog:",
-    "server-only": "catalog:"
+    "creem": "^1.14.0",
+    "server-only": "catalog:",
+    "zod": "^4.6.7"
   }
 }

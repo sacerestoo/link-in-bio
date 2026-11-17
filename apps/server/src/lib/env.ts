@@ -21,6 +21,8 @@ export const serverEnvSchema = v.object({
   SENTRY_DSN: optionalSetting,
   CREEM_API_KEY: optionalSetting,
   CREEM_WEBHOOK_SECRET: optionalSetting,
+  CREEM_PRO_MONTHLY_PRODUCT_ID: optionalSetting,
+  CREEM_PRO_YEARLY_PRODUCT_ID: optionalSetting,
   CREEM_TEST_MODE: v.optional(
     v.pipe(
       v.string(),
@@ -49,6 +51,8 @@ export type ServerBindings = {
   SENTRY_DSN?: string;
   CREEM_API_KEY?: string;
   CREEM_WEBHOOK_SECRET?: string;
+  CREEM_PRO_MONTHLY_PRODUCT_ID?: string;
+  CREEM_PRO_YEARLY_PRODUCT_ID?: string;
   CREEM_TEST_MODE?: string;
 };
 

@@ -40,10 +40,10 @@
       "name": "@grabbin/server",
       "version": "0.0.0",
       "dependencies": {
-        "@grabbin/auth": "workspace:*",
         "@grabbin/db": "workspace:*",
         "@grabbin/email": "workspace:*",
         "@grabbin/shared": "workspace:*",
+        "@grabbin/subscription": "workspace:*",
         "@hono/standard-validator": "^0.4.1",
         "@sentry/cloudflare": "^11.12.0",
         "better-auth": "catalog:",
@@ -62,7 +62,6 @@
       "version": "0.0.0",
       "dependencies": {
         "@creem_io/better-auth": "^2.0.5",
-        "@grabbin/auth": "workspace:*",
         "@grabbin/server": "workspace:*",
         "@grabbin/shared": "workspace:*",
         "@grabbin/ui": "workspace:*",
@@ -93,15 +92,6 @@
         "@vitejs/plugin-rsc": "^0.5.39",
       },
     },
-    "packages/auth": {
-      "name": "@grabbin/auth",
-      "version": "0.0.0",
-      "dependencies": {
-        "@creem_io/better-auth": "^2.0.5",
-        "better-auth": "catalog:",
-        "server-only": "catalog:",
-      },
-    },
     "packages/db": {
       "name": "@grabbin/db",
       "version": "0.0.0",
@@ -128,6 +118,17 @@
       "version": "0.0.0",
       "dependencies": {
         "valibot": "catalog:",
+      },
+    },
+    "packages/subscription": {
+      "name": "@grabbin/subscription",
+      "version": "0.0.0",
+      "dependencies": {
+        "@creem_io/better-auth": "^2.0.5",
+        "better-auth": "catalog:",
+        "creem": "^1.14.0",
+        "server-only": "catalog:",
+        "zod": "^4.6.7",
       },
     },
     "packages/ui": {
@@ -379,8 +380,6 @@
 
     "@fontsource/open-runde": ["@fontsource/open-runde@5.3.0", "", {}, "sha512-htjSGuJ/cq2DARGqEvXhkghhRXxIz3gzw+tbB0xt6zidL0mvDrR/VQCfDeCCw7wp0x5ar6dTLWD5iOF0EDqaGA=="],
 
-    "@grabbin/auth": ["@grabbin/auth@workspace:packages/auth"],
-
     "@grabbin/cron": ["@grabbin/cron@workspace:apps/cron"],
 
     "@grabbin/db": ["@grabbin/db@workspace:packages/db"],
@@ -390,6 +389,8 @@
     "@grabbin/server": ["@grabbin/server@workspace:apps/server"],
 
     "@grabbin/shared": ["@grabbin/shared@workspace:packages/shared"],
+
+    "@grabbin/subscription": ["@grabbin/subscription@workspace:packages/subscription"],
 
     "@grabbin/ui": ["@grabbin/ui@workspace:packages/ui"],
 

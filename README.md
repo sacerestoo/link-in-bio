@@ -9,8 +9,8 @@ for Cloudflare Workers. The previous implementation lives on the `v1` branch
   served by one Worker.
 - `apps/cron`: a Worker with a `scheduled` handler, daily at 06:00 UTC (15:00
   KST).
-- `packages/db` (Drizzle), `packages/auth` (Better Auth + Creem), `packages/ui`
-  (shadcn), `packages/shared` (types and schemas).
+- `packages/db` (Drizzle), `packages/subscription` (Creem and subscription
+  integrations), `packages/ui` (shadcn), `packages/shared` (types and schemas).
 
 ## Setup
 
