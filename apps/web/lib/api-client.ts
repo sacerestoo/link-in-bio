@@ -1,6 +1,13 @@
 import type { AppType } from "@grabbin/server";
 import { DetailedError, hc } from "hono/client";
 
+const typedApiClient = hc<AppType>("");
+
+export type ApiClient = typeof typedApiClient;
+
+const hcWithType = (...args: Parameters<typeof hc>): ApiClient =>
+  hc<AppType>(...args);
+
 const getErrorMessage = (data: unknown, response: Response): string => {
   if (typeof data !== "object" || data === null) {
     return `${response.status} ${response.statusText}`;
@@ -39,8 +46,6 @@ const fetchWithHttpErrors =
 export const createApiClient = (
   baseUrl: string,
   fetcher: typeof globalThis.fetch = (...args) => globalThis.fetch(...args),
-) => hc<AppType>(baseUrl, { fetch: fetchWithHttpErrors(fetcher) });
-
-export type ApiClient = ReturnType<typeof createApiClient>;
+) => hcWithType(baseUrl, { fetch: fetchWithHttpErrors(fetcher) });
 
 export const api = createApiClient("");

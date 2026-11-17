@@ -4,7 +4,7 @@ import {
   getAuthCallbackURL,
   sendEmailOtp,
   verifyEmailOtp,
-} from "@/features/auth/api";
+} from "@/features/auth/auth";
 import { Button } from "@grabbin/ui/components/button";
 import { Field, FieldError, FieldLabel } from "@grabbin/ui/components/field";
 import {

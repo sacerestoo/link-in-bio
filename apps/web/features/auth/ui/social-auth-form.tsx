@@ -1,6 +1,6 @@
 "use client";
 
-import { signInWithSocial, type SocialProvider } from "@/features/auth/api";
+import { signInWithSocial, type SocialProvider } from "@/features/auth/auth";
 import AuthPanel, { type AuthMode } from "@/features/auth/ui/auth-panel";
 import { useRouter } from "next/navigation";
 import { useCallback, useState, type ReactNode } from "react";

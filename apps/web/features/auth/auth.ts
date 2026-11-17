@@ -1,7 +1,16 @@
-import { api } from "@/lib/api-client";
 import { authClient } from "@/lib/auth-client";
 
 export type SocialProvider = "google" | "line" | "twitter";
+
+export const socialProviders: ReadonlyArray<{
+  id: SocialProvider;
+  icon: string;
+  label: string;
+}> = [
+  { id: "google", icon: "/google-icon.svg", label: "Google" },
+  { id: "twitter", icon: "/x-icon.svg", label: "Twitter" },
+  { id: "line", icon: "/line-icon.svg", label: "LINE" },
+];
 
 export const getAuthCallbackURL = (redirectTo?: string): string => {
   if (redirectTo === undefined || !redirectTo.startsWith("/")) {
@@ -42,6 +51,3 @@ export const verifyEmailOtp = (email: string, otp: string, name?: string) =>
   });
 
 export const signOut = () => authClient.signOut();
-
-export const checkHandleAvailability = (handle: string) =>
-  api.v1.pages.handles[":handle"].availability.$get({ param: { handle } });

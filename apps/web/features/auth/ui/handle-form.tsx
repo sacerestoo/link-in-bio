@@ -1,13 +1,12 @@
 "use client";
 
-import { checkHandleAvailability } from "@/features/auth/api";
+import { checkHandleAvailability } from "@/features/auth/queries";
+import { HandleInput } from "@/features/auth/ui/handle-input";
 import {
   availableHandleSchema,
   handleSchema,
 } from "@grabbin/shared/schemas/page";
 import { Button } from "@grabbin/ui/components/button";
-import { Input } from "@grabbin/ui/components/input";
-import { Label } from "@grabbin/ui/components/label";
 import { debounce } from "es-toolkit/function";
 import {
   useCallback,
@@ -24,7 +23,7 @@ type HandleFormProps = Readonly<{
   onInvalidInitialHandle: () => void;
 }>;
 
-const useHandleCheck = () => {
+export const useHandleCheck = () => {
   const [error, setError] = useState<string>();
   const [checking, setChecking] = useState(false);
   const requestId = useRef(0);
@@ -110,58 +109,12 @@ function useInitialHandle(
   ]);
 }
 
-function HandleInput({
-  value,
-  error,
-  onChange,
-}: Readonly<{
-  value: string;
-  error: string | undefined;
-  onChange: (value: string) => void;
-}>): ReactNode {
-  return (
-    <div className="space-y-2">
-      <Label
-        className="sr-only"
-        htmlFor="page-handle"
-      >
-        Page handle
-      </Label>
-      <Input
-        autoCapitalize="none"
-        autoComplete="off"
-        aria-describedby={error === undefined ? undefined : "handle-error"}
-        aria-invalid={error !== undefined}
-        id="page-handle"
-        maxLength={30}
-        onChange={(event) => {
-          onChange(event.target.value);
-        }}
-        placeholder="your-name"
-        size="xl"
-        className="text-sm"
-        value={value}
-        variant="flat"
-      />
-      {error === undefined ? null : (
-        <p
-          className="text-xs text-destructive"
-          id="handle-error"
-          role="alert"
-        >
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function useDebouncedHandleCheck(
+export const useDebouncedHandleCheck = (
   handleInput: string,
   initialHandle: string | undefined,
   check: (handle: string) => Promise<string | undefined>,
   setCheckedHandle: (handle: string | undefined) => void,
-): void {
+): void => {
   useEffect(() => {
     let active = true;
     const checkDebounced = debounce((handle: string) => {
@@ -179,7 +132,7 @@ function useDebouncedHandleCheck(
       checkDebounced.cancel();
     };
   }, [check, handleInput, initialHandle, setCheckedHandle]);
-}
+};
 
 export default function HandleForm({
   initialHandle,
@@ -209,7 +162,9 @@ export default function HandleForm({
       }}
     >
       <HandleInput
+        checking={checking}
         error={error}
+        isValid={checkedHandle === handleInput && !checking}
         onChange={(handle) => {
           setCheckedHandle(undefined);
           setHandleInput(handle);

@@ -22,7 +22,6 @@ export const serverOnlyModules = [
   `${architecture.directories.subscription}/creem.ts`,
   `${architecture.directories.subscription}/subscription-session.ts`,
   `${architecture.directories.email}/otp.ts`,
-  "apps/web/features/auth/queries.ts",
   "apps/web/lib/server-api-client.ts",
   "apps/server/src/lib/auth.ts",
   "apps/server/src/lib/auth/core-options.ts",

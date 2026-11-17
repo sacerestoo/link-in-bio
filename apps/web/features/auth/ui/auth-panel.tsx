@@ -1,7 +1,6 @@
 "use client";
 
-import type { SocialProvider } from "@/features/auth/api";
-import { socialProviders } from "@/features/auth/social-providers";
+import { socialProviders, type SocialProvider } from "@/features/auth/auth";
 import EmailOtpForm from "@/features/auth/ui/email-otp-form";
 import EmailOtpVerificationForm from "@/features/auth/ui/email-otp-verification-form";
 import HandleForm from "@/features/auth/ui/handle-form";

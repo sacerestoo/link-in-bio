@@ -1,6 +1,6 @@
 "use client";
 
-import { sendEmailOtp } from "@/features/auth/api";
+import { sendEmailOtp } from "@/features/auth/auth";
 import { Button } from "@grabbin/ui/components/button";
 import {
   Field,
