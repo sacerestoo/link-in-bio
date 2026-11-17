@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@grabbin/ui/components/dropdown-menu";
 import { toast } from "@grabbin/ui/components/toast";
-import Settings from "lucide-react/icons/settings";
+import Settings2 from "lucide-react/icons/settings-2";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -32,42 +32,40 @@ export function PageAccountMenu(): ReactElement {
   const router = useRouter();
 
   return (
-    <div className="fixed inset-x-0 bottom-8 z-40 flex justify-start px-8">
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              variant="ghost"
-              size="icon-lg"
-              className="rounded-full text-muted-foreground"
-            />
-          }
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon-lg"
+            className="rounded-full text-muted-foreground"
+          />
+        }
+      >
+        <Settings2 aria-hidden="true" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        side="top"
+        align="start"
+        sideOffset={8}
+      >
+        <DropdownMenuItem
+          className="h-12 px-3 font-normal"
+          render={<Link href="/settings" />}
         >
-          <Settings aria-hidden="true" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          side="top"
-          align="start"
-          sideOffset={8}
+          Account
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="h-12 px-3 font-normal"
+          onClick={() => {
+            void handleSignOut(() => {
+              router.refresh();
+            });
+          }}
         >
-          <DropdownMenuItem
-            className="h-12 px-3"
-            render={<Link href="/settings" />}
-          >
-            Account
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="h-12 px-3"
-            onClick={() => {
-              void handleSignOut(() => {
-                router.refresh();
-              });
-            }}
-          >
-            Log out
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+          Log out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
