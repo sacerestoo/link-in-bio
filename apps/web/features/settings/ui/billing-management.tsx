@@ -55,6 +55,27 @@ function BillingError({ error }: Readonly<{ error: string | undefined }>) {
   );
 }
 
+function PagesUsage() {
+  return (
+    <div className="space-y-2 px-4 pb-4">
+      <div className="flex items-center justify-between text-xs">
+        <span className="font-medium">Pages</span>
+        <span className="text-muted-foreground">1 / 1</span>
+      </div>
+      <div
+        aria-label="Pages"
+        aria-valuemax={1}
+        aria-valuemin={0}
+        aria-valuenow={1}
+        className="h-2 overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+      >
+        <div className="h-full w-full rounded-full bg-brand" />
+      </div>
+    </div>
+  );
+}
+
 function BillingPlanCard({
   active,
   description,
@@ -76,10 +97,11 @@ function BillingPlanCard({
     <Field className="rounded-2xl shadow-default">
       <div className="p-4 pb-2">
         <FieldLabel className="text-base">{active ? "Pro" : "Free"}</FieldLabel>
-        <FieldDescription className="text-xs">{description}</FieldDescription>
       </div>
+      <PagesUsage />
       <Separator size="a" />
-      <div className="flex items-center justify-end p-2 px-4 pt-0">
+      <div className="flex items-center justify-between p-2 px-4 pt-0">
+        <FieldDescription className="text-xs">{description}</FieldDescription>
         <Button
           variant="outline"
           size="lg"
