@@ -2,7 +2,7 @@
 
 import type { ReactElement } from "react";
 import { signOut } from "@/features/auth/auth";
-import { useOwnPage } from "@/features/auth/queries";
+import { usePage } from "@/features/auth/queries";
 import { ChangeHandleDialog } from "@/features/auth/ui/change-handle-dialog";
 import { Button } from "@grabbin/ui/components/button";
 import {
@@ -14,7 +14,7 @@ import {
 import { toast } from "@grabbin/ui/components/toast";
 import Settings2 from "lucide-react/icons/settings-2";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { overlay } from "overlay-kit";
 
 async function handleSignOut(refresh: () => void): Promise<void> {
@@ -68,7 +68,8 @@ function PageAccountMenuItems({
   onChangeHandle: () => void;
   onSignOut: () => void;
 }>): ReactElement {
-  const page = useOwnPage(true);
+  const { handle } = useParams<{ handle: string }>();
+  const { data: page } = usePage(handle);
 
   return (
     <DropdownMenuContent
@@ -81,9 +82,7 @@ function PageAccountMenuItems({
         onClick={onChangeHandle}
       >
         <span>Change handle</span>
-        {page.data?.handle !== undefined && (
-          <span className="text-muted-foreground">/{page.data.handle}</span>
-        )}
+        <span className="text-muted-foreground">/{page.handle}</span>
       </DropdownMenuItem>
       <DropdownMenuItem
         className="h-12 px-3 font-normal"

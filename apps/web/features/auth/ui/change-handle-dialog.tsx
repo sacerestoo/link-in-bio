@@ -44,7 +44,6 @@ export function ChangeHandleDialog({
     >
       <ChangeHandleContent
         isMobile={isMobile}
-        isOpen={isOpen}
         onSaved={onDismiss}
       />
     </Surface>
@@ -53,19 +52,12 @@ export function ChangeHandleDialog({
 
 function ChangeHandleContent({
   isMobile,
-  isOpen,
   onSaved,
 }: Readonly<{
   isMobile: boolean;
-  isOpen: boolean;
   onSaved: () => void;
 }>): ReactElement {
-  const form = (
-    <ChangeHandleForm
-      open={isOpen}
-      onSaved={onSaved}
-    />
-  );
+  const form = <ChangeHandleForm onSaved={onSaved} />;
 
   return isMobile ? (
     <DrawerContent>

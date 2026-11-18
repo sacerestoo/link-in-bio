@@ -1,35 +1,17 @@
-"use client";
-
-import { useSuspenseOwnPage } from "@/features/auth/queries";
-import { Suspense, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export const PermissionGate = ({
-  handle,
-  hasSession,
+  allowed,
+  denied,
   whenAllowed,
   whenDenied,
 }: Readonly<{
-  handle: string;
-  hasSession: boolean;
+  allowed: boolean;
+  denied?: boolean;
   whenAllowed?: ReactNode;
   whenDenied?: ReactNode;
-}>) => {
-  if (!hasSession) return whenDenied;
-
-  return (
-    <Suspense fallback={null}>
-      <OwnPagePermissionGate
-        handle={handle}
-        whenAllowed={whenAllowed}
-      />
-    </Suspense>
-  );
+}>): ReactNode => {
+  if (allowed) return whenAllowed;
+  if (denied !== false) return whenDenied;
+  return null;
 };
-
-function OwnPagePermissionGate({
-  handle,
-  whenAllowed,
-}: Readonly<{ handle: string; whenAllowed?: ReactNode }>): ReactNode {
-  const ownPage = useSuspenseOwnPage();
-  return ownPage.data?.handle === handle ? whenAllowed : null;
-}

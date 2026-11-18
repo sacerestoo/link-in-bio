@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { getOwnPage } from "@/features/auth/queries";
 import { createServerApiClient } from "@/lib/server-api-client";
 import { getSessionCookie } from "better-auth/cookies";
 import { DetailedError } from "hono/client";
@@ -15,7 +14,9 @@ const AuthLayout = async ({
   const api = await createServerApiClient(requestHeaders);
 
   try {
-    const { handle } = await getOwnPage(api);
+    const { handle } = await api.v1.pages.me
+      .$get()
+      .then((response) => response.json());
     redirect(`/${encodeURIComponent(handle)}`, "replace");
   } catch (error: unknown) {
     if (!(error instanceof DetailedError && error.statusCode === 401)) {
