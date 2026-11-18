@@ -17,6 +17,11 @@ export default defineConfig(({ mode, command }) => {
     resolve: {
       alias: [{ find: /^@\//u, replacement: `${import.meta.dirname}/` }],
     },
+    environments: {
+      rsc: { optimizeDeps: { exclude: ["@tanstack/react-query"] } },
+      ssr: { optimizeDeps: { exclude: ["@tanstack/react-query"] } },
+      client: { optimizeDeps: { exclude: ["@tanstack/react-query"] } },
+    },
     test: {
       include: ["**/*.test.ts"],
       exclude: ["node_modules/**", "dist/**", ".vinext/**", ".wrangler/**"],

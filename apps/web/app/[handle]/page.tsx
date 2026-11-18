@@ -1,9 +1,8 @@
-import { QueryHydrationBoundary } from "@/features/app-shell/ui/query-hydration-boundary";
 import { getOwnPageOrNull, ownPageQueryKey } from "@/features/auth/queries";
 import { PermissionGate } from "@/features/auth/ui/permission-gate";
 import { getQueryClient } from "@/lib/query-client";
 import { createServerApiClient } from "@/lib/server-api-client";
-import { dehydrate } from "@tanstack/react-query";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { getSessionCookie } from "better-auth/cookies";
 import dynamic from "next/dynamic";
 import { headers } from "next/headers";
@@ -34,7 +33,7 @@ export default async function HandlePage({
   }
 
   return (
-    <QueryHydrationBoundary state={dehydrate(queryClient)}>
+    <HydrationBoundary state={dehydrate(queryClient)}>
       <div className="min-h-svh">
         <div className="fixed inset-x-0 bottom-8 z-40 flex justify-start px-8">
           <PermissionGate
@@ -45,6 +44,6 @@ export default async function HandlePage({
           />
         </div>
       </div>
-    </QueryHydrationBoundary>
+    </HydrationBoundary>
   );
 }
