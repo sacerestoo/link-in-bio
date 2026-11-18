@@ -3,11 +3,7 @@ import {
   createBillingPortal,
 } from "@/features/settings/api";
 import { useState } from "react";
-import {
-  selectBillingSession,
-  type BillingSubscription,
-  useBillingSession,
-} from "../queries";
+import { type BillingSubscription, useBillingSession } from "../queries";
 
 type BillingAction = "upgrade" | "portal" | null;
 type BillingResult = Awaited<ReturnType<typeof createBillingCheckout>>;
@@ -33,19 +29,9 @@ export const useBillingManagement = ({
   const billing = useBillingSession({
     userId,
     initialData: { hasAccessGranted, subscription },
-    checkoutReturn,
     monthlyProductId,
     yearlyProductId,
   });
-  const serverBilling = selectBillingSession(
-    { hasAccessGranted, subscription },
-    monthlyProductId,
-    yearlyProductId,
-  );
-  const displayedBilling =
-    checkoutReturn && !hasAccessGranted
-      ? (billing.data ?? serverBilling)
-      : serverBilling;
   const actions = useBillingActions(monthlyProductId);
   const billingError =
     checkoutReturn && !hasAccessGranted && billing.error !== null
@@ -53,7 +39,7 @@ export const useBillingManagement = ({
       : undefined;
 
   return {
-    ...displayedBilling,
+    ...billing.data,
     action: actions.action,
     error: billingError ?? actions.error,
     openPortal: actions.openPortal,

@@ -1,6 +1,5 @@
 import { api } from "@/lib/api-client";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
 
 export type BillingSession = Awaited<ReturnType<typeof getBillingSession>>;
 export type BillingSubscription = BillingSession["subscription"];
@@ -31,7 +30,6 @@ export const billingSessionQueryOptions = ({
     queryKey: billingSessionQueryKey(userId),
     queryFn: getBillingSession,
     initialData,
-    staleTime: 0,
     select: (billing) =>
       selectBillingSession(billing, monthlyProductId, yearlyProductId),
   });
@@ -39,22 +37,14 @@ export const billingSessionQueryOptions = ({
 export const useBillingSession = ({
   userId,
   initialData,
-  checkoutReturn,
   monthlyProductId,
   yearlyProductId,
 }: Readonly<{
   userId: string;
   initialData: BillingSession;
-  checkoutReturn: boolean;
   monthlyProductId?: string;
   yearlyProductId?: string;
 }>) => {
-  const pollingStartedAt = useRef<number | null>(null);
-
-  useEffect(() => {
-    pollingStartedAt.current = checkoutReturn ? Date.now() : null;
-  }, [checkoutReturn]);
-
   return useQuery({
     ...billingSessionQueryOptions({
       userId,
@@ -62,25 +52,8 @@ export const useBillingSession = ({
       monthlyProductId,
       yearlyProductId,
     }),
-    enabled: (query) =>
-      checkoutReturn &&
-      !initialData.hasAccessGranted &&
-      query.state.data?.hasAccessGranted !== true,
     refetchOnMount: true,
-    retry: false,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
-    refetchInterval: (query) => {
-      if (
-        query.state.error !== null ||
-        query.state.data?.hasAccessGranted === true ||
-        (pollingStartedAt.current !== null &&
-          Date.now() - pollingStartedAt.current >= 30_000)
-      ) {
-        return false;
-      }
-      return 1500;
-    },
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -105,14 +78,14 @@ function getPlanDescription(
   const formattedPeriodEnd =
     periodEnd === undefined || Number.isNaN(periodEnd.getTime())
       ? undefined
-      : new Intl.DateTimeFormat("en", { dateStyle: "long" }).format(periodEnd);
+      : new Intl.DateTimeFormat("en", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }).format(periodEnd);
   const isScheduledToCancel =
     subscription.cancelAtPeriodEnd === true ||
     subscription.status === "scheduled_cancel";
-  const status = isScheduledToCancel
-    ? "Cancels at period end"
-    : subscription.status.charAt(0).toUpperCase() +
-      subscription.status.slice(1);
   const periodDescription =
     formattedPeriodEnd === undefined
       ? "."
@@ -125,7 +98,7 @@ function getPlanDescription(
     ? interval
     : `Latest ${interval.toLowerCase()} subscription`;
 
-  return `${planName} · ${status}${periodDescription}`;
+  return `${planName}${periodDescription}`;
 }
 
 export const selectBillingSession = (
