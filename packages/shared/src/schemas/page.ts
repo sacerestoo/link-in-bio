@@ -47,4 +47,13 @@ export const availableHandleSchema = (available: boolean) =>
     v.check(() => available, "That handle is already taken. Try another one."),
   );
 
+export const pageResponseSchema = v.object({
+  handle: handleSchema,
+  name: v.nullable(v.string()),
+  bio: v.nullable(v.string()),
+  imageKey: v.nullable(v.string()),
+  isOwner: v.boolean(),
+});
+
 export type Handle = v.InferOutput<typeof handleSchema>;
+export type PageResponse = v.InferOutput<typeof pageResponseSchema>;

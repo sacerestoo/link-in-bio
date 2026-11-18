@@ -34,6 +34,18 @@ export const findPageHandleForUser = async (
   return page?.handle;
 };
 
+export const findPageByHandle = (database: Database, handle: string) =>
+  database.query.pages.findFirst({
+    columns: {
+      userId: true,
+      handle: true,
+      name: true,
+      bio: true,
+      imageKey: true,
+    },
+    where: (pageRow, { eq }) => eq(pageRow.handle, handle),
+  });
+
 export const updatePageHandleForUser = async (
   database: Database,
   userId: string,

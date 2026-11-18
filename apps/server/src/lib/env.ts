@@ -1,3 +1,4 @@
+import type { Hyperdrive } from "@cloudflare/workers-types";
 import * as v from "valibot";
 
 const optionalSetting = v.optional(
