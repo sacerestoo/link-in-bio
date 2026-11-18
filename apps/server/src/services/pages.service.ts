@@ -7,7 +7,7 @@ import {
   type Handle,
 } from "@grabbin/shared/schemas/page";
 import { APIError, getOAuthState } from "better-auth/api";
-import { eq as equal } from "drizzle-orm";
+import { and, eq as equal } from "drizzle-orm";
 import * as v from "valibot";
 
 export const isPageHandleAvailable = async (
@@ -49,12 +49,13 @@ export const findPageByHandle = (database: Database, handle: string) =>
 export const updatePageHandleForUser = async (
   database: Database,
   userId: string,
+  currentHandle: string,
   handle: string,
 ): Promise<string | undefined> => {
   const [page] = await database
     .update(pages)
     .set({ handle })
-    .where(equal(pages.userId, userId))
+    .where(and(equal(pages.userId, userId), equal(pages.handle, currentHandle)))
     .returning({ handle: pages.handle });
 
   return page?.handle;

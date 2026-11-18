@@ -39,7 +39,7 @@ function useUpdatePageHandle(currentHandle: string, onSaved: () => void) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: updatePageHandle,
+    mutationFn: (handle: string) => updatePageHandle(currentHandle, handle),
     onSuccess: (handle) => {
       const page = queryClient.getQueryData<PageResponse>(
         pageQueryKey(currentHandle),

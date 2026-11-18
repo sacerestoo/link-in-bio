@@ -17,8 +17,14 @@ export const getCurrentUser = (client: ApiClient) =>
 export const checkHandleAvailability = (handle: string) =>
   api.v1.pages.handles[":handle"].availability.$get({ param: { handle } });
 
-export const updatePageHandle = async (handle: string): Promise<string> => {
-  await api.v1.pages.me.$patch({ json: { handle } });
+export const updatePageHandle = async (
+  currentHandle: string,
+  handle: string,
+): Promise<string> => {
+  await api.v1.pages[":handle"].$patch({
+    param: { handle: currentHandle },
+    json: { handle },
+  });
   return handle;
 };
 

@@ -24,8 +24,8 @@ authenticated session's user ID. Current routes:
 - `GET /v1/health`: no permission; returns service status only.
 - `GET /v1/pages/me`: signed-in session; read only the page whose `userId`
   matches the session user.
-- `PATCH /v1/pages/me`: signed-in session; update only the page whose `userId`
-  matches the session user.
+- `PATCH /v1/pages/:handle`: signed-in session; update only the page whose
+  handle matches the path and whose `userId` matches the session user.
 - `GET /v1/pages/handles/:handle/availability`: no permission; public lookup
   returns only whether the handle is available.
 - `GET /v1/auth/session`: signed-in session; return only the current user's
