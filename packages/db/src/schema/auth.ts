@@ -1,41 +1,20 @@
-import { relations, sql } from "drizzle-orm";
-import {
-  pgPolicy,
-  pgTable,
-  text,
-  timestamp,
-  boolean,
-  index,
-} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
 
-// Better Auth must look up sessions and users before a row owner is known.
-// app_runtime is server-only; product tables need their own owner policies.
-const authServerAccessPolicy = () =>
-  pgPolicy("auth_server_access", {
-    for: "all",
-    to: "app_runtime",
-    using: sql`true`,
-    withCheck: sql`true`,
-  });
-
-export const user = pgTable(
-  "user",
-  {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-    email: text("email").notNull().unique(),
-    emailVerified: boolean("email_verified").default(false).notNull(),
-    image: text("image"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
-    creemCustomerId: text("creem_customer_id"),
-    hadTrial: boolean("had_trial").default(false),
-  },
-  () => [authServerAccessPolicy()],
-).enableRLS();
+export const user = pgTable("user", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  emailVerified: boolean("email_verified").default(false).notNull(),
+  image: text("image"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+  creemCustomerId: text("creem_customer_id"),
+  hadTrial: boolean("had_trial").default(false),
+});
 
 export const session = pgTable(
   "session",
@@ -53,11 +32,8 @@ export const session = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
   },
-  (table) => [
-    index("session_userId_idx").on(table.userId),
-    authServerAccessPolicy(),
-  ],
-).enableRLS();
+  (table) => [index("session_userId_idx").on(table.userId)],
+);
 
 export const account = pgTable(
   "account",
@@ -80,11 +56,8 @@ export const account = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [
-    index("account_userId_idx").on(table.userId),
-    authServerAccessPolicy(),
-  ],
-).enableRLS();
+  (table) => [index("account_userId_idx").on(table.userId)],
+);
 
 export const verification = pgTable(
   "verification",
@@ -99,28 +72,21 @@ export const verification = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [
-    index("verification_identifier_idx").on(table.identifier),
-    authServerAccessPolicy(),
-  ],
-).enableRLS();
+  (table) => [index("verification_identifier_idx").on(table.identifier)],
+);
 
-export const creem_subscription = pgTable(
-  "creem_subscription",
-  {
-    id: text("id").primaryKey(),
-    productId: text("product_id").notNull(),
-    referenceId: text("reference_id").notNull(),
-    creemCustomerId: text("creem_customer_id"),
-    creemSubscriptionId: text("creem_subscription_id"),
-    creemOrderId: text("creem_order_id"),
-    status: text("status").default("pending").notNull(),
-    periodStart: timestamp("period_start"),
-    periodEnd: timestamp("period_end"),
-    cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
-  },
-  () => [authServerAccessPolicy()],
-).enableRLS();
+export const creem_subscription = pgTable("creem_subscription", {
+  id: text("id").primaryKey(),
+  productId: text("product_id").notNull(),
+  referenceId: text("reference_id").notNull(),
+  creemCustomerId: text("creem_customer_id"),
+  creemSubscriptionId: text("creem_subscription_id"),
+  creemOrderId: text("creem_order_id"),
+  status: text("status").default("pending").notNull(),
+  periodStart: timestamp("period_start"),
+  periodEnd: timestamp("period_end"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
+});
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),

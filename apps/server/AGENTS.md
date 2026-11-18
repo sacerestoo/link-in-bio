@@ -15,3 +15,24 @@
   integrations. It accesses subscription records through Better Auth's adapter
   and does not import the database package.
 - Only `apps/server/src/**` and `apps/cron/src/**` may import `@grabbin/db`.
+
+## Route permissions
+
+Keep row ownership checks in server data access: filter user-owned rows by the
+authenticated session's user ID. Current routes:
+
+- `GET /v1/health`: no permission; returns service status only.
+- `GET /v1/pages/me`: signed-in session; read only the page whose `userId`
+  matches the session user.
+- `PATCH /v1/pages/me`: signed-in session; update only the page whose `userId`
+  matches the session user.
+- `GET /v1/pages/handles/:handle/availability`: no permission; public lookup
+  returns only whether the handle is available.
+- `GET /v1/auth/session`: signed-in session; return only the current user's
+  session and subscriptions (`referenceId` matches the user ID).
+- `ALL /v1/auth/*`: Better Auth owns these endpoints. Public sign-in, sign-up,
+  verification and OAuth callbacks have no existing-row owner check; signed
+  Creem webhooks authenticate with the provider signature. Authenticated
+  account, session and billing operations must stay scoped to the current
+  session. Checkout and portal identity come from the session. Creem cancel,
+  retrieve and search endpoints are disabled.
