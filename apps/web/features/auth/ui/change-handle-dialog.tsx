@@ -70,7 +70,10 @@ function ChangeHandleContent({
       <div className="p-4 pt-12">{form}</div>
     </DrawerContent>
   ) : (
-    <DialogContent className={"rounded-4xl sm:max-w-xs"}>
+    <DialogContent
+      showCloseButton={false}
+      className={"rounded-4xl sm:max-w-xs"}
+    >
       <DialogHeader className="mb-8">
         <DialogTitle>Change your handle</DialogTitle>
         <DialogDescription className="sr-only">

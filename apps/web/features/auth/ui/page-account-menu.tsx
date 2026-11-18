@@ -78,7 +78,7 @@ function PageAccountMenuItems({
       sideOffset={8}
     >
       <DropdownMenuItem
-        className="flex h-12 flex-col items-start justify-center gap-0 px-3 font-normal"
+        className="flex h-14 flex-col items-start justify-center gap-0 px-3 font-normal"
         onClick={onChangeHandle}
       >
         <span>Change handle</span>
