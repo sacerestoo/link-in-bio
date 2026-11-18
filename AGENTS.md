@@ -146,6 +146,7 @@ here only with its enforcer and a test that proves it catches a violation.
 | Naming (PascalCase types, hook names, kebab files), no `.js` sources, test file names            | `codebase/*`, `react-codebase/*`, `testing/*`, `unicorn/filename-case`                                   | `naming/__tests__`, `testing.test.ts`             |
 | Next.js core-web-vitals, React Compiler and TanStack Query rules                                 | oxlint `nextjs`, `react`, `@tanstack/query`, `query/*`                                                   | `query.test.ts`                                   |
 | Feature `queryOptions` and custom `useQuery` hooks in `features/<domain>/queries.ts`             | `query/canonical-query-*`; architecture `featureSubdirectories`                                          | `query.test.ts`, `check.test.ts`                  |
+| No `queryClient.setQueryData` calls in `apps/web/app/**`                                         | `query/no-page-set-query-data`                                                                           | `query.test.ts`                                   |
 | Type errors anywhere                                                                             | `vp check` (type-aware lint with `typeCheck`) and `vp run -r typecheck`                                  | —                                                 |
 
 Reviewed by hand: whether a picked field set is right for a contract, whether an

@@ -173,11 +173,44 @@ const noHardcodedQueryKeys = defineRule({
   },
 });
 
+const noPageSetQueryData = defineRule({
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Use queryClient.query instead of setQueryData in web routes",
+    },
+  },
+  create(context) {
+    const filename = context.filename.replaceAll("\\", "/");
+    if (
+      !filename.includes("/apps/web/app/") &&
+      !filename.startsWith("apps/web/app/")
+    ) {
+      return {};
+    }
+    return {
+      CallExpression(input: unknown): void {
+        if (!isAstNode(input)) return;
+        const callee = getChild(input, "callee");
+        if (callee?.type !== "MemberExpression") return;
+        if (getName(getChild(callee, "property")) !== "setQueryData") return;
+        report(
+          context,
+          callee,
+          "Use queryClient.query(...) instead of setQueryData in web route modules.",
+        );
+      },
+    };
+  },
+});
+
 export default definePlugin({
   meta: { name: "query" },
   rules: {
     "canonical-query-definitions": canonicalQueryDefinitions,
     "canonical-query-hooks": canonicalQueryHooks,
     "no-hardcoded-query-keys": noHardcodedQueryKeys,
+    "no-page-set-query-data": noPageSetQueryData,
   },
 });

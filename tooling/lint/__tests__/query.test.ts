@@ -16,6 +16,7 @@ const canonicalQueryDefinitions =
   queryPlugin.rules["canonical-query-definitions"];
 const canonicalQueryHooks = queryPlugin.rules["canonical-query-hooks"];
 const noHardcodedQueryKeys = queryPlugin.rules["no-hardcoded-query-keys"];
+const noPageSetQueryData = queryPlugin.rules["no-page-set-query-data"];
 const queriesFile = "apps/web/features/projects/queries.ts";
 const queryHookFile = "apps/web/features/projects/hooks/use-projects.ts";
 
@@ -149,10 +150,31 @@ tester.run("no-hardcoded-query-keys", noHardcodedQueryKeys, {
   ],
 });
 
+tester.run("no-page-set-query-data", noPageSetQueryData, {
+  valid: [
+    {
+      filename: "apps/web/app/[handle]/page.tsx",
+      code: "queryClient.query({ queryKey: pageQueryKey(handle), queryFn: getPage });",
+    },
+    {
+      filename: "apps/web/features/auth/ui/change-handle-form.tsx",
+      code: "queryClient.setQueryData(pageQueryKey(handle), page);",
+    },
+  ],
+  invalid: [
+    {
+      filename: "apps/web/app/[handle]/page.tsx",
+      code: "queryClient.setQueryData(pageQueryKey(handle), page);",
+      errors: [{ message: /queryClient\.query/u }],
+    },
+  ],
+});
+
 it("registers the canonical query rules", () => {
   expect(Object.keys(queryPlugin.rules)).toEqual([
     "canonical-query-definitions",
     "canonical-query-hooks",
     "no-hardcoded-query-keys",
+    "no-page-set-query-data",
   ]);
 });

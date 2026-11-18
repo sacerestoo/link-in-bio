@@ -16,4 +16,5 @@ export const tanstackQueryRules = {
   "query/canonical-query-definitions": "error",
   "query/canonical-query-hooks": "error",
   "query/no-hardcoded-query-keys": "error",
+  "query/no-page-set-query-data": "error",
 } satisfies NonNullable<OxlintOverride["rules"]>;
