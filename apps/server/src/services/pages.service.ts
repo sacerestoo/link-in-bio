@@ -50,11 +50,11 @@ export const updatePageHandleForUser = async (
   database: Database,
   userId: string,
   currentHandle: string,
-  handle: string,
+  requestedHandle: string,
 ): Promise<string | undefined> => {
   const [page] = await database
     .update(pages)
-    .set({ handle })
+    .set({ handle: requestedHandle })
     .where(and(equal(pages.userId, userId), equal(pages.handle, currentHandle)))
     .returning({ handle: pages.handle });
 

@@ -19,13 +19,13 @@ export const checkHandleAvailability = (handle: string) =>
 
 export const updatePageHandle = async (
   currentHandle: string,
-  handle: string,
+  requestedHandle: string,
 ): Promise<string> => {
   await api.v1.pages[":handle"].$patch({
     param: { handle: currentHandle },
-    json: { handle },
+    json: { handle: requestedHandle },
   });
-  return handle;
+  return requestedHandle;
 };
 
 export const pageQueryKey = (handle: string) => ["page", handle] as const;

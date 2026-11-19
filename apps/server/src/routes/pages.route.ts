@@ -22,14 +22,14 @@ export const pagesRoute = new Hono<{
 }>()
   .get("/me", requireSession, async (c) => {
     const database = createDatabase(c.env.HYPERDRIVE.connectionString);
-    const handle = await findPageHandleForUser(
+    const userOwnedHandle = await findPageHandleForUser(
       database,
       c.get("session").user.id,
     );
-    if (handle === undefined)
+    if (userOwnedHandle === undefined)
       throw new HTTPException(404, { message: "Page not found" });
 
-    return c.json({ handle });
+    return c.json({ handle: userOwnedHandle });
   })
   .get(
     "/handles/:handle/availability",
@@ -40,9 +40,9 @@ export const pagesRoute = new Hono<{
         });
     }),
     async (c) => {
-      const { handle } = c.req.valid("param");
+      const { handle: requestedHandle } = c.req.valid("param");
       const database = createDatabase(c.env.HYPERDRIVE.connectionString);
-      const available = await isPageHandleAvailable(database, handle);
+      const available = await isPageHandleAvailable(database, requestedHandle);
       return c.json({ available });
     },
   )
@@ -91,16 +91,18 @@ export const pagesRoute = new Hono<{
     async (c) => {
       const database = createDatabase(c.env.HYPERDRIVE.connectionString);
       const userId = c.get("session").user.id;
-      const currentHandle = c.req.valid("param").handle;
-      const { handle } = c.req.valid("json");
-      const ownedHandle = await findPageHandleForUser(database, userId);
-      if (ownedHandle !== currentHandle)
+
+      const { handle: currentHandle } = c.req.valid("param");
+      const { handle: requestedHandle } = c.req.valid("json");
+
+      const userOwnedHandle = await findPageHandleForUser(database, userId);
+      if (userOwnedHandle !== currentHandle)
         throw new HTTPException(404, { message: "Page not found" });
 
-      if (
-        handle !== currentHandle &&
-        !(await isPageHandleAvailable(database, handle))
-      ) {
+      const requestedHandleIsAvailable =
+        requestedHandle === currentHandle ||
+        (await isPageHandleAvailable(database, requestedHandle));
+      if (!requestedHandleIsAvailable) {
         throw new HTTPException(409, {
           message: "That handle is already taken. Try another one.",
         });
@@ -111,7 +113,7 @@ export const pagesRoute = new Hono<{
           database,
           userId,
           currentHandle,
-          handle,
+          requestedHandle,
         );
         if (updatedHandle === undefined)
           throw new HTTPException(404, { message: "Page not found" });
