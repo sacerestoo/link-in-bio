@@ -103,6 +103,20 @@ tester.run("no-hardcoded-query-keys", noHardcodedQueryKeys, {
         queryOptions({ queryKey: userQueryKey() });`,
     },
     {
+      filename: queriesFile,
+      code: `import { queryOptions } from "@tanstack/react-query";
+        export const postQueries = {
+          all: () => ["post"] as const,
+          detail: (id: string) => queryOptions({
+            queryKey: [...postQueries.all(), id], queryFn: load
+          }),
+        };`,
+    },
+    {
+      filename: "apps/web/features/projects/use-projects.ts",
+      code: 'import { projectQueries } from "./queries"; client.getQueryData(projectQueries.byId("project-1"));',
+    },
+    {
       filename: "apps/web/features/projects/use-project-mutations.ts",
       code: `import { projectsQueryKey as keys } from "./queries";
         client.invalidateQueries({ queryKey: keys("user-1") });`,
@@ -130,6 +144,11 @@ tester.run("no-hardcoded-query-keys", noHardcodedQueryKeys, {
     {
       filename: "apps/web/features/projects/use-project-mutations.ts",
       code: 'import { userKeys } from "./keys"; client.invalidateQueries({ queryKey: userKeys.list() });',
+      errors: [{ message: /queries\.ts/u }],
+    },
+    {
+      filename: "apps/web/features/projects/use-project-mutations.ts",
+      code: 'import { projectQueries } from "./queries"; client.getQueryData(projectQueries.checkAvailability("project-1"));',
       errors: [{ message: /queries\.ts/u }],
     },
     {

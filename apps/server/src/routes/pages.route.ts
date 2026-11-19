@@ -31,16 +31,16 @@ export const pagesRoute = new Hono<{
 
     return c.json({ handle: userOwnedHandle });
   })
-  .get(
-    "/handles/:handle/availability",
-    sValidator("param", v.object({ handle: handleSchema }), (result) => {
+  .post(
+    "/handle",
+    sValidator("json", v.object({ handle: handleSchema }), (result) => {
       if (!result.success)
         throw new HTTPException(400, {
           message: result.error.map((issue) => issue.message).join(" "),
         });
     }),
     async (c) => {
-      const { handle: requestedHandle } = c.req.valid("param");
+      const { handle: requestedHandle } = c.req.valid("json");
       const database = createDatabase(c.env.HYPERDRIVE.connectionString);
       const available = await isPageHandleAvailable(database, requestedHandle);
       return c.json({ available });

@@ -26,8 +26,8 @@ authenticated session's user ID. Current routes:
   matches the session user.
 - `PATCH /v1/pages/:handle`: signed-in session; update only the page whose
   handle matches the path and whose `userId` matches the session user.
-- `GET /v1/pages/handles/:handle/availability`: no permission; public lookup
-  returns only whether the handle is available.
+- `POST /v1/pages/handle`: no permission; public lookup returns only whether the
+  handle is available.
 - `GET /v1/auth/session`: signed-in session; return only the current user's
   session and subscriptions (`referenceId` matches the user ID).
 - `ALL /v1/auth/*`: Better Auth owns these endpoints. Public sign-in, sign-up,

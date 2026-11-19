@@ -1,12 +1,14 @@
 "use client";
 
-import { checkHandleAvailability } from "@/features/auth/queries";
 import { HandleInput } from "@/features/auth/ui/handle-input";
+import { profileQueries } from "@/features/profile/queries";
+import { api as browserApi } from "@/lib/api-client";
 import {
   availableHandleSchema,
   handleSchema,
 } from "@grabbin/shared/schemas/page";
 import { Button } from "@grabbin/ui/components/button";
+import { useMutation } from "@tanstack/react-query";
 import { debounce } from "es-toolkit/function";
 import {
   useCallback,
@@ -27,6 +29,9 @@ export const useHandleCheck = () => {
   const [error, setError] = useState<string>();
   const [checking, setChecking] = useState(false);
   const requestId = useRef(0);
+  const { mutateAsync: checkHandleAvailability } = useMutation(
+    profileQueries.checkHandle(browserApi),
+  );
 
   const check = useCallback(
     async (handle: string): Promise<string | undefined> => {
@@ -65,7 +70,7 @@ export const useHandleCheck = () => {
         if (currentRequestId === requestId.current) setChecking(false);
       }
     },
-    [],
+    [checkHandleAvailability],
   );
 
   return { check, checking, error };

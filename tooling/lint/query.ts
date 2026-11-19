@@ -21,7 +21,7 @@ type QueryRuleState = Readonly<{
   isQueryModule: boolean;
 }>;
 
-function isQueryKeyFactory(
+function isQueryNamespaceCall(
   context: Readonly<RuleContext>,
   expression: unknown,
   localQueryModule: boolean,
@@ -30,6 +30,62 @@ function isQueryKeyFactory(
     return false;
   }
   const callee = getChild(expression, "callee");
+  if (callee?.type !== "MemberExpression") return false;
+  const object = getChild(callee, "object");
+  const propertyName = getName(getChild(callee, "property"));
+  if (
+    object?.type !== "Identifier" ||
+    propertyName === undefined ||
+    (propertyName !== "all" && !propertyName.startsWith("by"))
+  ) {
+    return false;
+  }
+
+  const variable = resolveIdentifier(context, object);
+  return (
+    variable?.defs.some((definition) => {
+      if (localQueryModule && definition.type === "Variable") {
+        const initializer = getChild(definition.node, "init");
+        return (
+          initializer?.type === "ObjectExpression" &&
+          getChildren(initializer, "properties").some((property) => {
+            const value = getChild(property, "value");
+            return (
+              getName(getChild(property, "key")) === propertyName &&
+              (value?.type === "ArrowFunctionExpression" ||
+                value?.type === "FunctionExpression")
+            );
+          })
+        );
+      }
+      const imported = definitionImport(definition);
+      return (
+        !localQueryModule &&
+        imported?.source.endsWith("/queries") === true &&
+        imported.imported?.endsWith("Queries") === true
+      );
+    }) ?? false
+  );
+}
+
+function isQueryKeyFactory(
+  context: Readonly<RuleContext>,
+  expression: unknown,
+  localQueryModule: boolean,
+): boolean {
+  if (!isAstNode(expression)) return false;
+  if (expression.type === "ArrayExpression" && localQueryModule) {
+    return getChildren(expression, "elements").some(
+      (element) =>
+        element.type === "SpreadElement" &&
+        isQueryNamespaceCall(context, getChild(element, "argument"), true),
+    );
+  }
+  if (expression.type !== "CallExpression") return false;
+  const callee = getChild(expression, "callee");
+  if (callee?.type === "MemberExpression") {
+    return isQueryNamespaceCall(context, expression, localQueryModule);
+  }
   if (callee?.type !== "Identifier") return false;
   const variable = resolveIdentifier(context, callee);
   return (

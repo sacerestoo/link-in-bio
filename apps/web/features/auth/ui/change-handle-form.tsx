@@ -2,15 +2,12 @@
 
 import type { PageResponse } from "@grabbin/shared/schemas/page";
 import {
-  pageQueryKey,
-  updatePageHandle,
-  usePage,
-} from "@/features/auth/queries";
-import {
   useDebouncedHandleCheck,
   useHandleCheck,
 } from "@/features/auth/ui/handle-form";
 import { HandleInput } from "@/features/auth/ui/handle-input";
+import { profileQueries, usePage } from "@/features/profile/queries";
+import { api as browserApi } from "@/lib/api-client";
 import { Button } from "@grabbin/ui/components/button";
 import { toast } from "@grabbin/ui/components/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -39,32 +36,42 @@ function useUpdatePageHandle(currentHandle: string, onSaved: () => void) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (requestedHandle: string) =>
-      updatePageHandle(currentHandle, requestedHandle),
-    onSuccess: (updatedHandle) => {
-      const page = queryClient.getQueryData<PageResponse>(
-        pageQueryKey(currentHandle),
-      );
-      if (page !== undefined) {
-        const updatedPage = { ...page, handle: updatedHandle };
-        queryClient.setQueryData(pageQueryKey(currentHandle), updatedPage);
-        queryClient.setQueryData(pageQueryKey(updatedHandle), updatedPage);
-      }
-      onSaved();
-      router.replace(`/${encodeURIComponent(updatedHandle)}`, {
-        scroll: false,
-      });
-    },
-    onError: (cause) => {
-      toast.add({
-        title: "Handle change failed",
-        description:
-          cause instanceof Error ? cause.message : "Please try again.",
-        type: "error",
-      });
-    },
-  });
+  return useMutation(
+    profileQueries.changeHandle(
+      currentHandle,
+      {
+        onSuccess: (updatedHandle) => {
+          const page = queryClient.getQueryData<PageResponse>(
+            profileQueries.byHandle(currentHandle),
+          );
+          if (page !== undefined) {
+            const updatedPage = { ...page, handle: updatedHandle };
+            queryClient.setQueryData(
+              profileQueries.byHandle(currentHandle),
+              updatedPage,
+            );
+            queryClient.setQueryData(
+              profileQueries.byHandle(updatedHandle),
+              updatedPage,
+            );
+          }
+          onSaved();
+          router.replace(`/${encodeURIComponent(updatedHandle)}`, {
+            scroll: false,
+          });
+        },
+        onError: (cause) => {
+          toast.add({
+            title: "Handle change failed",
+            description:
+              cause instanceof Error ? cause.message : "Please try again.",
+            type: "error",
+          });
+        },
+      },
+      browserApi,
+    ),
+  );
 }
 
 function useRequestedHandle(currentHandle: string) {

@@ -6,7 +6,11 @@ export const tanstackQueryJsPlugins = [
 ] as const;
 
 export const tanstackQueryRules = {
-  "@tanstack/query/exhaustive-deps": "error",
+  // Transport clients choose where requests go; they are not query data identity.
+  "@tanstack/query/exhaustive-deps": [
+    "error",
+    { allowlist: { variables: ["client"], types: ["ApiClient"] } },
+  ],
   "@tanstack/query/stable-query-client": "error",
   "@tanstack/query/no-rest-destructuring": "error",
   "@tanstack/query/no-unstable-deps": "error",

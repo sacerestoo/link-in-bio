@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { getCurrentUser } from "@/features/auth/queries";
+import { authQueries } from "@/features/auth/queries";
 import { BillingManagement } from "@/features/settings/ui/billing-management";
 import { SettingsShell } from "@/features/settings/ui/settings-shell";
 import { getWebEnv } from "@/lib/env";
@@ -19,10 +19,10 @@ export default async function BillingPage(): Promise<ReactNode> {
   const signInUrl = `/sign-in?redirectTo=${encodeURIComponent("/settings/billing")}`;
   if (getSessionCookie(requestHeaders) === null) redirect(signInUrl);
 
-  const api = await createServerApiClient(requestHeaders);
-  let user: Awaited<ReturnType<typeof getCurrentUser>>["user"];
+  const serverApi = await createServerApiClient(requestHeaders);
+  let user: Awaited<ReturnType<typeof authQueries.currentUser>>["user"];
   try {
-    user = (await getCurrentUser(api)).user;
+    user = (await authQueries.currentUser(serverApi)).user;
   } catch (error: unknown) {
     if (error instanceof DetailedError && error.statusCode === 401) {
       redirect(signInUrl);

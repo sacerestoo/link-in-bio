@@ -2,8 +2,8 @@
 
 import type { ReactElement } from "react";
 import { signOut } from "@/features/auth/auth";
-import { usePage } from "@/features/auth/queries";
 import { ChangeHandleDialog } from "@/features/auth/ui/change-handle-dialog";
+import { usePage } from "@/features/profile/queries";
 import { Button } from "@grabbin/ui/components/button";
 import {
   DropdownMenu,

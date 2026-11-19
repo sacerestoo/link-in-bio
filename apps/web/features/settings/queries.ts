@@ -1,61 +1,55 @@
-import { api } from "@/lib/api-client";
+import { api, type ApiClient } from "@/lib/api-client";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 
 export type BillingSession = Awaited<ReturnType<typeof getBillingSession>>;
 export type BillingSubscription = BillingSession["subscription"];
+type BillingSessionQueryParams = Readonly<{
+  userId: string;
+  initialData: BillingSession;
+  monthlyProductId?: string;
+  yearlyProductId?: string;
+}>;
 
-export const getBillingSession = () =>
-  api.v1.auth.session.$get().then((response) =>
+const getBillingSession = (client: ApiClient = api) =>
+  client.v1.auth.session.$get().then((response) =>
     response.json().then(({ user }) => ({
       hasAccessGranted: user.hasAccessGranted,
       subscription: user.subscription,
     })),
   );
 
+const billingSessionRootKey = ["billing-session"] as const;
 export const billingSessionQueryKey = (userId: string) =>
-  ["billing-session", userId] as const;
-
-export const billingSessionQueryOptions = ({
-  userId,
-  initialData,
-  monthlyProductId,
-  yearlyProductId,
-}: Readonly<{
-  userId: string;
-  initialData: BillingSession;
-  monthlyProductId?: string;
-  yearlyProductId?: string;
-}>) =>
+  [...billingSessionRootKey, userId] as const;
+const billingSessionQueryOptions = (
+  {
+    userId,
+    initialData,
+    monthlyProductId,
+    yearlyProductId,
+  }: BillingSessionQueryParams,
+  client: ApiClient = api,
+) =>
   queryOptions({
     queryKey: billingSessionQueryKey(userId),
-    queryFn: getBillingSession,
+    queryFn: () => getBillingSession(client),
     initialData,
     select: (billing) =>
       selectBillingSession(billing, monthlyProductId, yearlyProductId),
-  });
-
-export const useBillingSession = ({
-  userId,
-  initialData,
-  monthlyProductId,
-  yearlyProductId,
-}: Readonly<{
-  userId: string;
-  initialData: BillingSession;
-  monthlyProductId?: string;
-  yearlyProductId?: string;
-}>) => {
-  return useQuery({
-    ...billingSessionQueryOptions({
-      userId,
-      initialData,
-      monthlyProductId,
-      yearlyProductId,
-    }),
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
+
+export const billingQueries = {
+  all: () => billingSessionRootKey,
+  byUserId: billingSessionQueryKey,
+  session: billingSessionQueryOptions,
 };
+
+export const useBillingSession = (
+  params: BillingSessionQueryParams,
+  client: ApiClient = api,
+) => useQuery(billingSessionQueryOptions(params, client));
 
 function getPlanDescription(
   subscription: BillingSubscription,
@@ -101,7 +95,7 @@ function getPlanDescription(
   return `${planName}${periodDescription}`;
 }
 
-export const selectBillingSession = (
+const selectBillingSession = (
   billing: BillingSession,
   monthlyProductId?: string,
   yearlyProductId?: string,
