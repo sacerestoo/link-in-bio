@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@grabbin/ui/components/button";
+import CircleFadingArrowUp from "lucide-react/icons/circle-fading-arrow-up";
 import {
   useEffect,
   useRef,
@@ -21,7 +22,7 @@ function RemoveProfileImageButton({
       size="icon-lg"
       aria-label="Remove profile image"
       onClick={onClick}
-      className="absolute top-0 right-0 z-30 inline-flex items-center justify-center rounded-full opacity-0 shadow-large transition-[opacity,transform,scale,background-color,color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover/image:scale-100 group-hover/image:opacity-100 hover:bg-secondary! focus-visible:scale-100 focus-visible:opacity-100 page-wide:top-2 page-wide:right-2"
+      className="absolute top-0 right-0 z-30 inline-flex size-9 items-center justify-center rounded-full opacity-0 shadow-large transition-[opacity,transform,scale,background-color,color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover/image:scale-100 group-hover/image:opacity-100 hover:bg-secondary! focus-visible:scale-100 focus-visible:opacity-100 page-wide:top-2 page-wide:right-2 xl:size-10"
     >
       <Trash
         className="size-5"
@@ -47,9 +48,7 @@ export function ProfileImagePicker({
         onClick={() => inputRef.current?.click()}
       >
         <ProfileImage imageUrl={imageUrl} />
-        {imageUrl !== undefined && imageUrl.length > 0 ? (
-          <span className="pointer-events-none absolute inset-0 rounded-full bg-black/25 opacity-0 transition-opacity duration-150 ease-out group-hover/image:opacity-100" />
-        ) : null}
+        <CircleFadingArrowUp className="size-7 xl:size-10" />
       </button>
       {imageUrl !== undefined && imageUrl.length > 0 ? (
         <RemoveProfileImageButton onClick={removeImage} />
