@@ -1,48 +1,38 @@
 import type { PageResponse, PageUpdate } from "@grabbin/shared/schemas/page";
 import { toast } from "@grabbin/ui/components/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { debounce, type DebouncedFunction } from "es-toolkit/function";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { profileQueries } from "../queries";
 
 type ProfileValues = Readonly<{ name: string; bio: string }>;
-type ProfileField = keyof ProfileValues;
 type AutosaveState = {
-  values: ProfileValues;
+  draft: ProfileValues;
   saved: ProfileValues;
-  timer: ReturnType<typeof setTimeout> | undefined;
-  indicatorTimer: ReturnType<typeof setTimeout> | undefined;
-  inFlight: boolean;
-  queued: boolean;
-  mounted: boolean;
+  isSaveInFlight: boolean;
+  hasQueuedSave: boolean;
+  isMounted: boolean;
 };
-type StateRef = { current: AutosaveState };
-type SaveRef = { current: () => Promise<void> };
+type AutosaveStateRef = { current: AutosaveState };
+type SaveProfileRef = { current: () => Promise<void> };
 type SaveContext = Readonly<{
   handle: string;
-  stateRef: StateRef;
-  saveUpdate: (update: PageUpdate) => Promise<void>;
+  stateRef: AutosaveStateRef;
+  updateProfile: (update: PageUpdate) => Promise<void>;
   queryClient: ReturnType<typeof useQueryClient>;
   setValues: (values: ProfileValues) => void;
-  setIsSaving: (isSaving: boolean) => void;
-  saveRef: SaveRef;
+  saveRef: SaveProfileRef;
 }>;
 
 const DEBOUNCE_MS = 1500;
-const SAVE_INDICATOR_DURATION_MS = 1000;
 
-const toValues = ({ name, bio }: PageResponse): ProfileValues => ({
-  name: name ?? "",
-  bio: bio ?? "",
+const createUpdate = (
+  draft: ProfileValues,
+  saved: ProfileValues,
+): PageUpdate => ({
+  ...(draft.name === saved.name ? {} : { name: draft.name || null }),
+  ...(draft.bio === saved.bio ? {} : { bio: draft.bio || null }),
 });
-
-const toUpdate = (values: ProfileValues, saved: ProfileValues): PageUpdate => ({
-  ...(values.name === saved.name ? {} : { name: values.name || null }),
-  ...(values.bio === saved.bio ? {} : { bio: values.bio || null }),
-});
-
-const hasChanges = (state: AutosaveState): boolean =>
-  state.values.name !== state.saved.name ||
-  state.values.bio !== state.saved.bio;
 
 const applyUpdate = (
   saved: ProfileValues,
@@ -52,46 +42,13 @@ const applyUpdate = (
   bio: update.bio === undefined ? saved.bio : (update.bio ?? ""),
 });
 
-const updateProfileCache = (
-  queryClient: ReturnType<typeof useQueryClient>,
-  handle: string,
-  values: ProfileValues,
-): void => {
-  queryClient.setQueryData<PageResponse>(
-    profileQueries.byHandle(handle),
-    (page) =>
-      page === undefined
-        ? undefined
-        : { ...page, name: values.name || null, bio: values.bio || null },
-  );
-};
+const hasChanges = (state: AutosaveState): boolean =>
+  state.draft.name !== state.saved.name || state.draft.bio !== state.saved.bio;
 
-const hideSavingIndicatorLater = (
-  state: AutosaveState,
-  setIsSaving: (isSaving: boolean) => void,
-): void => {
-  if (!state.mounted) return;
-  if (state.indicatorTimer !== undefined) clearTimeout(state.indicatorTimer);
-  state.indicatorTimer = setTimeout(() => {
-    state.indicatorTimer = undefined;
-    if (state.mounted) setIsSaving(false);
-  }, SAVE_INDICATOR_DURATION_MS);
-};
-
-const hideSavingIndicator = (
-  state: AutosaveState,
-  setIsSaving: (isSaving: boolean) => void,
-): void => {
-  if (state.indicatorTimer !== undefined) clearTimeout(state.indicatorTimer);
-  state.indicatorTimer = undefined;
-  if (state.mounted) setIsSaving(false);
-};
-
-const reconcileFailedSave = async (
-  context: SaveContext,
-  snapshot: ProfileValues,
+const reloadAndReconcileDraft = async (
+  { handle, queryClient, stateRef, setValues }: SaveContext,
+  submittedDraft: ProfileValues,
 ): Promise<void> => {
-  const { handle, queryClient, stateRef, setValues } = context;
   await queryClient.invalidateQueries(
     { queryKey: profileQueries.byHandle(handle) },
     { throwOnError: true },
@@ -99,131 +56,106 @@ const reconcileFailedSave = async (
   const page = queryClient.getQueryData<PageResponse>(
     profileQueries.byHandle(handle),
   );
-  if (page === undefined) throw new Error("Could not reload the page.");
+  if (page === undefined) return;
 
-  const serverValues = toValues(page);
-  const latest = stateRef.current.values;
-  const rebased = {
-    name: latest.name === snapshot.name ? serverValues.name : latest.name,
-    bio: latest.bio === snapshot.bio ? serverValues.bio : latest.bio,
+  const state = stateRef.current;
+  const serverValues = { name: page.name ?? "", bio: page.bio ?? "" };
+  state.saved = serverValues;
+  state.draft = {
+    name:
+      state.draft.name === submittedDraft.name
+        ? serverValues.name
+        : state.draft.name,
+    bio:
+      state.draft.bio === submittedDraft.bio
+        ? serverValues.bio
+        : state.draft.bio,
   };
-  stateRef.current.saved = serverValues;
-  stateRef.current.values = rebased;
-  if (stateRef.current.mounted) setValues(rebased);
+  if (state.isMounted) setValues(state.draft);
 };
 
-const persistUpdate = async (
+const persistProfileDraft = async (
   context: SaveContext,
-  snapshot: ProfileValues,
+  submittedDraft: ProfileValues,
   update: PageUpdate,
-): Promise<boolean> => {
+): Promise<void> => {
+  const { handle, queryClient, stateRef, updateProfile } = context;
+  const state = stateRef.current;
   try {
-    await context.saveUpdate(update);
-    context.stateRef.current.saved = applyUpdate(
-      context.stateRef.current.saved,
-      update,
+    await updateProfile(update);
+    state.saved = applyUpdate(state.saved, update);
+    queryClient.setQueryData<PageResponse>(
+      profileQueries.byHandle(handle),
+      (page) =>
+        page === undefined
+          ? undefined
+          : {
+              ...page,
+              name: state.saved.name || null,
+              bio: state.saved.bio || null,
+            },
     );
-    updateProfileCache(
-      context.queryClient,
-      context.handle,
-      context.stateRef.current.saved,
-    );
-    return true;
   } catch (cause: unknown) {
     try {
-      await reconcileFailedSave(context, snapshot);
+      await reloadAndReconcileDraft(context, submittedDraft);
     } catch {
-      // Keep the draft when the server state cannot be reloaded.
+      // Keep the draft if the server state cannot be reloaded.
     }
     toast.add({
       title: "Profile update failed",
       description: cause instanceof Error ? cause.message : "Please try again.",
       type: "error",
     });
-    return false;
   }
 };
 
-const runSave = async (context: SaveContext): Promise<void> => {
-  const { stateRef, setIsSaving, saveRef } = context;
+const saveLatestDraft = async (context: SaveContext): Promise<void> => {
+  const { stateRef, saveRef } = context;
   const state = stateRef.current;
-  if (state.inFlight) {
-    state.queued = true;
+  if (state.isSaveInFlight) {
+    state.hasQueuedSave = true;
     return;
   }
 
-  const snapshot = state.values;
-  const update = toUpdate(snapshot, state.saved);
-  if (Object.keys(update).length === 0) {
-    hideSavingIndicator(state, setIsSaving);
-    return;
-  }
+  const submittedDraft = state.draft;
+  const update = createUpdate(submittedDraft, state.saved);
+  if (Object.keys(update).length === 0) return;
 
-  if (state.indicatorTimer !== undefined) clearTimeout(state.indicatorTimer);
-  state.indicatorTimer = undefined;
-  state.inFlight = true;
-  if (state.mounted) setIsSaving(true);
-  const saved = await persistUpdate(context, snapshot, update);
-  state.inFlight = false;
-  if (state.queued) {
-    state.queued = false;
-    void saveRef.current();
-  } else if (saved) {
-    hideSavingIndicatorLater(state, setIsSaving);
-  } else {
-    hideSavingIndicator(state, setIsSaving);
+  state.isSaveInFlight = true;
+  await persistProfileDraft(context, submittedDraft, update);
+  state.isSaveInFlight = false;
+
+  if (state.hasQueuedSave) {
+    state.hasQueuedSave = false;
+    await saveRef.current();
   }
 };
 
-const scheduleSave = (
-  state: AutosaveState,
+const useProfileSaveDebounce = (
+  stateRef: AutosaveStateRef,
+  saveRef: SaveProfileRef,
   save: () => Promise<void>,
-): void => {
-  if (state.timer !== undefined) clearTimeout(state.timer);
-  state.timer = setTimeout(() => {
-    state.timer = undefined;
-    void save();
-  }, DEBOUNCE_MS);
-};
+) => {
+  const debouncedSaveRef = useRef<DebouncedFunction<() => void> | null>(null);
 
-const updateDraft = (
-  field: ProfileField,
-  value: string,
-  stateRef: StateRef,
-  setValues: (values: ProfileValues) => void,
-  setIsSaving: (isSaving: boolean) => void,
-  saveRef: SaveRef,
-): void => {
-  const state = stateRef.current;
-  const values = { ...state.values, [field]: value };
-  state.values = values;
-  setValues(values);
-  if (!state.inFlight) {
-    hideSavingIndicator(state, setIsSaving);
-  }
-  scheduleSave(state, saveRef.current);
-};
-
-const useAutosaveLifecycle = (
-  stateRef: StateRef,
-  saveRef: SaveRef,
-  save: () => Promise<void>,
-): void => {
   useEffect(() => {
     const state = stateRef.current;
+    const debouncedSave = debounce(() => void saveRef.current(), DEBOUNCE_MS);
+    debouncedSaveRef.current = debouncedSave;
     saveRef.current = save;
-    state.mounted = true;
+    state.isMounted = true;
+
     return () => {
-      state.mounted = false;
-      if (state.timer !== undefined) clearTimeout(state.timer);
-      if (state.indicatorTimer !== undefined)
-        clearTimeout(state.indicatorTimer);
+      state.isMounted = false;
+      debouncedSave.cancel();
       if (hasChanges(state)) {
-        if (state.inFlight) state.queued = true;
-        else void save();
+        if (state.isSaveInFlight) state.hasQueuedSave = true;
+        else void saveRef.current();
       }
     };
   }, [save, saveRef, stateRef]);
+
+  return debouncedSaveRef;
 };
 
 export const useProfileAutosave = (
@@ -231,41 +163,43 @@ export const useProfileAutosave = (
   initialValues: ProfileValues,
 ) => {
   const [values, setValues] = useState(initialValues);
-  const [isSaving, setIsSaving] = useState(false);
   const stateRef = useRef<AutosaveState>({
-    values: initialValues,
+    draft: initialValues,
     saved: initialValues,
-    timer: undefined,
-    indicatorTimer: undefined,
-    inFlight: false,
-    queued: false,
-    mounted: true,
+    isSaveInFlight: false,
+    hasQueuedSave: false,
+    isMounted: true,
   });
-  const saveRef = useRef<() => Promise<void>>(async () => {});
-  const mutation = useMutation(profileQueries.updateProfile(handle));
+  const saveRef = useRef<SaveProfileRef["current"]>(async () => {});
+  const { mutateAsync: updateProfile } = useMutation(
+    profileQueries.updateProfile(handle),
+  );
   const queryClient = useQueryClient();
   const save = useCallback(
     () =>
-      runSave({
+      saveLatestDraft({
         handle,
         stateRef,
-        saveUpdate: mutation.mutateAsync,
+        updateProfile,
         queryClient,
         setValues,
-        setIsSaving,
         saveRef,
       }),
-    [handle, mutation.mutateAsync, queryClient],
+    [handle, queryClient, updateProfile],
   );
+  const debouncedSaveRef = useProfileSaveDebounce(stateRef, saveRef, save);
+  const updateDraft = (field: keyof ProfileValues, value: string) => {
+    const state = stateRef.current;
+    state.draft = { ...state.draft, [field]: value };
+    setValues(state.draft);
+    debouncedSaveRef.current?.();
+  };
+  const setName = (name: string) => {
+    updateDraft("name", name);
+  };
+  const setBio = (bio: string) => {
+    updateDraft("bio", bio);
+  };
 
-  useAutosaveLifecycle(stateRef, saveRef, save);
-
-  const setName = useCallback((value: string) => {
-    updateDraft("name", value, stateRef, setValues, setIsSaving, saveRef);
-  }, []);
-  const setBio = useCallback((value: string) => {
-    updateDraft("bio", value, stateRef, setValues, setIsSaving, saveRef);
-  }, []);
-
-  return { ...values, isSaving, setName, setBio };
+  return { ...values, setName, setBio };
 };

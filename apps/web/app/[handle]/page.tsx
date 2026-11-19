@@ -9,14 +9,14 @@ import dynamic from "next/dynamic";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
-const ProfileMenu = dynamic(() =>
-  import("@/features/profile/ui/profile-menu").then(
-    ({ ProfileMenu: ProfileMenuComponent }) => ProfileMenuComponent,
-  ),
-);
-
 const CreateYoursLink = dynamic(
   () => import("@/features/auth/ui/create-yours-link"),
+);
+
+const ProfileActions = dynamic(() =>
+  import("@/features/profile/ui/profile-actions").then(
+    ({ ProfileActions: ProfileActionsComponent }) => ProfileActionsComponent,
+  ),
 );
 
 export default async function HandlePage({
@@ -51,10 +51,10 @@ export default async function HandlePage({
         />
         <div className="fixed inset-x-0 bottom-8 z-40 flex justify-start px-8">
           <PermissionGate
-            allowed={page.isOwner}
+            allowed={page.isOwner && hasSession}
             denied={!page.isOwner || !hasSession}
-            whenAllowed={<ProfileMenu />}
-            whenDenied={hasSession ? undefined : <CreateYoursLink />}
+            whenAllowed={<ProfileActions />}
+            whenDenied={<CreateYoursLink />}
           />
         </div>
       </div>
