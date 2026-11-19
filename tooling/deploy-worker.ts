@@ -87,6 +87,11 @@ function runBuild(
   delete buildEnv.SERVER_ENV_PRODUCTION;
   delete buildEnv.CRON_ENV_PRODUCTION;
   Object.assign(buildEnv, Object.fromEntries(vars));
+  if (worker === "web") {
+    for (const [name, value] of Object.entries(settings)) {
+      if (name.startsWith("NEXT_PUBLIC_")) buildEnv[name] = value;
+    }
+  }
   if (worker === "web" && settings.SENTRY_AUTH_TOKEN) {
     buildEnv.SENTRY_AUTH_TOKEN = settings.SENTRY_AUTH_TOKEN;
   }

@@ -8,10 +8,8 @@ import {
   type AstNode,
 } from "./naming/ast-utils.ts";
 
-// Files that may read the environment directly. Everything else imports the
-// validated values from the app env.ts (apps/web/lib/env.ts,
-// apps/cron/src/env.ts). The catch-all route reads Worker bindings because it
-// creates the root Hono app outside a Hono context.
+// Files that may read the environment directly. Profile queries may read one
+// public URL because the query module is shared with the browser bundle.
 export const envAccessAllowedFiles = [
   "apps/web/lib/env.ts",
   "apps/web/features/app-shell/ui/providers.tsx",
@@ -37,6 +35,20 @@ function isProcessEnv(node: Readonly<AstNode>): boolean {
     object = getChild(object, "property");
   }
   return getName(object) === "process";
+}
+
+function isAllowedPublicProfileImageUrl(
+  node: Readonly<AstNode>,
+  filename: string,
+): boolean {
+  const normalizedFilename = filename.replaceAll("\\", "/");
+  const parent = getChild(node, "parent");
+  return (
+    normalizedFilename.endsWith("apps/web/features/profile/queries.ts") &&
+    parent?.type === "MemberExpression" &&
+    getChild(parent, "object") === node &&
+    getPropertyName(parent) === "NEXT_PUBLIC_R2_PUBLIC_URL"
+  );
 }
 
 function isImportMetaEnv(node: Readonly<AstNode>): boolean {
@@ -74,7 +86,10 @@ const noDirectEnv = defineRule({
     return {
       MemberExpression(input: unknown): void {
         if (!isAstNode(input)) return;
-        if (isProcessEnv(input)) {
+        if (
+          isProcessEnv(input) &&
+          !isAllowedPublicProfileImageUrl(input, context.filename)
+        ) {
           context.report({ node: input, messageId: "processEnv" });
         } else if (isImportMetaEnv(input)) {
           context.report({ node: input, messageId: "importMetaEnv" });

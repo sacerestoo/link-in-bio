@@ -18,6 +18,10 @@ tester.run("no-direct-env", envAccessPlugin.rules["no-direct-env"], {
   valid: [
     { code: 'import { getEnv } from "@/env"; const { A } = getEnv();' },
     { code: 'import { waitUntil } from "cloudflare:workers";' },
+    {
+      code: "const url = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;",
+      filename: "apps/web/features/profile/queries.ts",
+    },
     { code: "const env = { A: 1 }; const value = env.A;" },
     { code: "const value = process.cwd();" },
     { code: "const value = import.meta.url;" },
@@ -25,6 +29,11 @@ tester.run("no-direct-env", envAccessPlugin.rules["no-direct-env"], {
   invalid: [
     {
       code: "const url = process.env.DATABASE_URL;",
+      errors: [{ messageId: "processEnv" }],
+    },
+    {
+      code: "const secret = process.env.R2_SECRET_ACCESS_KEY;",
+      filename: "apps/web/features/profile/queries.ts",
       errors: [{ messageId: "processEnv" }],
     },
     {
@@ -62,7 +71,7 @@ tester.run("no-direct-env", envAccessPlugin.rules["no-direct-env"], {
   ],
 });
 
-it("enables the rule everywhere except the app env.ts files, server bindings, config files, and tooling", () => {
+it("enables the rule except for app env readers, server bindings, config files, and tooling", () => {
   const config = createLintConfig({
     react: false,
     vitePlus: false,

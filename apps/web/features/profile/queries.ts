@@ -1,6 +1,8 @@
+import type { ProfileImageContentType } from "@grabbin/shared/lib/profile-image";
 import { api, type ApiClient } from "@/lib/api-client";
 import {
   pageResponseSchema,
+  profileImageUploadResponseSchema,
   type PageUpdate,
 } from "@grabbin/shared/schemas/page";
 import {
@@ -9,6 +11,7 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 import * as v from "valibot";
+import { putProfileImage } from "./api";
 
 const checkHandleAvailability = (handle: string, client: ApiClient = api) =>
   client.v1.pages.handle.$post({
@@ -38,6 +41,45 @@ const updatePageProfile = async (
   });
 };
 
+const getImageUrl = (imageKey: string | null): string | undefined => {
+  if (imageKey === null || imageKey === "") return undefined;
+  if (/^https?:\/\//u.test(imageKey)) return imageKey;
+  const imageBaseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
+  if (imageBaseUrl === undefined || imageBaseUrl.length === 0) return undefined;
+
+  const encodedKey = imageKey
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `${imageBaseUrl.replace(/\/$/u, "")}/${encodedKey}`;
+};
+
+const uploadProfileImage = async (
+  handle: string,
+  file: File,
+  contentType: ProfileImageContentType,
+): Promise<string | undefined> => {
+  const { imageKey, uploadUrl } = v.parse(
+    profileImageUploadResponseSchema,
+    await api.v1.pages[":handle"]["image-upload"]
+      .$post({ param: { handle }, json: { contentType, size: file.size } })
+      .then((response) => response.json()),
+  );
+  await putProfileImage(uploadUrl, file, contentType);
+  await api.v1.pages[":handle"].$patch({
+    param: { handle },
+    json: { imageKey },
+  });
+  return getImageUrl(imageKey);
+};
+
+const removeProfileImage = async (handle: string): Promise<void> => {
+  await api.v1.pages[":handle"].$patch({
+    param: { handle },
+    json: { imageKey: null },
+  });
+};
+
 const getPage = async (handle: string, client: ApiClient = api) =>
   v.parse(
     pageResponseSchema,
@@ -53,15 +95,9 @@ export const profileQueries = {
     queryOptions({
       queryKey: profileQueries.byHandle(handle),
       queryFn: () => getPage(handle, client),
-      select: (page) => ({
+      select: ({ imageKey, ...page }) => ({
         ...page,
-        imageUrl:
-          page.imageKey !== null &&
-          page.imageKey !== "" &&
-          (page.imageKey.startsWith("https://") ||
-            page.imageKey.startsWith("http://"))
-            ? page.imageKey
-            : undefined,
+        imageUrl: getImageUrl(imageKey),
       }),
     }),
   checkHandle: (client: ApiClient = api) =>
@@ -88,6 +124,19 @@ export const profileQueries = {
       mutationKey: [...profileQueries.byHandle(handle), "profile-update"],
       mutationFn: (update: PageUpdate) =>
         updatePageProfile(handle, update, client),
+    }),
+  uploadImage: (handle: string) =>
+    mutationOptions({
+      mutationKey: [...profileQueries.byHandle(handle), "profile-image-upload"],
+      mutationFn: (input: {
+        file: File;
+        contentType: ProfileImageContentType;
+      }) => uploadProfileImage(handle, input.file, input.contentType),
+    }),
+  removeImage: (handle: string) =>
+    mutationOptions({
+      mutationKey: [...profileQueries.byHandle(handle), "profile-image-remove"],
+      mutationFn: () => removeProfileImage(handle),
     }),
 };
 

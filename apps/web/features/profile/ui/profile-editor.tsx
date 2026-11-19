@@ -9,12 +9,10 @@ export function ProfileEditor({
   handle,
   initialName,
   initialBio,
-  initialImageUrl,
 }: Readonly<{
   handle: string;
   initialName: string;
   initialBio: string;
-  initialImageUrl?: string;
 }>): ReactElement {
   const { name, bio, setName, setBio } = useProfileAutosave(handle, {
     name: initialName,
@@ -25,7 +23,7 @@ export function ProfileEditor({
     <ProfileContent
       name={name}
       bio={bio}
-      image={<ProfileImagePicker initialImageUrl={initialImageUrl} />}
+      image={<ProfileImagePicker handle={handle} />}
       readOnly={false}
       onNameChange={setName}
       onBioChange={setBio}

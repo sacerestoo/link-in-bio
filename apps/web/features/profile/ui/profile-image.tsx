@@ -2,13 +2,13 @@ import type { ReactElement } from "react";
 import Image from "next/image";
 
 export function ProfileImage({
-  imageUrl,
-}: Readonly<{ imageUrl?: string }>): ReactElement | null {
-  if (imageUrl === undefined || imageUrl.length === 0) return null;
+  src,
+}: Readonly<{ src?: string | null }>): ReactElement | null {
+  if (src === undefined || src === null || src.length === 0) return null;
 
   return (
     <Image
-      src={imageUrl}
+      src={src}
       alt=""
       fill
       unoptimized

@@ -87,11 +87,13 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
   database adapter. Web's `lib/api-client.ts` imports the server app type only.
 - Bindings and plain vars live in each app's `wrangler.jsonc`.
   `vp run -r typegen` writes `worker-configuration.d.ts` (gitignored) from it.
-- Read settings only through `readWebEnv()` (`apps/web/lib/env.ts`),
-  `readServerEnv()` (`apps/server/src/lib/env.ts`) or `readCronEnv()`
-  (`apps/cron/src/env.ts`). The `env-access/no-direct-env` rule rejects
-  `process.env`, `import.meta.env` and `cloudflare:workers` `env` elsewhere,
-  except app env files, `*.config.ts` and `tooling/`.
+- Read Worker settings through `readWebEnv()` (`apps/web/lib/env.ts`), and
+  server and cron settings through `readServerEnv()`
+  (`apps/server/src/lib/env.ts`) and `readCronEnv()` (`apps/cron/src/env.ts`).
+  The profile query may read only `NEXT_PUBLIC_R2_PUBLIC_URL` directly because
+  it is shared with the browser bundle. The `env-access/no-direct-env` rule
+  rejects direct environment reads elsewhere, except app env files,
+  `*.config.ts` and `tooling/`.
 - Keep fake examples next to their use: Neon Local and Drizzle Kit settings in
   the root `.env.example`, web settings in `apps/web/.env.example`, server
   settings in `apps/server/.env.example`, and cron settings in
@@ -141,7 +143,7 @@ here only with its enforcer and a test that proves it catches a violation.
 | `app/api/` holds no files; API requests go through the server Worker                             | `tooling/next-app/route-files.ts`                                                                        | `route-files.test.ts`                             |
 | `"use client"`/`"use server"` only at the top; no inline server actions; no success-flag effects | `next-app/*` rules                                                                                       | `next-app-rules.test.ts`                          |
 | Server-only modules import `server-only`; no `"use client"` module reaches them                  | `checkServerOnlyMarkers`, `tooling/next-app/client-boundary.ts`                                          | `client-boundary.test.ts`                         |
-| Env reads only in app `env.ts`, Worker entrypoints, `*.config.ts` and `tooling/`                 | `env-access/no-direct-env`                                                                               | `env-access.test.ts`, `lint-config.test.ts`       |
+| Env reads only in env readers, Worker entrypoints, configs and tooling                           | `env-access/no-direct-env`                                                                               | `env-access.test.ts`, `lint-config.test.ts`       |
 | `fetch` only in `features/<domain>/api.ts`, server and cron Worker code                          | oxlint `no-restricted-globals`                                                                           | `lint-config.test.ts`                             |
 | Naming (PascalCase types, hook names, kebab files), no `.js` sources, test file names            | `codebase/*`, `react-codebase/*`, `testing/*`, `unicorn/filename-case`                                   | `naming/__tests__`, `testing.test.ts`             |
 | Next.js core-web-vitals, React Compiler and TanStack Query rules                                 | oxlint `nextjs`, `react`, `@tanstack/query`, `query/*`                                                   | `query.test.ts`                                   |

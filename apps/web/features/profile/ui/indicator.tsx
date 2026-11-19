@@ -8,8 +8,10 @@ import { profileQueries } from "../queries";
 
 export default function Indicator(): ReactElement | null {
   const { handle } = useParams<{ handle: string }>();
-  const { mutationKey } = profileQueries.updateProfile(handle);
-  const isSaving = useIsMutating({ mutationKey }) > 0;
+  const isSaving =
+    useIsMutating({
+      mutationKey: profileQueries.byHandle(handle),
+    }) > 0;
 
   if (!isSaving) return null;
 
