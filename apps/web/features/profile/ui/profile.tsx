@@ -43,6 +43,8 @@ export function Profile({
           {page.isOwner ? (
             <Suspense fallback={readOnlyProfile}>
               <ProfileEditor
+                key={handle}
+                handle={handle}
                 initialName={initialName}
                 initialBio={initialBio}
                 initialImageUrl={page.imageUrl}

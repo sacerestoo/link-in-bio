@@ -1,4 +1,8 @@
 import type { ReactElement } from "react";
+import {
+  PAGE_BIO_MAX_LENGTH,
+  PAGE_NAME_MAX_LENGTH,
+} from "@grabbin/shared/schemas/page";
 import { Field, FieldGroup } from "@grabbin/ui/components/field";
 import {
   InputGroup,
@@ -21,7 +25,7 @@ function ProfileNameField({
         name="name"
         aria-label="Name"
         autoComplete="name"
-        maxLength={50}
+        maxLength={PAGE_NAME_MAX_LENGTH}
         rows={1}
         placeholder={readOnly ? undefined : "Name"}
         readOnly={readOnly}
@@ -50,6 +54,7 @@ function ProfileBioField({
         id="page-bio"
         name="bio"
         aria-label="Bio"
+        maxLength={PAGE_BIO_MAX_LENGTH}
         rows={2}
         placeholder={readOnly ? undefined : "Tell about you"}
         readOnly={readOnly}

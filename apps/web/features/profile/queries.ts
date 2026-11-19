@@ -1,5 +1,8 @@
 import { api, type ApiClient } from "@/lib/api-client";
-import { pageResponseSchema } from "@grabbin/shared/schemas/page";
+import {
+  pageResponseSchema,
+  type PageUpdate,
+} from "@grabbin/shared/schemas/page";
 import {
   mutationOptions,
   queryOptions,
@@ -22,6 +25,17 @@ const updatePageHandle = async (
     json: { handle: requestedHandle },
   });
   return requestedHandle;
+};
+
+const updatePageProfile = async (
+  handle: string,
+  update: PageUpdate,
+  client: ApiClient = api,
+): Promise<void> => {
+  await client.v1.pages[":handle"].$patch({
+    param: { handle },
+    json: update,
+  });
 };
 
 const getPage = async (handle: string, client: ApiClient = api) =>
@@ -68,6 +82,12 @@ export const profileQueries = {
         updatePageHandle(currentHandle, requestedHandle, client),
       onSuccess: callbacks.onSuccess,
       onError: callbacks.onError,
+    }),
+  updateProfile: (handle: string, client: ApiClient = api) =>
+    mutationOptions({
+      mutationKey: [...profileQueries.byHandle(handle), "profile-update"],
+      mutationFn: (update: PageUpdate) =>
+        updatePageProfile(handle, update, client),
     }),
 };
 
