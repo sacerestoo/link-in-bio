@@ -1,15 +1,15 @@
 import "server-only";
+import type { Database } from "@grabbin/db";
+import { pages } from "@grabbin/db/schema/pages";
 import {
   HANDLE_UNAVAILABLE_MESSAGE,
   handleSchema,
   type Handle,
   type PageUpdate,
 } from "@grabbin/shared/schemas/page";
+import { and, eq as equal } from "drizzle-orm";
 import * as v from "valibot";
-import {
-  PAGE_REPOSITORY_STATUS,
-  type PagesRepository,
-} from "../repositories/pages.repository";
+import { isPostgresUniqueViolation } from "../lib/postgres-error";
 
 export const PAGE_SERVICE_STATUS = {
   available: "available",
@@ -37,18 +37,37 @@ export type EnsurePageForUserResult =
     >;
 
 export class PagesService {
-  constructor(private readonly pagesRepository: PagesRepository) {}
+  constructor(private readonly database: Database) {}
 
-  isPageHandleAvailable(handle: string): Promise<boolean> {
-    return this.pagesRepository.isHandleAvailable(handle);
+  async isPageHandleAvailable(handle: string): Promise<boolean> {
+    const matchingPage = await this.database.query.pages.findFirst({
+      columns: { id: true },
+      where: (page, { eq }) => eq(page.handle, handle),
+    });
+
+    return matchingPage === undefined;
   }
 
-  findPageHandleForUser(userId: string): Promise<string | undefined> {
-    return this.pagesRepository.findByUserId(userId);
+  async findPageHandleForUser(userId: string): Promise<string | undefined> {
+    const page = await this.database.query.pages.findFirst({
+      columns: { handle: true },
+      where: (row, { eq }) => eq(row.userId, userId),
+    });
+
+    return page?.handle;
   }
 
   findPageByHandle(handle: string) {
-    return this.pagesRepository.findByHandle(handle);
+    return this.database.query.pages.findFirst({
+      columns: {
+        userId: true,
+        handle: true,
+        name: true,
+        bio: true,
+        imageKey: true,
+      },
+      where: (page, { eq }) => eq(page.handle, handle),
+    });
   }
 
   async updatePageForUser(
@@ -56,41 +75,61 @@ export class PagesService {
     currentHandle: string,
     update: PageUpdate,
   ) {
-    const page = await this.pagesRepository.updateForUser(
-      userId,
-      currentHandle,
-      update,
-    );
+    try {
+      const [page] = await this.database
+        .update(pages)
+        .set(update)
+        .where(
+          and(equal(pages.userId, userId), equal(pages.handle, currentHandle)),
+        )
+        .returning({
+          handle: pages.handle,
+          name: pages.name,
+          bio: pages.bio,
+        });
 
-    if (page === undefined) return { status: PAGE_SERVICE_STATUS.notFound };
-    if (
-      "status" in page &&
-      page.status === PAGE_REPOSITORY_STATUS.uniqueConflict
-    )
-      return { status: PAGE_SERVICE_STATUS.handleConflict };
-    return { status: PAGE_SERVICE_STATUS.updated, data: page };
+      return page === undefined
+        ? { status: PAGE_SERVICE_STATUS.notFound }
+        : { status: PAGE_SERVICE_STATUS.updated, data: page };
+    } catch (error) {
+      if (isPostgresUniqueViolation(error, "pages_handle_idx"))
+        return { status: PAGE_SERVICE_STATUS.handleConflict };
+      throw error;
+    }
   }
 
   async ensurePageForUser(
     userId: string,
     rawHandle: unknown,
   ): Promise<EnsurePageForUserResult> {
-    if (await this.pagesRepository.hasPageForUser(userId))
+    const existingPage = await this.database.query.pages.findFirst({
+      columns: { id: true },
+      where: (page, { eq }) => eq(page.userId, userId),
+    });
+    if (existingPage !== undefined)
       return { status: PAGE_SERVICE_STATUS.complete };
 
     const handleResult = await this.checkHandleAvailability(rawHandle);
     if (handleResult.status !== PAGE_SERVICE_STATUS.available)
       return handleResult;
 
-    const creationResult = await this.pagesRepository.createForUser(
-      userId,
-      handleResult.handle,
-    );
-    if (creationResult?.status === PAGE_REPOSITORY_STATUS.uniqueConflict)
-      return {
-        status: PAGE_SERVICE_STATUS.handleUnavailable,
-        message: HANDLE_UNAVAILABLE_MESSAGE,
-      };
+    try {
+      await this.database
+        .insert(pages)
+        .values({
+          id: crypto.randomUUID(),
+          userId,
+          handle: handleResult.handle,
+        })
+        .onConflictDoNothing({ target: pages.userId });
+    } catch (error) {
+      if (isPostgresUniqueViolation(error, "pages_handle_idx"))
+        return {
+          status: PAGE_SERVICE_STATUS.handleUnavailable,
+          message: HANDLE_UNAVAILABLE_MESSAGE,
+        };
+      throw error;
+    }
 
     return { status: PAGE_SERVICE_STATUS.complete };
   }
@@ -109,9 +148,7 @@ export class PagesService {
         message: handleResult.issues.map((issue) => issue.message).join(" "),
       };
 
-    const available = await this.pagesRepository.isHandleAvailable(
-      handleResult.output,
-    );
+    const available = await this.isPageHandleAvailable(handleResult.output);
     return available
       ? {
           status: PAGE_SERVICE_STATUS.available,

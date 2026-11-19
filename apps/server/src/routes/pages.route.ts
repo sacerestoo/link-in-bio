@@ -1,4 +1,5 @@
 import "server-only";
+import { createDatabase } from "@grabbin/db";
 import {
   HANDLE_UNAVAILABLE_MESSAGE,
   handleSchema,
@@ -14,11 +15,10 @@ import {
   optionalSession,
   requireSession,
 } from "../middleware/session.middleware";
-import { PagesRepository } from "../repositories/pages.repository";
 import { PagesService, PAGE_SERVICE_STATUS } from "../services/pages.service";
 
 const createPagesService = (connectionString: string) =>
-  new PagesService(PagesRepository.fromConnectionString(connectionString));
+  new PagesService(createDatabase(connectionString));
 
 export const pagesRoute = new Hono<{
   Bindings: ServerBindings;

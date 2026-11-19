@@ -7,7 +7,6 @@ import {
 } from "@grabbin/subscription/creem";
 import { APIError, createAuthMiddleware, getOAuthState } from "better-auth/api";
 import type { ServerEnv } from "../env";
-import { PagesRepository } from "../../repositories/pages.repository";
 import {
   PagesService,
   PAGE_SERVICE_STATUS,
@@ -28,7 +27,7 @@ const throwIfPageOperationFailed = (
 export const createDatabaseHooks = (
   database: Database,
 ): NonNullable<BetterAuthOptions["databaseHooks"]> => {
-  const pagesService = new PagesService(new PagesRepository(database));
+  const pagesService = new PagesService(database);
 
   return {
     user: {
@@ -47,7 +46,7 @@ export const createDatabaseHooks = (
 };
 
 export const createAuthHooks = (settings: ServerEnv, database: Database) => {
-  const pagesService = new PagesService(new PagesRepository(database));
+  const pagesService = new PagesService(database);
 
   return {
     before: createCreemBeforeHook(
