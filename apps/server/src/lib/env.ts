@@ -24,6 +24,10 @@ export const serverEnvSchema = v.object({
   CREEM_WEBHOOK_SECRET: optionalSetting,
   CREEM_PRO_MONTHLY_PRODUCT_ID: optionalSetting,
   CREEM_PRO_YEARLY_PRODUCT_ID: optionalSetting,
+  R2_ACCOUNT_ID: optionalSetting,
+  R2_ACCESS_KEY_ID: optionalSetting,
+  R2_SECRET_ACCESS_KEY: optionalSetting,
+  R2_BUCKET_NAME: optionalSetting,
   CREEM_TEST_MODE: v.optional(
     v.pipe(
       v.string(),
@@ -54,6 +58,10 @@ export type ServerBindings = {
   CREEM_WEBHOOK_SECRET?: string;
   CREEM_PRO_MONTHLY_PRODUCT_ID?: string;
   CREEM_PRO_YEARLY_PRODUCT_ID?: string;
+  R2_ACCOUNT_ID?: string;
+  R2_ACCESS_KEY_ID?: string;
+  R2_SECRET_ACCESS_KEY?: string;
+  R2_BUCKET_NAME?: string;
   CREEM_TEST_MODE?: string;
 };
 

@@ -1,35 +1,12 @@
 import * as v from "valibot";
+import { isReservedHandle } from "../lib/handle";
+import {
+  PROFILE_IMAGE_CONTENT_TYPES,
+  PROFILE_IMAGE_MAX_SIZE,
+} from "../lib/profile-image";
 
 export const PAGE_NAME_MAX_LENGTH = 50;
 export const PAGE_BIO_MAX_LENGTH = 150;
-
-const reservedHandles = new Set([
-  "admin",
-  "api",
-  "auth",
-  "billing",
-  "changelog",
-  "check",
-  "create",
-  "demo",
-  "explore",
-  "favicon",
-  "health",
-  "llms",
-  "log-in",
-  "login",
-  "manifest",
-  "new",
-  "pages",
-  "privacy",
-  "robots",
-  "setting",
-  "settings",
-  "sign-in",
-  "sitemap",
-  "terms",
-  "update",
-]);
 
 // Page contracts shared by the web app and its API.
 export const handleSchema = v.pipe(
@@ -41,10 +18,7 @@ export const handleSchema = v.pipe(
     /^[a-z0-9]+(?:[-_][a-z0-9]+)*$/u,
     "Use lowercase letters and numbers, with hyphens or underscores only between groups.",
   ),
-  v.check(
-    (handle) => !reservedHandles.has(handle),
-    "You can't use that handle.",
-  ),
+  v.check((handle) => !isReservedHandle(handle), "You can't use that handle."),
 );
 
 export const HANDLE_UNAVAILABLE_MESSAGE =
@@ -80,12 +54,30 @@ export const pageSchema = v.object({
 });
 
 export const pageUpdateSchema = v.pipe(
-  v.partial(v.pick(pageSchema, ["handle", "name", "bio"])),
+  v.partial(v.pick(pageSchema, ["handle", "name", "bio", "imageKey"])),
   v.check(
     (update) => Object.values(update).some((value) => value !== undefined),
     "Provide at least one page field to update.",
   ),
 );
+
+export const profileImageUploadSchema = v.object({
+  contentType: v.picklist(PROFILE_IMAGE_CONTENT_TYPES),
+  size: v.pipe(
+    v.number(),
+    v.integer(),
+    v.minValue(1, "Choose a non-empty image."),
+    v.maxValue(
+      PROFILE_IMAGE_MAX_SIZE,
+      "Profile images must be 5 MB or smaller.",
+    ),
+  ),
+});
+
+export const profileImageUploadResponseSchema = v.object({
+  imageKey: v.string(),
+  uploadUrl: v.pipe(v.string(), v.url()),
+});
 
 export const pageResponseSchema = v.object({
   ...pageSchema.entries,

@@ -25,7 +25,12 @@ authenticated session's user ID. Current routes:
 - `GET /v1/pages/me`: signed-in session; read only the page whose `userId`
   matches the session user.
 - `PATCH /v1/pages/:handle`: signed-in session; update only the page whose
-  handle matches the path and whose `userId` matches the session user.
+  handle matches the path and whose `userId` matches the session user. Profile
+  image keys must point to an uploaded object in that user's R2 prefix and pass
+  the configured image type and size checks.
+- `POST /v1/pages/:handle/image-upload`: signed-in session; issue a short-lived
+  R2 presigned PUT URL only for the session user's page and an allowed image
+  type and size.
 - `POST /v1/pages/handle`: no permission; public lookup returns only whether the
   handle is available.
 - `GET /v1/auth/session`: signed-in session; return only the current user's

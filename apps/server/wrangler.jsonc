@@ -25,6 +25,7 @@
         { "binding": "HYPERDRIVE", "id": "b645324e7cbe4a9c96e5ffddb23de57d" },
       ],
       "vars": {
+        "R2_BUCKET_NAME": "grabbin-staging",
         "BETTER_AUTH_URL": "https://grabbin-staging.zentechie7.workers.dev",
         "CREEM_TEST_MODE": "true",
       },
