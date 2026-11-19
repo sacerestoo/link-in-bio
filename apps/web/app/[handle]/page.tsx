@@ -9,9 +9,9 @@ import dynamic from "next/dynamic";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
-const PageAccountMenu = dynamic(() =>
-  import("@/features/auth/ui/page-account-menu").then(
-    ({ PageAccountMenu: PageAccountMenuComponent }) => PageAccountMenuComponent,
+const ProfileMenu = dynamic(() =>
+  import("@/features/profile/ui/profile-menu").then(
+    ({ ProfileMenu: ProfileMenuComponent }) => ProfileMenuComponent,
   ),
 );
 
@@ -53,7 +53,7 @@ export default async function HandlePage({
           <PermissionGate
             allowed={page.isOwner}
             denied={!page.isOwner || !hasSession}
-            whenAllowed={<PageAccountMenu />}
+            whenAllowed={<ProfileMenu />}
             whenDenied={hasSession ? undefined : <CreateYoursLink />}
           />
         </div>

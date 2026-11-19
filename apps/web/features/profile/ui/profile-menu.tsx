@@ -31,7 +31,7 @@ async function handleSignOut(refresh: () => void): Promise<void> {
   }
 }
 
-export function PageAccountMenu(): ReactElement {
+export function ProfileMenu(): ReactElement {
   const router = useRouter();
 
   return (
@@ -47,7 +47,7 @@ export function PageAccountMenu(): ReactElement {
       >
         <Settings2 aria-hidden="true" />
       </DropdownMenuTrigger>
-      <PageAccountMenuItems
+      <ProfileMenuItems
         onChangeHandle={() => {
           overlay.open((props) => <ChangeHandleDialog {...props} />);
         }}
@@ -61,7 +61,7 @@ export function PageAccountMenu(): ReactElement {
   );
 }
 
-function PageAccountMenuItems({
+function ProfileMenuItems({
   onChangeHandle,
   onSignOut,
 }: Readonly<{
