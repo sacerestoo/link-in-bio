@@ -1,6 +1,10 @@
 import "server-only";
-import { createDatabase } from "@grabbin/db";
-import { handleSchema, pageResponseSchema } from "@grabbin/shared/schemas/page";
+import {
+  HANDLE_UNAVAILABLE_MESSAGE,
+  handleSchema,
+  pageResponseSchema,
+  pageUpdateSchema,
+} from "@grabbin/shared/schemas/page";
 import { sValidator } from "@hono/standard-validator";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
@@ -10,20 +14,18 @@ import {
   optionalSession,
   requireSession,
 } from "../middleware/session.middleware";
-import {
-  findPageByHandle,
-  findPageHandleForUser,
-  isPageHandleAvailable,
-  updatePageHandleForUser,
-} from "../services/pages.service";
+import { PagesRepository } from "../repositories/pages.repository";
+import { PagesService, PAGE_SERVICE_STATUS } from "../services/pages.service";
+
+const createPagesService = (connectionString: string) =>
+  new PagesService(PagesRepository.fromConnectionString(connectionString));
 
 export const pagesRoute = new Hono<{
   Bindings: ServerBindings;
 }>()
   .get("/me", requireSession, async (c) => {
-    const database = createDatabase(c.env.HYPERDRIVE.connectionString);
-    const userOwnedHandle = await findPageHandleForUser(
-      database,
+    const pagesService = createPagesService(c.env.HYPERDRIVE.connectionString);
+    const userOwnedHandle = await pagesService.findPageHandleForUser(
       c.get("session").user.id,
     );
     if (userOwnedHandle === undefined)
@@ -41,8 +43,11 @@ export const pagesRoute = new Hono<{
     }),
     async (c) => {
       const { handle: requestedHandle } = c.req.valid("json");
-      const database = createDatabase(c.env.HYPERDRIVE.connectionString);
-      const available = await isPageHandleAvailable(database, requestedHandle);
+      const pagesService = createPagesService(
+        c.env.HYPERDRIVE.connectionString,
+      );
+      const available =
+        await pagesService.isPageHandleAvailable(requestedHandle);
       return c.json({ available });
     },
   )
@@ -56,11 +61,13 @@ export const pagesRoute = new Hono<{
         });
     }),
     async (c) => {
-      const database = createDatabase(c.env.HYPERDRIVE.connectionString);
+      const pagesService = createPagesService(
+        c.env.HYPERDRIVE.connectionString,
+      );
       const { handle } = c.req.valid("param");
       const userId = c.get("session")?.user.id;
 
-      const page = await findPageByHandle(database, handle);
+      const page = await pagesService.findPageByHandle(handle);
       if (page === undefined)
         throw new HTTPException(404, { message: "Page not found" });
 
@@ -82,56 +89,34 @@ export const pagesRoute = new Hono<{
           message: result.error.map((issue) => issue.message).join(" "),
         });
     }),
-    sValidator("json", v.object({ handle: handleSchema }), (result) => {
+    sValidator("json", pageUpdateSchema, (result) => {
       if (!result.success)
         throw new HTTPException(400, {
           message: result.error.map((issue) => issue.message).join(" "),
         });
     }),
     async (c) => {
-      const database = createDatabase(c.env.HYPERDRIVE.connectionString);
+      const pagesService = createPagesService(
+        c.env.HYPERDRIVE.connectionString,
+      );
       const userId = c.get("session").user.id;
 
       const { handle: currentHandle } = c.req.valid("param");
-      const { handle: requestedHandle } = c.req.valid("json");
+      const update = c.req.valid("json");
 
-      const userOwnedHandle = await findPageHandleForUser(database, userId);
-      if (userOwnedHandle !== currentHandle)
+      const updatedPage = await pagesService.updatePageForUser(
+        userId,
+        currentHandle,
+        update,
+      );
+
+      if (updatedPage.status === PAGE_SERVICE_STATUS.notFound)
         throw new HTTPException(404, { message: "Page not found" });
-
-      const requestedHandleIsAvailable =
-        requestedHandle === currentHandle ||
-        (await isPageHandleAvailable(database, requestedHandle));
-      if (!requestedHandleIsAvailable) {
+      if (updatedPage.status === PAGE_SERVICE_STATUS.handleConflict)
         throw new HTTPException(409, {
-          message: "That handle is already taken. Try another one.",
+          message: HANDLE_UNAVAILABLE_MESSAGE,
         });
-      }
 
-      try {
-        const updatedHandle = await updatePageHandleForUser(
-          database,
-          userId,
-          currentHandle,
-          requestedHandle,
-        );
-        if (updatedHandle === undefined)
-          throw new HTTPException(404, { message: "Page not found" });
-        return c.json({ handle: updatedHandle });
-      } catch (error) {
-        if (
-          typeof error === "object" &&
-          error !== null &&
-          "code" in error &&
-          error.code === "23505" &&
-          "constraint" in error &&
-          error.constraint === "pages_handle_idx"
-        ) {
-          throw new HTTPException(409, {
-            message: "That handle is already taken. Try another one.",
-          });
-        }
-        throw error;
-      }
+      return c.json(updatedPage.data);
     },
   );

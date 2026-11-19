@@ -1,146 +1,125 @@
 import "server-only";
-import type { Database } from "@grabbin/db";
-import { pages } from "@grabbin/db/schema/pages";
 import {
-  availableHandleSchema,
+  HANDLE_UNAVAILABLE_MESSAGE,
   handleSchema,
   type Handle,
+  type PageUpdate,
 } from "@grabbin/shared/schemas/page";
-import { APIError, getOAuthState } from "better-auth/api";
-import { and, eq as equal } from "drizzle-orm";
 import * as v from "valibot";
+import {
+  PAGE_REPOSITORY_STATUS,
+  type PagesRepository,
+} from "../repositories/pages.repository";
 
-export const isPageHandleAvailable = async (
-  database: Database,
-  handle: string,
-): Promise<boolean> => {
-  const matchingPage = await database.query.pages.findFirst({
-    columns: { id: true },
-    where: (page, { eq }) => eq(page.handle, handle),
-  });
+export const PAGE_SERVICE_STATUS = {
+  available: "available",
+  invalidHandle: "invalid-handle",
+  handleUnavailable: "handle-unavailable",
+  complete: "complete",
+  notFound: "not-found",
+  handleConflict: "handle-conflict",
+  updated: "updated",
+} as const;
 
-  return matchingPage === undefined;
-};
+export type HandleAvailabilityResult =
+  | { status: typeof PAGE_SERVICE_STATUS.available; handle: Handle }
+  | { status: typeof PAGE_SERVICE_STATUS.invalidHandle; message: string }
+  | {
+      status: typeof PAGE_SERVICE_STATUS.handleUnavailable;
+      message: string;
+    };
 
-export const findPageHandleForUser = async (
-  database: Database,
-  userId: string,
-): Promise<string | undefined> => {
-  const page = await database.query.pages.findFirst({
-    columns: { handle: true },
-    where: (pageRow, { eq }) => eq(pageRow.userId, userId),
-  });
+export type EnsurePageForUserResult =
+  | { status: typeof PAGE_SERVICE_STATUS.complete }
+  | Exclude<
+      HandleAvailabilityResult,
+      { status: typeof PAGE_SERVICE_STATUS.available }
+    >;
 
-  return page?.handle;
-};
+export class PagesService {
+  constructor(private readonly pagesRepository: PagesRepository) {}
 
-export const findPageByHandle = (database: Database, handle: string) =>
-  database.query.pages.findFirst({
-    columns: {
-      userId: true,
-      handle: true,
-      name: true,
-      bio: true,
-      imageKey: true,
-    },
-    where: (pageRow, { eq }) => eq(pageRow.handle, handle),
-  });
-
-export const updatePageHandleForUser = async (
-  database: Database,
-  userId: string,
-  currentHandle: string,
-  requestedHandle: string,
-): Promise<string | undefined> => {
-  const [page] = await database
-    .update(pages)
-    .set({ handle: requestedHandle })
-    .where(and(equal(pages.userId, userId), equal(pages.handle, currentHandle)))
-    .returning({ handle: pages.handle });
-
-  return page?.handle;
-};
-
-export const createPageForUser = async (
-  database: Database,
-  userId: string,
-  handle: string,
-): Promise<void> => {
-  await database
-    .insert(pages)
-    .values({ id: crypto.randomUUID(), userId, handle })
-    .onConflictDoNothing({ target: pages.userId });
-};
-
-export const ensurePageForUser = async (
-  database: Database,
-  userId: string,
-  rawHandle: unknown,
-): Promise<void> => {
-  const existingPage = await database.query.pages.findFirst({
-    columns: { id: true },
-    where: (page, { eq }) => eq(page.userId, userId),
-  });
-  if (existingPage !== undefined) return;
-
-  const handleResult = v.safeParse(handleSchema, rawHandle);
-  if (!handleResult.success) {
-    throw new APIError("BAD_REQUEST", {
-      message: handleResult.issues.map((issue) => issue.message).join(" "),
-    });
+  isPageHandleAvailable(handle: string): Promise<boolean> {
+    return this.pagesRepository.isHandleAvailable(handle);
   }
 
-  const availableHandleResult = v.safeParse(
-    availableHandleSchema(
-      await isPageHandleAvailable(database, handleResult.output),
-    ),
-    handleResult.output,
-  );
-  if (!availableHandleResult.success) {
-    throw new APIError("BAD_REQUEST", {
-      message: availableHandleResult.issues
-        .map((issue) => issue.message)
-        .join(" "),
-    });
+  findPageHandleForUser(userId: string): Promise<string | undefined> {
+    return this.pagesRepository.findByUserId(userId);
   }
 
-  await createPageForUser(database, userId, availableHandleResult.output);
-};
-
-export const readSignupHandle = async (): Promise<Handle> => {
-  const oauthState = await getOAuthState<{ handle?: unknown }>();
-  const result = v.safeParse(handleSchema, oauthState?.handle);
-  if (!result.success) {
-    throw new APIError("BAD_REQUEST", {
-      message: result.issues.map((issue) => issue.message).join(" "),
-    });
-  }
-  return result.output;
-};
-
-export const ensureHandleAvailable = async (
-  database: Database,
-  rawHandle?: unknown,
-): Promise<Handle> => {
-  const parsedHandle = v.safeParse(
-    handleSchema,
-    rawHandle === undefined ? await readSignupHandle() : rawHandle,
-  );
-  if (!parsedHandle.success) {
-    throw new APIError("BAD_REQUEST", {
-      message: parsedHandle.issues.map((issue) => issue.message).join(" "),
-    });
+  findPageByHandle(handle: string) {
+    return this.pagesRepository.findByHandle(handle);
   }
 
-  const handle = parsedHandle.output;
-  const result = v.safeParse(
-    availableHandleSchema(await isPageHandleAvailable(database, handle)),
-    handle,
-  );
-  if (!result.success) {
-    throw new APIError("BAD_REQUEST", {
-      message: result.issues.map((issue) => issue.message).join(" "),
-    });
+  async updatePageForUser(
+    userId: string,
+    currentHandle: string,
+    update: PageUpdate,
+  ) {
+    const page = await this.pagesRepository.updateForUser(
+      userId,
+      currentHandle,
+      update,
+    );
+
+    if (page === undefined) return { status: PAGE_SERVICE_STATUS.notFound };
+    if (
+      "status" in page &&
+      page.status === PAGE_REPOSITORY_STATUS.uniqueConflict
+    )
+      return { status: PAGE_SERVICE_STATUS.handleConflict };
+    return { status: PAGE_SERVICE_STATUS.updated, data: page };
   }
-  return result.output;
-};
+
+  async ensurePageForUser(
+    userId: string,
+    rawHandle: unknown,
+  ): Promise<EnsurePageForUserResult> {
+    if (await this.pagesRepository.hasPageForUser(userId))
+      return { status: PAGE_SERVICE_STATUS.complete };
+
+    const handleResult = await this.checkHandleAvailability(rawHandle);
+    if (handleResult.status !== PAGE_SERVICE_STATUS.available)
+      return handleResult;
+
+    const creationResult = await this.pagesRepository.createForUser(
+      userId,
+      handleResult.handle,
+    );
+    if (creationResult?.status === PAGE_REPOSITORY_STATUS.uniqueConflict)
+      return {
+        status: PAGE_SERVICE_STATUS.handleUnavailable,
+        message: HANDLE_UNAVAILABLE_MESSAGE,
+      };
+
+    return { status: PAGE_SERVICE_STATUS.complete };
+  }
+
+  ensureHandleAvailable(rawHandle: unknown): Promise<HandleAvailabilityResult> {
+    return this.checkHandleAvailability(rawHandle);
+  }
+
+  private async checkHandleAvailability(
+    rawHandle: unknown,
+  ): Promise<HandleAvailabilityResult> {
+    const handleResult = v.safeParse(handleSchema, rawHandle);
+    if (!handleResult.success)
+      return {
+        status: PAGE_SERVICE_STATUS.invalidHandle,
+        message: handleResult.issues.map((issue) => issue.message).join(" "),
+      };
+
+    const available = await this.pagesRepository.isHandleAvailable(
+      handleResult.output,
+    );
+    return available
+      ? {
+          status: PAGE_SERVICE_STATUS.available,
+          handle: handleResult.output,
+        }
+      : {
+          status: PAGE_SERVICE_STATUS.handleUnavailable,
+          message: HANDLE_UNAVAILABLE_MESSAGE,
+        };
+  }
+}
