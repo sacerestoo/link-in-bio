@@ -94,8 +94,8 @@ const useSidebarOpenState = (
   const [internalOpen, setInternalOpen] = React.useState(defaultOpen);
   const open = openProp ?? internalOpen;
   const onOpenChange = React.useCallback(
-    (value: boolean | ((value: boolean) => boolean)): void => {
-      const openState = typeof value === "function" ? value(open) : value;
+    (onValue: boolean | ((value: boolean) => boolean)): void => {
+      const openState = typeof onValue === "function" ? onValue(open) : onValue;
       if (onOpenChangeProp !== undefined) onOpenChangeProp(openState);
       if (onOpenChangeProp === undefined) setInternalOpen(openState);
       document.cookie = `${sidebarCookieName}=${openState}; path=/; max-age=${sidebarCookieMaxAge}`;

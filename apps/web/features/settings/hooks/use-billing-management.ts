@@ -49,21 +49,21 @@ export const useBillingManagement = ({
 
 const runBillingAction = async (
   action: Exclude<BillingAction, null>,
-  request: () => Promise<BillingResult>,
-  setAction: (action: BillingAction) => void,
-  setError: (error: string | undefined) => void,
+  onRequest: () => Promise<BillingResult>,
+  onActionChange: (action: BillingAction) => void,
+  onErrorChange: (error?: string) => void,
   fallback: string,
 ): Promise<void> => {
-  setAction(action);
-  setError(undefined);
+  onActionChange(action);
+  onErrorChange();
   try {
-    const { data, error } = await request();
+    const { data, error } = await onRequest();
     if (error !== null) throw new Error(error.message);
     if (data?.url !== undefined) window.location.assign(data.url);
   } catch (cause: unknown) {
-    setError(getErrorMessage(cause, fallback));
+    onErrorChange(getErrorMessage(cause, fallback));
   } finally {
-    setAction(null);
+    onActionChange(null);
   }
 };
 
@@ -81,7 +81,9 @@ function useBillingActions(monthlyProductId: string | undefined) {
         return createBillingCheckout(monthlyProductId);
       },
       setAction,
-      setError,
+      (message) => {
+        setError(message);
+      },
       "Could not start checkout.",
     );
   const openPortal = () =>
@@ -89,7 +91,9 @@ function useBillingActions(monthlyProductId: string | undefined) {
       "portal",
       createBillingPortal,
       setAction,
-      setError,
+      (message) => {
+        setError(message);
+      },
       "Could not open billing.",
     );
 

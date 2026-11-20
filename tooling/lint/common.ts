@@ -26,6 +26,7 @@ export const commonLintCategories = {
 } as const;
 
 export const commonRules = {
+  "codebase/callback-on-prefix": "error",
   "codebase/no-javascript-files": "error",
   "codebase/pascal-case-types": "error",
   "testing/require-test-filename": "error",

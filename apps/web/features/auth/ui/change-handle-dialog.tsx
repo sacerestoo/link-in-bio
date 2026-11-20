@@ -20,19 +20,19 @@ import { useIsMobile } from "@grabbin/ui/hooks/use-mobile";
 
 type ChangeHandleDialogProps = Readonly<{
   isOpen: boolean;
-  close: () => void;
-  unmount: () => void;
+  onClose: () => void;
+  onUnmount: () => void;
 }>;
 
 export function ChangeHandleDialog({
   isOpen,
-  close,
-  unmount,
+  onClose,
+  onUnmount,
 }: ChangeHandleDialogProps): ReactElement {
   const isMobile = useIsMobile();
   const Surface = isMobile ? Drawer : Dialog;
   const onDismiss = () => {
-    closeChangeHandleOverlay(close, unmount, isMobile);
+    closeChangeHandleOverlay(onClose, onUnmount, isMobile);
   };
 
   return (
@@ -86,10 +86,10 @@ function ChangeHandleContent({
 }
 
 function closeChangeHandleOverlay(
-  close: () => void,
-  unmount: () => void,
+  onClose: () => void,
+  onUnmount: () => void,
   isMobile: boolean,
 ): void {
-  close();
-  window.setTimeout(unmount, isMobile ? 500 : 200);
+  onClose();
+  window.setTimeout(onUnmount, isMobile ? 500 : 200);
 }

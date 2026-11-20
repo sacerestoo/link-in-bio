@@ -29,10 +29,14 @@ const files = {
     'import { env } from "cloudflare:workers";\n\nexport const region = env;\n',
   "apps/web/features/items/api.ts":
     'export const loadItems = async (): Promise<Response> => fetch("/api/items");\n',
+  "apps/web/features/items/queries.ts":
+    'export const loadItems = async (): Promise<Response> => fetch("/api/items");\n',
   "apps/web/features/items/hooks.ts":
     'export const loadItems = async (): Promise<Response> => fetch("/api/items");\n',
   "apps/web/features/items/ui/item-photo.tsx":
     'export default function ItemPhoto() {\n  return <img src="/item.png" alt="Item" />;\n}\n',
+  "apps/web/features/items/ui/callback-name.tsx":
+    "type ItemProps = { render: () => void };\nexport const Item = ({ render }: ItemProps) => <button />;\n",
   "apps/web/app/api/items/route.ts":
     "export async function POST(request: Request): Promise<Response> {\n  return Response.json(await request.json());\n}\n",
   "packages/ui/src/lib/polyfill.ts":
@@ -102,11 +106,14 @@ describe("lint config wiring", (): void => {
     );
   });
 
-  it("limits fetch to feature api modules", (): void => {
+  it("allows fetch in feature api and query modules", (): void => {
     expect(codesFor("apps/web/features/items/hooks.ts")).toContain(
       "eslint(no-restricted-globals)",
     );
     expect(codesFor("apps/web/features/items/api.ts")).not.toContain(
+      "eslint(no-restricted-globals)",
+    );
+    expect(codesFor("apps/web/features/items/queries.ts")).not.toContain(
       "eslint(no-restricted-globals)",
     );
   });
@@ -126,6 +133,14 @@ describe("lint config wiring", (): void => {
     );
     expect(codesFor("packages/db/src/client.ts")).not.toContain(
       "import(no-unassigned-import)",
+    );
+  });
+});
+
+describe("callback naming wiring", (): void => {
+  it("requires on-prefixed function-valued props", (): void => {
+    expect(codesFor("apps/web/features/items/ui/callback-name.tsx")).toContain(
+      "codebase(callback-on-prefix)",
     );
   });
 });

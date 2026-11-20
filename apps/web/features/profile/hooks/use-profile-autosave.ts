@@ -18,9 +18,9 @@ type SaveProfileRef = { current: () => Promise<void> };
 type SaveContext = Readonly<{
   handle: string;
   stateRef: AutosaveStateRef;
-  updateProfile: (update: PageUpdate) => Promise<void>;
+  onProfileUpdate: (update: PageUpdate) => Promise<void>;
   queryClient: ReturnType<typeof useQueryClient>;
-  setValues: (values: ProfileValues) => void;
+  onValuesChange: (values: ProfileValues) => void;
   saveRef: SaveProfileRef;
 }>;
 
@@ -46,7 +46,7 @@ const hasChanges = (state: AutosaveState): boolean =>
   state.draft.name !== state.saved.name || state.draft.bio !== state.saved.bio;
 
 const reloadAndReconcileDraft = async (
-  { handle, queryClient, stateRef, setValues }: SaveContext,
+  { handle, queryClient, stateRef, onValuesChange }: SaveContext,
   submittedDraft: ProfileValues,
 ): Promise<void> => {
   await queryClient.invalidateQueries(
@@ -71,7 +71,7 @@ const reloadAndReconcileDraft = async (
         ? serverValues.bio
         : state.draft.bio,
   };
-  if (state.isMounted) setValues(state.draft);
+  if (state.isMounted) onValuesChange(state.draft);
 };
 
 const persistProfileDraft = async (
@@ -79,10 +79,10 @@ const persistProfileDraft = async (
   submittedDraft: ProfileValues,
   update: PageUpdate,
 ): Promise<void> => {
-  const { handle, queryClient, stateRef, updateProfile } = context;
+  const { handle, queryClient, stateRef, onProfileUpdate } = context;
   const state = stateRef.current;
   try {
-    await updateProfile(update);
+    await onProfileUpdate(update);
     state.saved = applyUpdate(state.saved, update);
     queryClient.setQueryData<PageResponse>(
       profileQueries.byHandle(handle),
@@ -134,7 +134,7 @@ const saveLatestDraft = async (context: SaveContext): Promise<void> => {
 const useProfileSaveDebounce = (
   stateRef: AutosaveStateRef,
   saveRef: SaveProfileRef,
-  save: () => Promise<void>,
+  onSave: () => Promise<void>,
 ) => {
   const debouncedSaveRef = useRef<DebouncedFunction<() => void> | null>(null);
 
@@ -142,7 +142,7 @@ const useProfileSaveDebounce = (
     const state = stateRef.current;
     const debouncedSave = debounce(() => void saveRef.current(), DEBOUNCE_MS);
     debouncedSaveRef.current = debouncedSave;
-    saveRef.current = save;
+    saveRef.current = onSave;
     state.isMounted = true;
 
     return () => {
@@ -153,7 +153,7 @@ const useProfileSaveDebounce = (
         else void saveRef.current();
       }
     };
-  }, [save, saveRef, stateRef]);
+  }, [onSave, saveRef, stateRef]);
 
   return debouncedSaveRef;
 };
@@ -180,9 +180,9 @@ export const useProfileAutosave = (
       saveLatestDraft({
         handle,
         stateRef,
-        updateProfile,
+        onProfileUpdate: updateProfile,
         queryClient,
-        setValues,
+        onValuesChange: setValues,
         saveRef,
       }),
     [handle, queryClient, updateProfile],

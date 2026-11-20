@@ -58,17 +58,20 @@ export function NameField({ initialName }: { initialName: string }) {
   );
 }
 
-function useSuccessReset(updated: boolean, reset: (updated: boolean) => void) {
+function useSuccessReset(
+  updated: boolean,
+  onUpdatedChange: (updated: boolean) => void,
+) {
   useEffect(() => {
     const timeout = updated
       ? window.setTimeout(() => {
-          reset(false);
+          onUpdatedChange(false);
         }, 4000)
       : undefined;
     return () => {
       if (timeout !== undefined) window.clearTimeout(timeout);
     };
-  }, [updated, reset]);
+  }, [updated, onUpdatedChange]);
 }
 
 function NameForm({

@@ -7,6 +7,7 @@ it("all registered naming rules have matching RuleTester suites", () => {
     throw new TypeError("Naming plugin did not expose its rules.");
   }
   expect(Object.keys(rules)).toEqual([
+    "callback-on-prefix",
     "no-javascript-files",
     "pascal-case-types",
   ]);

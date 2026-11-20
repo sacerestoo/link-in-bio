@@ -23,19 +23,21 @@ type EmailOtpVerificationFormProps = Readonly<{
 
 async function resendEmail(
   email: string,
-  setError: (message: string) => void,
-  setIsSending: (isSending: boolean) => void,
+  onErrorChange: (message: string) => void,
+  onSendingChange: (isSending: boolean) => void,
 ): Promise<void> {
-  setError("");
-  setIsSending(true);
+  onErrorChange("");
+  onSendingChange(true);
   try {
     const { error } = await sendEmailOtp(email);
     if (error)
-      setError(error.message ?? "Unable to send the code. Please try again.");
+      onErrorChange(
+        error.message ?? "Unable to send the code. Please try again.",
+      );
   } catch {
-    setError("Something went wrong. Please try again.");
+    onErrorChange("Something went wrong. Please try again.");
   } finally {
-    setIsSending(false);
+    onSendingChange(false);
   }
 }
 

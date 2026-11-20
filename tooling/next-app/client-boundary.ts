@@ -33,7 +33,7 @@ function isRuntimeDependency(dependency: CruiseDependency): boolean {
 
 export function findClientServerOnlyPaths(
   modules: readonly CruiseModule[],
-  kindOf: (source: string) => ModuleKind,
+  onKindOf: (source: string) => ModuleKind,
 ): string[] {
   const graph = new Map(modules.map((module) => [module.source, module]));
   const errors: string[] = [];
@@ -41,7 +41,7 @@ export function findClientServerOnlyPaths(
     if (
       start.couldNotResolve === true ||
       !localSource.test(start.source) ||
-      kindOf(start.source) !== "client"
+      onKindOf(start.source) !== "client"
     ) {
       continue;
     }
@@ -63,7 +63,7 @@ export function findClientServerOnlyPaths(
           dependency.couldNotResolve === true ||
           seen.has(dependency.resolved) ||
           !localSource.test(dependency.resolved) ||
-          kindOf(dependency.resolved) === "server-functions"
+          onKindOf(dependency.resolved) === "server-functions"
         ) {
           continue;
         }

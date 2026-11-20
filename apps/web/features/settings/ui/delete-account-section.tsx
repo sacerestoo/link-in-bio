@@ -33,8 +33,10 @@ export function DeleteAccountSection({ email }: Readonly<{ email: string }>) {
           onClick={() => {
             overlay.open((props) => (
               <DeleteAccountOverlay
-                {...props}
                 email={email}
+                isOpen={props.isOpen}
+                onClose={props.close}
+                onUnmount={props.unmount}
               />
             ));
           }}
@@ -48,13 +50,13 @@ export function DeleteAccountSection({ email }: Readonly<{ email: string }>) {
 
 function DeleteAccountOverlay({
   isOpen,
-  close,
-  unmount,
+  onClose,
+  onUnmount,
   email,
 }: Readonly<{
   isOpen: boolean;
-  close: () => void;
-  unmount: () => void;
+  onClose: () => void;
+  onUnmount: () => void;
   email: string;
 }>) {
   const [clickCount, setClickCount] = useState(0);
@@ -69,7 +71,9 @@ function DeleteAccountOverlay({
     const nextCount = clickCount + 1;
     setClickCount(Math.min(nextCount, 3));
     if (nextCount >= 4) {
-      void requestDeletion(setSending, setSent, setError);
+      void requestDeletion(setSending, setSent, (message) => {
+        setError(message);
+      });
     }
   }
 
@@ -77,7 +81,7 @@ function DeleteAccountOverlay({
     <Surface
       open={isOpen}
       onOpenChange={(open) => {
-        if (!open && !sending) dismissOverlay(close, unmount, isMobile);
+        if (!open && !sending) dismissOverlay(onClose, onUnmount, isMobile);
       }}
     >
       <DeleteAccountContent
@@ -94,21 +98,21 @@ function DeleteAccountOverlay({
 }
 
 function dismissOverlay(
-  close: () => void,
-  unmount: () => void,
+  onClose: () => void,
+  onUnmount: () => void,
   isMobile: boolean,
 ) {
-  close();
-  window.setTimeout(unmount, isMobile ? 500 : 200);
+  onClose();
+  window.setTimeout(onUnmount, isMobile ? 500 : 200);
 }
 
 async function requestDeletion(
-  setSending: (sending: boolean) => void,
-  setSent: (sent: boolean) => void,
-  setError: (error: string | undefined) => void,
+  onSendingChange: (sending: boolean) => void,
+  onSentChange: (sent: boolean) => void,
+  onErrorChange: (error?: string) => void,
 ) {
-  setSending(true);
-  setError(undefined);
+  onSendingChange(true);
+  onErrorChange();
   try {
     const { data, error } = await requestAccountDeletion(
       `${window.location.origin}/sign-in`,
@@ -118,10 +122,10 @@ async function requestDeletion(
       window.location.assign("/sign-in");
       return;
     }
-    setSent(data.message === "Verification email sent");
+    onSentChange(data.message === "Verification email sent");
   } catch (cause) {
-    setError(cause instanceof Error ? cause.message : "Please try again.");
+    onErrorChange(cause instanceof Error ? cause.message : "Please try again.");
   } finally {
-    setSending(false);
+    onSendingChange(false);
   }
 }

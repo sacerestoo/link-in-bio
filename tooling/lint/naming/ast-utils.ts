@@ -29,20 +29,20 @@ export function containsJsx(node: unknown): boolean {
 
 export function visit(
   node: unknown,
-  callback: (node: Readonly<AstNode>) => void,
+  onVisit: (node: Readonly<AstNode>) => void,
 ): void {
   if (Array.isArray(node)) {
     const children: unknown[] = node;
-    for (const child of children) visit(child, callback);
+    for (const child of children) visit(child, onVisit);
     return;
   }
 
   if (!isAstNode(node)) return;
-  callback(node);
+  onVisit(node);
 
   for (const [key, value] of Object.entries(node)) {
     if (key !== "parent" && key !== "loc" && key !== "range") {
-      visit(value, callback);
+      visit(value, onVisit);
     }
   }
 }

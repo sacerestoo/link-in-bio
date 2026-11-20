@@ -3,9 +3,11 @@ import * as React from "react";
 export type SidebarContextProps = {
   state: "expanded" | "collapsed";
   open: boolean;
-  onOpenChange: (open: boolean | ((open: boolean) => boolean)) => void;
+  onOpenChange: (onOpen: boolean | ((open: boolean) => boolean)) => void;
   openMobile: boolean;
-  onOpenMobileChange: (open: boolean | ((open: boolean) => boolean)) => void;
+  onOpenMobileChange: (
+    onOpenMobile: boolean | ((open: boolean) => boolean),
+  ) => void;
   isMobile: boolean;
   onToggleSidebar: () => void;
 };

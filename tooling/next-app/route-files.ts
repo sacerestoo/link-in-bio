@@ -115,7 +115,7 @@ function checkAppDirectory(
 function findFiles(
   directory: string,
   generated: Readonly<Set<string>>,
-  matches: (fileName: string) => boolean,
+  onMatch: (fileName: string) => boolean,
 ): string[] {
   return readdirSync(directory, { withFileTypes: true })
     .toSorted((a, b) => a.name.localeCompare(b.name))
@@ -124,9 +124,9 @@ function findFiles(
       if (entry.isDirectory()) {
         return generated.has(entry.name)
           ? []
-          : findFiles(path, generated, matches);
+          : findFiles(path, generated, onMatch);
       }
-      return matches(entry.name) ? [path] : [];
+      return onMatch(entry.name) ? [path] : [];
     });
 }
 

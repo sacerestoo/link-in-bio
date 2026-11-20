@@ -5,17 +5,17 @@ import type { ArchitectureConfig } from "./types.ts";
 function findProjectFiles(
   directory: string,
   generatedDirectories: Readonly<Set<string>>,
-  matches: (fileName: string) => boolean,
+  onMatch: (fileName: string) => boolean,
 ): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = join(directory, entry.name);
     if (entry.isDirectory()) {
       return generatedDirectories.has(entry.name)
         ? []
-        : findProjectFiles(path, generatedDirectories, matches);
+        : findProjectFiles(path, generatedDirectories, onMatch);
     }
 
-    return matches(entry.name) ? [path] : [];
+    return onMatch(entry.name) ? [path] : [];
   });
 }
 

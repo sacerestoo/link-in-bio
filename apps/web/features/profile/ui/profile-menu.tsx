@@ -17,11 +17,11 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { overlay } from "overlay-kit";
 
-async function handleSignOut(refresh: () => void): Promise<void> {
+async function handleSignOut(onRefresh: () => void): Promise<void> {
   try {
     const result = await signOut();
     if (result.error) throw new Error("Sign out failed");
-    refresh();
+    onRefresh();
   } catch {
     toast.add({
       title: "Log out failed",
@@ -49,7 +49,13 @@ export function ProfileMenu(): ReactElement {
       </DropdownMenuTrigger>
       <ProfileMenuItems
         onChangeHandle={() => {
-          overlay.open((props) => <ChangeHandleDialog {...props} />);
+          overlay.open((props) => (
+            <ChangeHandleDialog
+              isOpen={props.isOpen}
+              onClose={props.close}
+              onUnmount={props.unmount}
+            />
+          ));
         }}
         onSignOut={() => {
           void handleSignOut(() => {

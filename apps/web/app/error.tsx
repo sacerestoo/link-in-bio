@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 export default function RootError({
   error,
-  reset,
+  reset: onReset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
@@ -26,7 +26,7 @@ export default function RootError({
         <Button
           className="mt-6"
           variant="secondary"
-          onClick={reset}
+          onClick={onReset}
         >
           Try again
         </Button>

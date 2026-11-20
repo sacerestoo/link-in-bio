@@ -1,5 +1,6 @@
 import { RuleTester } from "vite-plus/lint/plugins-dev";
 import { describe, it } from "vite-plus/test";
+import callbackOnPrefix from "../rules/callback-on-prefix.ts";
 import customHookName from "../rules/custom-hook-name.ts";
 import { pascalCaseTypes } from "../rules/identifier-case.ts";
 import noJavascriptFiles from "../rules/no-javascript-files.ts";
@@ -26,6 +27,62 @@ tester.run("no-javascript-files", noJavascriptFiles, {
     filename,
     errors: [{ messageId: "typescriptOnly" }],
   })),
+});
+
+tester.run("callback-on-prefix", callbackOnPrefix, {
+  valid: [
+    "type ChangeCallback = (value: string) => void; function subscribe(onChange: ChangeCallback) {}",
+    "type Props = { onSave: () => void }; function Button(props: Props) { return <button onClick={props.onSave} />; }",
+    "function Button() { return <button onRender={() => {}} />; }",
+    "function Button() { return <Widget {...{ onRender: () => {} }} />; }",
+    {
+      code: "export default function RootError({ reset: onReset }: { reset: () => void }) { return <button onClick={onReset} />; }",
+      filename: "/repo/apps/web/app/error.tsx",
+    },
+    "function Button() { return <Widget ref={(element) => { void element; }} />; }",
+  ],
+  invalid: [
+    {
+      code: "function subscribe(callback: () => void) {}",
+      errors: [{ messageId: "parameter" }],
+    },
+    {
+      code: "type Handler = () => void; function subscribe(handler: Handler) {}",
+      errors: [{ messageId: "parameter" }],
+    },
+    {
+      code: "function update(open: boolean | ((value: boolean) => boolean)) {}",
+      errors: [{ messageId: "parameter" }],
+    },
+    {
+      code: "function subscribe<TCallback extends () => void>(callback: TCallback) {}",
+      errors: [{ messageId: "parameter" }],
+    },
+    {
+      code: 'type Props = { callback: () => void }; function subscribe(callback: Props["callback"]) {}',
+      errors: [{ messageId: "prop" }, { messageId: "parameter" }],
+    },
+    {
+      code: "type Props = { render: () => void }; function Button(props: Props) { return <button />; }",
+      errors: [{ messageId: "prop" }],
+    },
+    {
+      code: "function Button({ render }: { render: () => void }) { return <button />; }",
+      errors: [{ messageId: "prop" }],
+    },
+    {
+      code: "function Button() { return <Widget render={() => {}} />; }",
+      errors: [{ messageId: "prop" }],
+    },
+    {
+      code: "const render = () => {}; function Button() { return <Widget render={render} />; }",
+      errors: [{ messageId: "prop" }],
+    },
+    {
+      code: "function Button() { return <Widget {...{ render: () => {} }} />; }",
+      errors: [{ messageId: "prop" }],
+    },
+  ],
 });
 
 tester.run("custom-hook-name", customHookName, {
