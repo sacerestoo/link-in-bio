@@ -11,6 +11,8 @@ export function ProfileImage({
       src={src}
       alt=""
       fill
+      loading="eager"
+      fetchPriority="high"
       unoptimized
       className="rounded-full object-cover profile-image-outline"
     />
