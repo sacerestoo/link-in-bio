@@ -1,4 +1,6 @@
 export const PROFILE_IMAGE_MAX_SIZE = 5 * 1024 * 1024;
+export const PROFILE_IMAGE_CACHE_CONTROL =
+  "public, max-age=300, s-maxage=3600, immutable";
 export const PROFILE_IMAGE_CONTENT_TYPES = [
   "image/gif",
   "image/jpeg",

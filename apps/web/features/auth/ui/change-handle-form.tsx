@@ -1,18 +1,12 @@
 "use client";
 
-import type { PageResponse } from "@grabbin/shared/schemas/page";
-import {
-  useDebouncedHandleCheck,
-  useHandleCheck,
-} from "@/features/auth/ui/handle-form";
+import { useChangeHandleFormState } from "@/features/auth/hooks/use-change-handle-form-state";
+import { useUpdatePageHandle } from "@/features/auth/hooks/use-update-page-handle";
 import { HandleInput } from "@/features/auth/ui/handle-input";
-import { profileQueries, usePage } from "@/features/profile/queries";
-import { api as browserApi } from "@/lib/api-client";
+import { usePage } from "@/features/profile/queries";
 import { Button } from "@grabbin/ui/components/button";
-import { toast } from "@grabbin/ui/components/toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useParams, useRouter } from "next/navigation";
-import { useState, type ReactElement, type ReactNode } from "react";
+import { useParams } from "next/navigation";
+import { type ReactElement, type ReactNode } from "react";
 
 export function ChangeHandleForm({
   onSaved,
@@ -32,77 +26,6 @@ export function ChangeHandleForm({
   );
 }
 
-function useUpdatePageHandle(currentHandle: string, onSaved: () => void) {
-  const router = useRouter();
-  const queryClient = useQueryClient();
-
-  return useMutation(
-    profileQueries.changeHandle(
-      currentHandle,
-      {
-        onSuccess: (updatedHandle) => {
-          const page = queryClient.getQueryData<PageResponse>(
-            profileQueries.byHandle(currentHandle),
-          );
-          if (page !== undefined) {
-            const updatedPage = { ...page, handle: updatedHandle };
-            queryClient.setQueryData(
-              profileQueries.byHandle(currentHandle),
-              updatedPage,
-            );
-            queryClient.setQueryData(
-              profileQueries.byHandle(updatedHandle),
-              updatedPage,
-            );
-          }
-          onSaved();
-          router.replace(`/${encodeURIComponent(updatedHandle)}`, {
-            scroll: false,
-          });
-        },
-        onError: (cause) => {
-          toast.add({
-            title: "Handle change failed",
-            description:
-              cause instanceof Error ? cause.message : "Please try again.",
-            type: "error",
-          });
-        },
-      },
-      browserApi,
-    ),
-  );
-}
-
-function useRequestedHandle(currentHandle: string) {
-  const [requestedHandleInput, setRequestedHandleInput] =
-    useState(currentHandle);
-  const [validatedRequestedHandle, setValidatedRequestedHandle] = useState<
-    string | undefined
-  >(currentHandle);
-  const { check, checking, error } = useHandleCheck();
-  useDebouncedHandleCheck(
-    requestedHandleInput,
-    currentHandle,
-    check,
-    setValidatedRequestedHandle,
-  );
-  const onChange = (requestedHandle: string) => {
-    setValidatedRequestedHandle(
-      requestedHandle === currentHandle ? currentHandle : undefined,
-    );
-    setRequestedHandleInput(requestedHandle);
-  };
-
-  return {
-    requestedHandleInput,
-    validatedRequestedHandle,
-    checking,
-    error,
-    onChange,
-  };
-}
-
 function ChangeHandleEditor({
   currentHandle,
   onSaved,
@@ -110,39 +33,22 @@ function ChangeHandleEditor({
   currentHandle: string;
   onSaved: () => void;
 }>): ReactElement {
-  const {
-    requestedHandleInput,
-    validatedRequestedHandle,
-    checking,
-    error,
-    onChange,
-  } = useRequestedHandle(currentHandle);
+  const { requestedHandleInput, canSave, checking, error, isValid, onChange } =
+    useChangeHandleFormState(currentHandle);
   const mutation = useUpdatePageHandle(currentHandle, onSaved);
-  const requestedHandleIsCurrent = validatedRequestedHandle === currentHandle;
-  const canSave =
-    validatedRequestedHandle !== undefined && !requestedHandleIsCurrent;
-  const isValid =
-    validatedRequestedHandle !== undefined &&
-    !checking &&
-    (requestedHandleIsCurrent || error === undefined);
 
   return (
     <ChangeHandleFields
       canSave={canSave}
       checking={checking}
-      error={requestedHandleIsCurrent ? undefined : error}
+      error={error}
       requestedHandleInput={requestedHandleInput}
       isValid={isValid}
       saving={mutation.isPending}
       onChange={onChange}
       onSubmit={() => {
-        if (
-          canSave &&
-          !checking &&
-          !mutation.isPending &&
-          validatedRequestedHandle
-        ) {
-          mutation.mutate(validatedRequestedHandle);
+        if (canSave && !checking && !mutation.isPending) {
+          mutation.mutate(requestedHandleInput);
         }
       }}
     />

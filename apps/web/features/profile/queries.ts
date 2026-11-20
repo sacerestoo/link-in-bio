@@ -1,6 +1,11 @@
-import type { ProfileImageContentType } from "@grabbin/shared/lib/profile-image";
 import { api, type ApiClient } from "@/lib/api-client";
 import {
+  PROFILE_IMAGE_CACHE_CONTROL,
+  type ProfileImageContentType,
+} from "@grabbin/shared/lib/profile-image";
+import {
+  HANDLE_UNAVAILABLE_MESSAGE,
+  handleSchema,
   pageResponseSchema,
   profileImageUploadResponseSchema,
   type PageUpdate,
@@ -11,12 +16,37 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 import * as v from "valibot";
-import { putProfileImage } from "./api";
 
-const checkHandleAvailability = (handle: string, client: ApiClient = api) =>
-  client.v1.pages.handle.$post({
-    json: { handle },
+export const putProfileImage = async (
+  uploadUrl: string,
+  file: File,
+  contentType: ProfileImageContentType,
+): Promise<void> => {
+  const response = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": contentType,
+      "Cache-Control": PROFILE_IMAGE_CACHE_CONTROL,
+    },
+    body: file,
   });
+  if (!response.ok) throw new Error("Could not upload the image. Try again.");
+};
+
+const checkHandleAvailability = async (
+  handle: string,
+  client: ApiClient = api,
+): Promise<string> => {
+  const validHandle = v.parse(handleSchema, handle);
+  const { available } = v.parse(
+    v.object({ available: v.boolean() }),
+    await client.v1.pages.handle
+      .$post({ json: { handle: validHandle } })
+      .then((response) => response.json()),
+  );
+  if (!available) throw new Error(HANDLE_UNAVAILABLE_MESSAGE);
+  return validHandle;
+};
 
 const updatePageHandle = async (
   currentHandle: string,

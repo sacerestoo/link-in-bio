@@ -119,7 +119,7 @@ export const nextAppRules = {
     {
       name: "fetch",
       message:
-        "Call Route Handlers from features/<name>/api.ts and parse the response with readJson(contract, response). Server Components read data directly instead of fetching their own Route Handlers.",
+        "Put browser fetch calls in a feature's api.ts or queries.ts; parse Route Handler responses with readJson(contract, response). Server Components read data directly instead of fetching their own Route Handlers.",
     },
   ],
   "next-app/client-directive-placement": "error",
@@ -176,10 +176,11 @@ export const nextAppOverrides = [
     rules: { "boundary/no-raw-body-read": "error" },
   },
   {
-    // Client code calls Route Handlers from api.ts; Hono and cron call external
-    // services directly.
+    // Client code calls Route Handlers from api.ts or queries.ts; Hono and
+    // cron call external services directly.
     files: [
       `${features}/*/api.ts`,
+      `${features}/*/queries.ts`,
       `${architectureDirectories.server}/**`,
       `${routes}/**`,
       `${cron}/**`,

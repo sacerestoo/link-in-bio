@@ -1,4 +1,5 @@
 import {
+  PROFILE_IMAGE_CACHE_CONTROL,
   isProfileImageContentType,
   PROFILE_IMAGE_MAX_SIZE,
   type ProfileImageContentType,
@@ -69,6 +70,7 @@ const signR2Request = async (
   method: "DELETE" | "HEAD" | "PUT",
   imageKey: string,
   contentType?: string,
+  cacheControl?: string,
 ): Promise<string | null> => {
   const signer = createR2Signer(env, requestUrl);
   if (signer === null) return null;
@@ -81,9 +83,12 @@ const signR2Request = async (
       `${endpoint}/${objectPath}?X-Amz-Expires=${R2_UPLOAD_URL_TTL_SECONDS}`,
       {
         method,
-        ...(contentType === undefined
-          ? {}
-          : { headers: { "Content-Type": contentType } }),
+        headers: {
+          ...(contentType === undefined ? {} : { "Content-Type": contentType }),
+          ...(cacheControl === undefined
+            ? {}
+            : { "Cache-Control": cacheControl }),
+        },
       },
     ),
     { aws: { signQuery: true, allHeaders: true } },
@@ -110,6 +115,7 @@ export const createProfileImageUpload = async (
     "PUT",
     imageKey,
     contentType,
+    PROFILE_IMAGE_CACHE_CONTROL,
   );
   if (uploadUrl === null) return null;
   return { imageKey, uploadUrl };
