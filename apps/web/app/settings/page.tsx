@@ -43,7 +43,7 @@ function SettingsContent({
     <>
       <header>
         <h1 className="text-base font-medium tracking-tight">Account</h1>
-        <p className="text-sm text-muted-foreground">Manage your profile.</p>
+        <p className="text-sm text-muted-foreground">Manage your profile</p>
       </header>
       <AccountManagement user={user} />
     </>

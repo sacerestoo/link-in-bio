@@ -39,7 +39,7 @@ function BillingHeader() {
   return (
     <header>
       <h1 className="text-base font-medium tracking-tight">Billing</h1>
-      <p className="text-sm text-muted-foreground">Manage your subscription.</p>
+      <p className="text-sm text-muted-foreground">Manage your subscription</p>
     </header>
   );
 }
