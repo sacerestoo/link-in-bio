@@ -1,3 +1,4 @@
+import type { ChangeEvent } from "react";
 import {
   isProfileImageContentType,
   PROFILE_IMAGE_MAX_SIZE,
@@ -5,7 +6,6 @@ import {
 } from "@grabbin/shared/lib/profile-image";
 import { toast } from "@grabbin/ui/components/toast";
 import { useMutation } from "@tanstack/react-query";
-import { useState, type ChangeEvent } from "react";
 import { profileQueries } from "../queries";
 
 const reportImageError = (title: string, cause: unknown): void => {
@@ -33,9 +33,9 @@ const validateImageFile = (file: File): ProfileImageContentType | null => {
 
 export const useProfileImage = (
   handle: string,
-  page: Readonly<{ imageUrl: string | undefined }>,
+  imageUrl: string | undefined,
+  onImageUrlChange: (imageUrl?: string) => void,
 ) => {
-  const [imageUrl, setImageUrl] = useState(page.imageUrl);
   const upload = useMutation(profileQueries.uploadImage(handle));
   const remove = useMutation(profileQueries.removeImage(handle));
   const isSaving = upload.isPending || remove.isPending;
@@ -45,11 +45,11 @@ export const useProfileImage = (
     contentType: ProfileImageContentType,
   ) => {
     const previewUrl = URL.createObjectURL(file);
-    setImageUrl(previewUrl);
+    onImageUrlChange(previewUrl);
     try {
-      setImageUrl(await upload.mutateAsync({ file, contentType }));
+      onImageUrlChange(await upload.mutateAsync({ file, contentType }));
     } catch (cause: unknown) {
-      setImageUrl(imageUrl);
+      onImageUrlChange(imageUrl);
       reportImageError("Image upload failed", cause);
     } finally {
       URL.revokeObjectURL(previewUrl);
@@ -59,7 +59,7 @@ export const useProfileImage = (
   const removeSelectedImage = async () => {
     try {
       await remove.mutateAsync();
-      setImageUrl(undefined);
+      onImageUrlChange();
     } catch (cause: unknown) {
       reportImageError("Image removal failed", cause);
     }
@@ -76,5 +76,5 @@ export const useProfileImage = (
 
   const removeImage = () => void removeSelectedImage();
 
-  return { imageUrl, isSaving, handleFileChange, removeImage };
+  return { isSaving, handleFileChange, removeImage };
 };

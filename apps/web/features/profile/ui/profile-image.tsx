@@ -10,11 +10,12 @@ export function ProfileImage({
     <Image
       src={src}
       alt=""
-      fill
+      width={200}
+      height={200}
       loading="eager"
       fetchPriority="high"
       unoptimized
-      className="rounded-full object-cover profile-image-outline"
+      className="size-full rounded-full object-cover profile-image-outline"
     />
   );
 }

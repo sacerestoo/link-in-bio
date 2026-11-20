@@ -4,8 +4,6 @@ import { Button } from "@grabbin/ui/components/button";
 import CircleFadingArrowUp from "lucide-react/icons/circle-fading-arrow-up";
 import { useRef, type ReactElement } from "react";
 import { useProfileImage } from "../hooks/use-profile-image";
-import { usePage } from "../queries";
-import { ProfileImage } from "./profile-image";
 import { Trash } from "./trash";
 
 function RemoveProfileImageButton({
@@ -18,7 +16,7 @@ function RemoveProfileImageButton({
       size="icon-lg"
       aria-label="Remove profile image"
       onClick={onClick}
-      className="absolute top-0 right-0 z-30 inline-flex size-9 items-center justify-center rounded-full opacity-0 shadow-large transition-[opacity,transform,scale,background-color,color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover/image:scale-100 group-hover/image:opacity-100 hover:bg-secondary! focus-visible:scale-100 focus-visible:opacity-100 page-wide:top-2 page-wide:right-2 xl:size-10"
+      className="pointer-events-auto absolute top-0 right-0 z-30 inline-flex size-9 items-center justify-center rounded-full opacity-0 shadow-large transition-[opacity,transform,scale,background-color,color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover/image:scale-100 group-hover/image:opacity-100 hover:bg-secondary! focus-visible:scale-100 focus-visible:opacity-100 page-wide:top-2 page-wide:right-2 xl:size-10"
     >
       <Trash
         className="size-5"
@@ -30,26 +28,38 @@ function RemoveProfileImageButton({
 
 export function ProfileImagePicker({
   handle,
-}: Readonly<{ handle: string }>): ReactElement {
+  imageUrl,
+  onImageUrlChange,
+}: Readonly<{
+  handle: string;
+  imageUrl: string | undefined;
+  onImageUrlChange: (imageUrl?: string) => void;
+}>): ReactElement {
   const inputRef = useRef<HTMLInputElement>(null);
-  const { data: page } = usePage(handle);
-  const { imageUrl, isSaving, handleFileChange, removeImage } = useProfileImage(
+  const { isSaving, handleFileChange, removeImage } = useProfileImage(
     handle,
-    page,
+    imageUrl,
+    onImageUrlChange,
   );
 
   return (
-    <div className="group/image relative isolate size-28 self-start page-wide:size-46">
-      <button
-        type="button"
-        aria-label="Change profile image"
-        className="relative flex size-full items-center justify-center overflow-hidden rounded-full bg-brand-light-gray text-sm font-medium text-muted-foreground transition-[transform,scale,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-muted active:scale-[0.97]"
-        onClick={() => inputRef.current?.click()}
-        disabled={isSaving}
-      >
-        <ProfileImage src={imageUrl} />
-        <CircleFadingArrowUp className="size-7 xl:size-10" />
-      </button>
+    <div className="pointer-events-none absolute inset-0">
+      <div className="pointer-events-auto absolute inset-0 overflow-hidden rounded-full">
+        <Button
+          type="button"
+          static
+          variant="ghost"
+          size="icon"
+          aria-label="Change profile image"
+          className="profile-image-change-button absolute inset-0 flex size-full items-center justify-center bg-transparent text-sm font-medium text-muted-foreground hover:bg-muted/10"
+          onClick={() => inputRef.current?.click()}
+          disabled={isSaving}
+        >
+          {imageUrl === undefined || imageUrl.length === 0 ? (
+            <CircleFadingArrowUp className="size-7 xl:size-10" />
+          ) : null}
+        </Button>
+      </div>
       {imageUrl !== undefined && imageUrl.length > 0 && !isSaving ? (
         <RemoveProfileImageButton onClick={removeImage} />
       ) : null}
@@ -60,7 +70,7 @@ export function ProfileImagePicker({
         accept="image/gif,image/jpeg,image/png"
         aria-hidden="true"
         tabIndex={-1}
-        className="sr-only"
+        className="pointer-events-auto sr-only"
         onChange={(event) => void handleFileChange(event)}
       />
     </div>

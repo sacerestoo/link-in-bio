@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 import {
   PAGE_BIO_MAX_LENGTH,
   PAGE_NAME_MAX_LENGTH,
@@ -24,6 +24,7 @@ function ProfileNameField({
         id="page-name"
         name="name"
         aria-label="Name"
+        spellCheck={false}
         autoComplete="name"
         maxLength={PAGE_NAME_MAX_LENGTH}
         rows={1}
@@ -54,6 +55,7 @@ function ProfileBioField({
         id="page-bio"
         name="bio"
         aria-label="Bio"
+        spellCheck={false}
         maxLength={PAGE_BIO_MAX_LENGTH}
         rows={2}
         placeholder={readOnly ? undefined : "Tell about you"}
@@ -69,19 +71,11 @@ function ProfileBioField({
 }
 
 export function ProfileContent({
-  name,
-  bio,
   image,
-  readOnly,
-  onNameChange,
-  onBioChange,
+  children,
 }: Readonly<{
-  name: string;
-  bio: string;
   image: ReactElement;
-  readOnly: boolean;
-  onNameChange?: (value: string) => void;
-  onBioChange?: (value: string) => void;
+  children: ReactNode;
 }>): ReactElement {
   return (
     <div className="mb-4 flex flex-col gap-8">
@@ -90,20 +84,38 @@ export function ProfileContent({
           <div className="flex w-full items-center justify-between page-wide:justify-start">
             {image}
           </div>
-          <div className="flex min-w-0 flex-col gap-2">
-            <ProfileNameField
-              value={name}
-              onChange={onNameChange}
-              readOnly={readOnly}
-            />
-            <ProfileBioField
-              value={bio}
-              onChange={onBioChange}
-              readOnly={readOnly}
-            />
-          </div>
+          {children}
         </Field>
       </FieldGroup>
+    </div>
+  );
+}
+
+export function ProfileFields({
+  name,
+  bio,
+  readOnly,
+  onNameChange,
+  onBioChange,
+}: Readonly<{
+  name: string;
+  bio: string;
+  readOnly: boolean;
+  onNameChange?: (value: string) => void;
+  onBioChange?: (value: string) => void;
+}>): ReactElement {
+  return (
+    <div className="flex min-w-0 flex-col gap-2">
+      <ProfileNameField
+        value={name}
+        onChange={onNameChange}
+        readOnly={readOnly}
+      />
+      <ProfileBioField
+        value={bio}
+        onChange={onBioChange}
+        readOnly={readOnly}
+      />
     </div>
   );
 }
