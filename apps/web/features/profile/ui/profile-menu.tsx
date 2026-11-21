@@ -1,5 +1,6 @@
 "use client";
 
+import type { Handle } from "@grabbin/shared/schemas/page";
 import type { ReactElement } from "react";
 import { signOut } from "@/features/auth/auth";
 import { ChangeHandleDialog } from "@/features/auth/ui/change-handle-dialog";
@@ -74,7 +75,7 @@ function ProfileMenuItems({
   onChangeHandle: () => void;
   onSignOut: () => void;
 }>): ReactElement {
-  const { handle } = useParams<{ handle: string }>();
+  const { handle } = useParams<{ handle: Handle }>();
   const { data: page } = usePage(handle);
 
   return (

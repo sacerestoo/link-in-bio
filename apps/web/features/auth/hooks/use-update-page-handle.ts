@@ -1,4 +1,5 @@
-import type { PageResponse } from "@grabbin/shared/schemas/page";
+import type { Handle, PageResponse } from "@grabbin/shared/schemas/page";
+import { profileMutations } from "@/features/profile/mutations";
 import { profileQueries } from "@/features/profile/queries";
 import { api as browserApi } from "@/lib/api-client";
 import { toast } from "@grabbin/ui/components/toast";
@@ -6,14 +7,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
 export const useUpdatePageHandle = (
-  currentHandle: string,
+  currentHandle: Handle,
   onSaved: () => void,
 ) => {
   const router = useRouter();
   const queryClient = useQueryClient();
 
   return useMutation(
-    profileQueries.changeHandle(
+    profileMutations.changeHandle(
       currentHandle,
       {
         onSuccess: (updatedHandle) => {

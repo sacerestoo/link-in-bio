@@ -10,6 +10,7 @@ import {
 import { and, eq as equal } from "drizzle-orm";
 import * as v from "valibot";
 import { isPostgresUniqueViolation } from "../lib/postgres-error";
+import { shouldResetImageCrop } from "../lib/profile-images";
 
 export const PAGE_SERVICE_STATUS = {
   available: "available",
@@ -19,6 +20,8 @@ export const PAGE_SERVICE_STATUS = {
   notFound: "not-found",
   handleConflict: "handle-conflict",
   updated: "updated",
+  imageUpdateReady: "image-update-ready",
+  imageRequired: "image-required",
 } as const;
 
 export type HandleAvailabilityResult =
@@ -65,9 +68,37 @@ export class PagesService {
         name: true,
         bio: true,
         imageKey: true,
+        imageCrop: true,
       },
       where: (page, { eq }) => eq(page.handle, handle),
     });
+  }
+
+  async getPageBeforeImageUpdate(
+    userId: string,
+    handle: string,
+    update: PageUpdate,
+  ) {
+    if (update.imageKey === undefined && update.imageCrop === undefined)
+      return {
+        status: PAGE_SERVICE_STATUS.imageUpdateReady,
+        page: null,
+      } as const;
+
+    const page = await this.findPageByHandle(handle);
+    if (page?.userId !== userId)
+      return { status: PAGE_SERVICE_STATUS.notFound } as const;
+
+    const nextImageKey =
+      update.imageKey === undefined ? page.imageKey : update.imageKey;
+    if (
+      update.imageCrop !== undefined &&
+      update.imageCrop !== null &&
+      (nextImageKey === null || nextImageKey === undefined)
+    )
+      return { status: PAGE_SERVICE_STATUS.imageRequired } as const;
+
+    return { status: PAGE_SERVICE_STATUS.imageUpdateReady, page } as const;
   }
 
   async updatePageForUser(
@@ -76,9 +107,13 @@ export class PagesService {
     update: PageUpdate,
   ) {
     try {
+      const values = shouldResetImageCrop(update)
+        ? { ...update, imageCrop: null }
+        : update;
+
       const [page] = await this.database
         .update(pages)
-        .set(update)
+        .set(values)
         .where(
           and(equal(pages.userId, userId), equal(pages.handle, currentHandle)),
         )

@@ -1,4 +1,4 @@
-import { profileQueries } from "@/features/profile/queries";
+import { profileMutations } from "@/features/profile/mutations";
 import { api as browserApi } from "@/lib/api-client";
 import { useMutation } from "@tanstack/react-query";
 import { debounce } from "es-toolkit/function";
@@ -16,7 +16,7 @@ export const useHandleCheck = (
     isPending,
     error,
     reset,
-  } = useMutation(profileQueries.checkHandle(browserApi));
+  } = useMutation(profileMutations.checkHandle(browserApi));
   const onCheckHandle = useCallback(
     async (handle: string): Promise<string | undefined> => {
       try {

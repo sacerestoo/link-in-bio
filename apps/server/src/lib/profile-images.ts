@@ -1,3 +1,4 @@
+import type { PageUpdate } from "@grabbin/shared/schemas/page";
 import {
   PROFILE_IMAGE_CACHE_CONTROL,
   isProfileImageContentType,
@@ -5,6 +6,7 @@ import {
   type ProfileImageContentType,
 } from "@grabbin/shared/lib/profile-image";
 import { AwsClient } from "aws4fetch";
+import { HTTPException } from "hono/http-exception";
 import type { ServerBindings } from "./env";
 
 const LOCAL_R2_ACCESS_KEY_ID = "grabbin-local-r2";
@@ -22,6 +24,9 @@ export const isProfileImageKeyOwnedByUser = (
 ): imageKey is string =>
   typeof imageKey === "string" &&
   imageKey.startsWith(`profile-images/${userId}/`);
+
+export const shouldResetImageCrop = (update: PageUpdate): boolean =>
+  update.imageKey !== undefined && update.imageCrop === undefined;
 
 const createR2Signer = (
   env: ServerBindings,
@@ -164,4 +169,37 @@ export const validateProfileImageObject = async (
   }
 
   return "valid";
+};
+
+export const ensureProfileImageIsValid = async (
+  env: ServerBindings,
+  requestUrl: string,
+  userId: string,
+  imageKey: string,
+): Promise<void> => {
+  const result = await validateProfileImageObject(
+    env,
+    requestUrl,
+    userId,
+    imageKey,
+  );
+  if (result === "valid") return;
+
+  const errors = {
+    invalidKey: { status: 400, message: "Invalid profile image" },
+    uploadMissing: {
+      status: 400,
+      message: "Upload the image before saving it",
+    },
+    invalidImage: {
+      status: 413,
+      message: "Choose a GIF, JPG, JPEG, or PNG image up to 5 MB.",
+    },
+    unavailable: {
+      status: 503,
+      message: "Image uploads are unavailable",
+    },
+  } as const;
+  const error = errors[result];
+  throw new HTTPException(error.status, { message: error.message });
 };

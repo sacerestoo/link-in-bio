@@ -4,6 +4,7 @@ import {
   PROFILE_IMAGE_CONTENT_TYPES,
   PROFILE_IMAGE_MAX_SIZE,
 } from "../lib/profile-image";
+import { imageCropSchema } from "./image-crop";
 
 export const PAGE_NAME_MAX_LENGTH = 50;
 export const PAGE_BIO_MAX_LENGTH = 150;
@@ -51,10 +52,13 @@ export const pageSchema = v.object({
     ),
   ),
   imageKey: v.nullable(v.string()),
+  imageCrop: v.nullable(imageCropSchema),
 });
 
 export const pageUpdateSchema = v.pipe(
-  v.partial(v.pick(pageSchema, ["handle", "name", "bio", "imageKey"])),
+  v.partial(
+    v.pick(pageSchema, ["handle", "name", "bio", "imageKey", "imageCrop"]),
+  ),
   v.check(
     (update) => Object.values(update).some((value) => value !== undefined),
     "Provide at least one page field to update.",

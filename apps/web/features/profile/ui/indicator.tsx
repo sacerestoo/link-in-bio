@@ -1,5 +1,6 @@
 "use client";
 
+import type { Handle } from "@grabbin/shared/schemas/page";
 import type { ReactElement } from "react";
 import Loading from "@grabbin/ui/components/loading";
 import { useIsMutating } from "@tanstack/react-query";
@@ -7,7 +8,7 @@ import { useParams } from "next/navigation";
 import { profileQueries } from "../queries";
 
 export default function Indicator(): ReactElement | null {
-  const { handle } = useParams<{ handle: string }>();
+  const { handle } = useParams<{ handle: Handle }>();
   const isSaving =
     useIsMutating({
       mutationKey: profileQueries.byHandle(handle),

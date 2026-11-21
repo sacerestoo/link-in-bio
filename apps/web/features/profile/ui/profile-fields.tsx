@@ -1,21 +1,29 @@
-import type { ReactElement, ReactNode } from "react";
+import type { ReactElement } from "react";
 import {
   PAGE_BIO_MAX_LENGTH,
   PAGE_NAME_MAX_LENGTH,
 } from "@grabbin/shared/schemas/page";
-import { Field, FieldGroup } from "@grabbin/ui/components/field";
 import {
   InputGroup,
   InputGroupTextarea,
 } from "@grabbin/ui/components/input-group";
+import type { ProfilePageData } from "../queries";
+
+type ProfileFieldValues = Readonly<Pick<ProfilePageData, "name" | "bio">>;
+type ProfileFieldsProps = ProfileFieldValues &
+  Readonly<{
+    readOnly: boolean;
+    onNameChange?: (value: ProfileFieldValues["name"]) => void;
+    onBioChange?: (value: ProfileFieldValues["bio"]) => void;
+  }>;
 
 function ProfileNameField({
   value,
   onChange,
   readOnly,
 }: Readonly<{
-  value: string;
-  onChange?: (value: string) => void;
+  value: ProfileFieldValues["name"];
+  onChange?: (value: ProfileFieldValues["name"]) => void;
   readOnly: boolean;
 }>): ReactElement {
   return (
@@ -45,8 +53,8 @@ function ProfileBioField({
   onChange,
   readOnly,
 }: Readonly<{
-  value: string;
-  onChange?: (value: string) => void;
+  value: ProfileFieldValues["bio"];
+  onChange?: (value: ProfileFieldValues["bio"]) => void;
   readOnly: boolean;
 }>): ReactElement {
   return (
@@ -70,40 +78,13 @@ function ProfileBioField({
   );
 }
 
-export function ProfileContent({
-  image,
-  children,
-}: Readonly<{
-  image: ReactElement;
-  children: ReactNode;
-}>): ReactElement {
-  return (
-    <div className="mb-4 flex flex-col gap-8">
-      <FieldGroup className="gap-8">
-        <Field className="gap-8">
-          <div className="flex w-full items-center justify-between page-wide:justify-start">
-            {image}
-          </div>
-          {children}
-        </Field>
-      </FieldGroup>
-    </div>
-  );
-}
-
 export function ProfileFields({
   name,
   bio,
   readOnly,
   onNameChange,
   onBioChange,
-}: Readonly<{
-  name: string;
-  bio: string;
-  readOnly: boolean;
-  onNameChange?: (value: string) => void;
-  onBioChange?: (value: string) => void;
-}>): ReactElement {
+}: ProfileFieldsProps): ReactElement {
   return (
     <div className="flex min-w-0 flex-col gap-2">
       <ProfileNameField

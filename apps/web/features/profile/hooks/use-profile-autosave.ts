@@ -1,26 +1,29 @@
-import type { PageResponse, PageUpdate } from "@grabbin/shared/schemas/page";
+import type {
+  Handle,
+  PageResponse,
+  PageUpdate,
+} from "@grabbin/shared/schemas/page";
 import { toast } from "@grabbin/ui/components/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { debounce, type DebouncedFunction } from "es-toolkit/function";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { profileQueries } from "../queries";
+import { profileMutations } from "../mutations";
+import { profileQueries, type ProfilePageData } from "../queries";
 
-type ProfileValues = Readonly<{ name: string; bio: string }>;
+type ProfileValues = Readonly<Pick<ProfilePageData, "name" | "bio">>;
 type AutosaveState = {
   draft: ProfileValues;
   saved: ProfileValues;
   isSaveInFlight: boolean;
   hasQueuedSave: boolean;
-  isMounted: boolean;
 };
 type AutosaveStateRef = { current: AutosaveState };
 type SaveProfileRef = { current: () => Promise<void> };
 type SaveContext = Readonly<{
-  handle: string;
+  handle: Handle;
   stateRef: AutosaveStateRef;
   onProfileUpdate: (update: PageUpdate) => Promise<void>;
   queryClient: ReturnType<typeof useQueryClient>;
-  onValuesChange: (values: ProfileValues) => void;
   saveRef: SaveProfileRef;
 }>;
 
@@ -45,10 +48,11 @@ const applyUpdate = (
 const hasChanges = (state: AutosaveState): boolean =>
   state.draft.name !== state.saved.name || state.draft.bio !== state.saved.bio;
 
-const reloadAndReconcileDraft = async (
-  { handle, queryClient, stateRef, onValuesChange }: SaveContext,
-  submittedDraft: ProfileValues,
-): Promise<void> => {
+const reloadSavedValues = async ({
+  handle,
+  queryClient,
+  stateRef,
+}: SaveContext): Promise<void> => {
   await queryClient.invalidateQueries(
     { queryKey: profileQueries.byHandle(handle) },
     { throwOnError: true },
@@ -59,24 +63,11 @@ const reloadAndReconcileDraft = async (
   if (page === undefined) return;
 
   const state = stateRef.current;
-  const serverValues = { name: page.name ?? "", bio: page.bio ?? "" };
-  state.saved = serverValues;
-  state.draft = {
-    name:
-      state.draft.name === submittedDraft.name
-        ? serverValues.name
-        : state.draft.name,
-    bio:
-      state.draft.bio === submittedDraft.bio
-        ? serverValues.bio
-        : state.draft.bio,
-  };
-  if (state.isMounted) onValuesChange(state.draft);
+  state.saved = { name: page.name ?? "", bio: page.bio ?? "" };
 };
 
 const persistProfileDraft = async (
   context: SaveContext,
-  submittedDraft: ProfileValues,
   update: PageUpdate,
 ): Promise<void> => {
   const { handle, queryClient, stateRef, onProfileUpdate } = context;
@@ -97,7 +88,7 @@ const persistProfileDraft = async (
     );
   } catch (cause: unknown) {
     try {
-      await reloadAndReconcileDraft(context, submittedDraft);
+      await reloadSavedValues(context);
     } catch {
       // Keep the draft if the server state cannot be reloaded.
     }
@@ -122,7 +113,7 @@ const saveLatestDraft = async (context: SaveContext): Promise<void> => {
   if (Object.keys(update).length === 0) return;
 
   state.isSaveInFlight = true;
-  await persistProfileDraft(context, submittedDraft, update);
+  await persistProfileDraft(context, update);
   state.isSaveInFlight = false;
 
   if (state.hasQueuedSave) {
@@ -143,10 +134,8 @@ const useProfileSaveDebounce = (
     const debouncedSave = debounce(() => void saveRef.current(), DEBOUNCE_MS);
     debouncedSaveRef.current = debouncedSave;
     saveRef.current = onSave;
-    state.isMounted = true;
 
     return () => {
-      state.isMounted = false;
       debouncedSave.cancel();
       if (hasChanges(state)) {
         if (state.isSaveInFlight) state.hasQueuedSave = true;
@@ -159,7 +148,7 @@ const useProfileSaveDebounce = (
 };
 
 export const useProfileAutosave = (
-  handle: string,
+  handle: Handle,
   initialValues: ProfileValues,
 ) => {
   const [values, setValues] = useState(initialValues);
@@ -168,11 +157,10 @@ export const useProfileAutosave = (
     saved: initialValues,
     isSaveInFlight: false,
     hasQueuedSave: false,
-    isMounted: true,
   });
   const saveRef = useRef<SaveProfileRef["current"]>(async () => {});
   const { mutateAsync: updateProfile } = useMutation(
-    profileQueries.updateProfile(handle),
+    profileMutations.updateProfile(handle),
   );
   const queryClient = useQueryClient();
   const save = useCallback(
@@ -182,22 +170,24 @@ export const useProfileAutosave = (
         stateRef,
         onProfileUpdate: updateProfile,
         queryClient,
-        onValuesChange: setValues,
         saveRef,
       }),
     [handle, queryClient, updateProfile],
   );
   const debouncedSaveRef = useProfileSaveDebounce(stateRef, saveRef, save);
-  const updateDraft = (field: keyof ProfileValues, value: string) => {
+  const updateDraft = <Field extends keyof ProfileValues>(
+    field: Field,
+    value: ProfileValues[Field],
+  ) => {
     const state = stateRef.current;
     state.draft = { ...state.draft, [field]: value };
     setValues(state.draft);
     debouncedSaveRef.current?.();
   };
-  const setName = (name: string) => {
+  const setName = (name: ProfileValues["name"]) => {
     updateDraft("name", name);
   };
-  const setBio = (bio: string) => {
+  const setBio = (bio: ProfileValues["bio"]) => {
     updateDraft("bio", bio);
   };
 

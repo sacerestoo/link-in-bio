@@ -1,21 +1,45 @@
-import type { ReactElement } from "react";
-import Image from "next/image";
+"use client";
+
+import { PermissionGate } from "@/features/auth/ui/permission-gate";
+import { lazy, Suspense, type ReactElement } from "react";
+import { usePage, type ProfilePageData } from "../queries";
+import { ProfileImageView } from "./profile-image-view";
+
+const ProfileImageEditor = lazy(() =>
+  import("./profile-image-editor").then(
+    ({ ProfileImageEditor: ProfileImageEditorComponent }) => ({
+      default: ProfileImageEditorComponent,
+    }),
+  ),
+);
 
 export function ProfileImage({
-  src,
-}: Readonly<{ src?: string | null }>): ReactElement | null {
-  if (src === undefined || src === null || src.length === 0) return null;
+  handle,
+}: Readonly<Pick<ProfilePageData, "handle">>): ReactElement {
+  const { data: page } = usePage(handle);
+  const readOnlyImage = (
+    <ProfileImageView
+      imageSrc={page.imageSrc}
+      hasImage={page.hasImage}
+      crop={page.imageCrop}
+    />
+  );
 
   return (
-    <Image
-      src={src}
-      alt=""
-      width={200}
-      height={200}
-      loading="eager"
-      fetchPriority="high"
-      unoptimized
-      className="size-full rounded-full object-cover profile-image-outline"
+    <PermissionGate
+      allowed={page.isOwner}
+      whenAllowed={
+        <Suspense fallback={readOnlyImage}>
+          <ProfileImageEditor
+            key={handle}
+            handle={handle}
+            imageSrc={page.imageSrc}
+            hasImage={page.hasImage}
+            imageCrop={page.imageCrop}
+          />
+        </Suspense>
+      }
+      whenDenied={readOnlyImage}
     />
   );
 }

@@ -1,5 +1,11 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
 export const pages = pgTable(
@@ -13,6 +19,12 @@ export const pages = pgTable(
     name: text("name"),
     bio: text("bio"),
     imageKey: text("image_key"),
+    imageCrop: jsonb("image_crop").$type<{
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    } | null>(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

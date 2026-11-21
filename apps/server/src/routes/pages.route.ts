@@ -15,8 +15,8 @@ import type { ServerBindings } from "../lib/env";
 import {
   createProfileImageUpload,
   deleteProfileImageObject,
+  ensureProfileImageIsValid,
   isProfileImageKeyOwnedByUser,
-  validateProfileImageObject,
 } from "../lib/profile-images";
 import {
   optionalSession,
@@ -26,39 +26,6 @@ import { PagesService, PAGE_SERVICE_STATUS } from "../services/pages.service";
 
 const createPagesService = (connectionString: string) =>
   new PagesService(createDatabase(connectionString));
-
-const ensureProfileImageIsValid = async (
-  env: ServerBindings,
-  requestUrl: string,
-  userId: string,
-  imageKey: string,
-): Promise<void> => {
-  const result = await validateProfileImageObject(
-    env,
-    requestUrl,
-    userId,
-    imageKey,
-  );
-  if (result === "valid") return;
-
-  const errors = {
-    invalidKey: { status: 400, message: "Invalid profile image" },
-    uploadMissing: {
-      status: 400,
-      message: "Upload the image before saving it",
-    },
-    invalidImage: {
-      status: 413,
-      message: "Choose a GIF, JPG, JPEG, or PNG image up to 5 MB.",
-    },
-    unavailable: {
-      status: 503,
-      message: "Image uploads are unavailable",
-    },
-  } as const;
-  const error = errors[result];
-  throw new HTTPException(error.status, { message: error.message });
-};
 
 export const pagesRoute = new Hono<{
   Bindings: ServerBindings;
@@ -182,12 +149,18 @@ export const pagesRoute = new Hono<{
 
       const { handle: currentHandle } = c.req.valid("param");
       const update = c.req.valid("json");
-      const pageBeforeUpdate =
-        update.imageKey === undefined
-          ? undefined
-          : await pagesService.findPageByHandle(currentHandle);
-      if (update.imageKey !== undefined && pageBeforeUpdate?.userId !== userId)
+      const pageBeforeImageUpdate = await pagesService.getPageBeforeImageUpdate(
+        userId,
+        currentHandle,
+        update,
+      );
+      if (pageBeforeImageUpdate.status === PAGE_SERVICE_STATUS.notFound)
         throw new HTTPException(404, { message: "Page not found" });
+      if (pageBeforeImageUpdate.status === PAGE_SERVICE_STATUS.imageRequired)
+        throw new HTTPException(400, {
+          message: "Upload a profile image before cropping it.",
+        });
+      const pageBeforeUpdate = pageBeforeImageUpdate.page;
 
       if (update.imageKey !== undefined && update.imageKey !== null)
         await ensureProfileImageIsValid(
@@ -210,13 +183,16 @@ export const pagesRoute = new Hono<{
 
       const oldImageKey = pageBeforeUpdate?.imageKey;
       if (
+        update.imageKey !== undefined &&
         isProfileImageKeyOwnedByUser(userId, oldImageKey) &&
         oldImageKey !== update.imageKey
       ) {
-        await deleteProfileImageObject(c.env, c.req.url, oldImageKey).catch(
-          (error: unknown) => {
-            console.error("Could not remove previous profile image", error);
-          },
+        c.executionCtx.waitUntil(
+          deleteProfileImageObject(c.env, c.req.url, oldImageKey).catch(
+            (error: unknown) => {
+              console.error("Could not remove previous profile image", error);
+            },
+          ),
         );
       }
 
