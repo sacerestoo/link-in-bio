@@ -30,6 +30,7 @@ export const commonRules = {
   "codebase/no-javascript-files": "error",
   "codebase/pascal-case-types": "error",
   "testing/require-test-filename": "error",
+  "eslint/max-lines-per-function": ["error", { max: 100 }],
   "env-access/no-direct-env": "error",
   "eslint/no-useless-catch": "error",
   "eslint/no-unused-vars": ["error", { args: "all", caughtErrors: "all" }],
