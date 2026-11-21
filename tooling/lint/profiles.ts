@@ -1,6 +1,7 @@
 import type { OxlintConfig } from "vite-plus/lint";
 import {
   architectureDirectories,
+  featureUiSourceGlobs,
   webSourceGlobs,
 } from "../architecture/paths.ts";
 import {
@@ -41,6 +42,13 @@ function reactOverrides(selection: LintProfileSelection) {
       rules: {
         ...reactLint.rules,
         ...(selection.nextApp ? nextAppWebRules : {}),
+      },
+    },
+    {
+      files: featureUiSourceGlobs,
+      rules: {
+        // JSX markup can make otherwise cohesive React components longer than 50 lines.
+        "eslint/max-lines-per-function": ["error", { max: 100 }],
       },
     },
   ] satisfies NonNullable<OxlintConfig["overrides"]>;
