@@ -5,12 +5,21 @@ import {
   handleSchema,
   profileImageUploadResponseSchema,
   type Handle,
+  type PageResponse,
   type PageUpdate,
 } from "@grabbin/shared/schemas/page";
 import { mutationOptions } from "@tanstack/react-query";
 import * as v from "valibot";
 import { putProfileImage } from "./api";
 import { getProfileImageUrl, profileQueries } from "./queries";
+
+type UpdateProfileOptions = Readonly<{
+  client?: ApiClient;
+  onImageCropPreviewClear?: () => void;
+}>;
+type UpdateProfileContext = Readonly<{
+  previousCrop: PageResponse["imageCrop"];
+}>;
 
 const checkHandleAvailability = async (
   rawHandle: string,
@@ -97,11 +106,55 @@ export const profileMutations = {
       onSuccess: callbacks.onSuccess,
       onError: callbacks.onError,
     }),
-  updateProfile: (handle: Handle, client: ApiClient = api) =>
-    mutationOptions({
+  updateProfile: (handle: Handle, options: UpdateProfileOptions = {}) =>
+    mutationOptions<void, Error, PageUpdate, UpdateProfileContext | null>({
       mutationKey: [...profileQueries.byHandle(handle), "profile-update"],
       mutationFn: (update: PageUpdate) =>
-        updatePageProfile(handle, update, client),
+        updatePageProfile(handle, update, options.client),
+      onMutate: async (update, { client: queryClient }) => {
+        if (update.imageCrop === undefined) return null;
+
+        await queryClient.cancelQueries({
+          queryKey: profileQueries.byHandle(handle),
+        });
+        const previousCrop =
+          queryClient.getQueryData<PageResponse>(
+            profileQueries.byHandle(handle),
+          )?.imageCrop ?? null;
+        queryClient.setQueryData<PageResponse>(
+          profileQueries.byHandle(handle),
+          (page) =>
+            page ? { ...page, imageCrop: update.imageCrop ?? null } : page,
+        );
+        return { previousCrop };
+      },
+      onError: (...args) => {
+        const [, update, optimisticContext, { client: queryClient }] = args;
+        if (update.imageCrop === undefined) return;
+
+        if (optimisticContext !== null && optimisticContext !== undefined)
+          queryClient.setQueryData<PageResponse>(
+            profileQueries.byHandle(handle),
+            (page) =>
+              page
+                ? { ...page, imageCrop: optimisticContext.previousCrop }
+                : page,
+          );
+
+        options.onImageCropPreviewClear?.();
+      },
+      onSuccess: (...args) => {
+        const [, update] = args;
+        if (update.imageCrop !== undefined) options.onImageCropPreviewClear?.();
+      },
+      onSettled: async (...args) => {
+        const [, , update, , { client }] = args;
+        if (update.imageCrop === undefined) return;
+
+        await client.invalidateQueries({
+          queryKey: profileQueries.byHandle(handle),
+        });
+      },
     }),
   uploadImage: (handle: Handle) =>
     mutationOptions({

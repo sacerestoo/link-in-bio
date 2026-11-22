@@ -1,47 +1,39 @@
+import type { ImageDimensions } from "@grabbin/shared/lib/image-crop";
 import { useState, type ChangeEvent } from "react";
 import type { ProfilePageData } from "../queries";
 import { useProfileImageActions } from "./use-profile-image-actions";
 import { useProfileImageCrop } from "./use-profile-image-crop";
 
-export type ProfileImageEditorInput = Readonly<
-  Pick<ProfilePageData, "handle" | "imageSrc" | "hasImage" | "imageCrop">
->;
-
-export const useProfileImageEditor = ({
-  handle,
-  imageSrc: pageImageSrc,
-  hasImage: pageHasImage,
-  imageCrop: pageCrop,
-}: ProfileImageEditorInput) => {
-  const [imageUrlOverride, setImageUrlOverride] = useState<string | null>(null);
-  const [sourceSize, setSourceSize] = useState({ width: 0, height: 0 });
+export const useProfileImageEditor = (page: ProfilePageData) => {
   const [isCropOpen, setIsCropOpen] = useState(false);
-  const crop = useProfileImageCrop(handle);
-  const src = imageUrlOverride ?? pageImageSrc;
-  const hasImage =
-    imageUrlOverride === null ? pageHasImage : imageUrlOverride.length > 0;
-  const image = useProfileImageActions(handle, src, (imageUrl) => {
-    setImageUrlOverride(imageUrl ?? "");
+  const [sourceSize, setSourceSize] = useState<ImageDimensions>({
+    width: 0,
+    height: 0,
   });
+  const crop = useProfileImageCrop(page.handle);
+  const image = useProfileImageActions(page.handle, page.imageSrc);
+  const imageCrop = image.isPreviewing
+    ? null
+    : (crop.imageCropPreview ?? page.imageCrop);
   const isSaving = image.isSaving || crop.isSaving;
-  const isLocalImage = src?.startsWith("blob:") === true;
-  const imageCrop = isLocalImage ? null : (crop.imageCropPreview ?? pageCrop);
 
   return {
-    image: {
-      imageSrc: hasImage ? (imageUrlOverride ?? pageImageSrc) : undefined,
+    view: {
+      imageSrc: image.imageSrc,
+      hasImage: image.hasImage,
       crop: imageCrop,
-      sourceSize,
-      isSaving,
-      isChangeDisabled: isSaving || isCropOpen,
-      hasImage,
-      canRemove: hasImage && !isCropOpen && !isSaving,
       onLoad: (imageElement: HTMLImageElement) => {
         setSourceSize({
           width: imageElement.naturalWidth,
           height: imageElement.naturalHeight,
         });
       },
+    },
+    controls: {
+      sourceSize,
+      isSaving,
+      isChangeDisabled: isSaving || isCropOpen,
+      canRemove: image.hasImage && !isCropOpen && !isSaving,
       onRemove: image.removeImage,
       onFileChange: (event: ChangeEvent<HTMLInputElement>) => {
         void image.handleFileChange(event);

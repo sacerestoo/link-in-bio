@@ -56,7 +56,7 @@ function CropPreview({
   return (
     <div
       aria-hidden="true"
-      className="absolute overflow-hidden rounded-full shadow-2xl profile-image-outline"
+      className="absolute overflow-hidden rounded-3xl shadow-2xl profile-image-outline"
       style={getCropStyle(crop)}
     >
       <div

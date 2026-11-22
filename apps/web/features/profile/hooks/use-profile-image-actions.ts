@@ -1,5 +1,4 @@
 import type { Handle, PageResponse } from "@grabbin/shared/schemas/page";
-import type { ChangeEvent } from "react";
 import {
   isProfileImageContentType,
   PROFILE_IMAGE_MAX_SIZE,
@@ -11,6 +10,7 @@ import {
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { profileMutations } from "../mutations";
 import { profileQueries } from "../queries";
 
@@ -57,45 +57,62 @@ const updateProfileImageCache = (
   );
 };
 
+const preloadProfileImage = async (imageUrl: string): Promise<void> => {
+  const image = new window.Image();
+  image.src = imageUrl;
+  await image.decode();
+};
+
 const uploadSelectedImage = async ({
   file,
   contentType,
-  imageUrl,
-  onImageUrlChange,
+  onPreviewUrlChange,
   onUpload,
   onUploadSuccess,
 }: Readonly<{
   file: File;
   contentType: ProfileImageContentType;
-  imageUrl: string | undefined;
-  onImageUrlChange: (imageUrl?: string) => void;
+  onPreviewUrlChange: (imageUrl: string | null) => void;
   onUpload: (input: ImageUploadInput) => Promise<UploadedImage>;
   onUploadSuccess: (image: UploadedImage) => void;
 }>): Promise<void> => {
-  const previewUrl = URL.createObjectURL(file);
-  onImageUrlChange(previewUrl);
   try {
+    const previewUrl = URL.createObjectURL(file);
+    onPreviewUrlChange(previewUrl);
     const uploadedImage = await onUpload({ file, contentType });
     onUploadSuccess(uploadedImage);
-    onImageUrlChange(uploadedImage.imageUrl);
+    if (uploadedImage.imageUrl === undefined) {
+      reportImageError(
+        "Image uploaded but the preview could not load",
+        new Error("No public image URL is configured."),
+      );
+      return;
+    }
+
+    try {
+      await preloadProfileImage(uploadedImage.imageUrl);
+    } catch (cause: unknown) {
+      reportImageError("Image uploaded but the preview could not load", cause);
+      return;
+    }
+
+    onPreviewUrlChange(null);
   } catch (cause: unknown) {
-    onImageUrlChange(imageUrl);
+    onPreviewUrlChange(null);
     reportImageError("Image upload failed", cause);
-  } finally {
-    URL.revokeObjectURL(previewUrl);
   }
 };
 
 const removeSelectedImage = async ({
   onRemove,
-  onImageUrlChange,
+  onPreviewUrlChange,
 }: Readonly<{
   onRemove: () => Promise<void>;
-  onImageUrlChange: (imageUrl?: string) => void;
+  onPreviewUrlChange: (imageUrl: string | null) => void;
 }>): Promise<void> => {
   try {
     await onRemove();
-    onImageUrlChange();
+    onPreviewUrlChange(null);
   } catch (cause: unknown) {
     reportImageError("Image removal failed", cause);
   }
@@ -103,12 +120,20 @@ const removeSelectedImage = async ({
 
 export const useProfileImageActions = (
   handle: Handle,
-  imageUrl: string | undefined,
-  onImageUrlChange: (imageUrl?: string) => void,
+  currentImageSrc: string | undefined,
 ) => {
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const upload = useMutation(profileMutations.uploadImage(handle));
   const remove = useMutation(profileMutations.removeImage(handle));
+
+  useEffect(
+    () => () => {
+      if (previewUrl !== null) URL.revokeObjectURL(previewUrl);
+    },
+    [previewUrl],
+  );
 
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.currentTarget.files?.[0];
@@ -117,16 +142,20 @@ export const useProfileImageActions = (
 
     const contentType = validateImageFile(file);
     if (contentType === null) return;
-    await uploadSelectedImage({
-      file,
-      contentType,
-      imageUrl,
-      onImageUrlChange,
-      onUpload: upload.mutateAsync,
-      onUploadSuccess: ({ imageKey }) => {
-        updateProfileImageCache(queryClient, handle, imageKey);
-      },
-    });
+    setIsTransitioning(true);
+    try {
+      await uploadSelectedImage({
+        file,
+        contentType,
+        onPreviewUrlChange: setPreviewUrl,
+        onUpload: upload.mutateAsync,
+        onUploadSuccess: ({ imageKey }) => {
+          updateProfileImageCache(queryClient, handle, imageKey);
+        },
+      });
+    } finally {
+      setIsTransitioning(false);
+    }
   };
 
   const removeImage = () =>
@@ -135,11 +164,14 @@ export const useProfileImageActions = (
         await remove.mutateAsync();
         updateProfileImageCache(queryClient, handle, null);
       },
-      onImageUrlChange,
+      onPreviewUrlChange: setPreviewUrl,
     });
 
   return {
-    isSaving: upload.isPending || remove.isPending,
+    imageSrc: previewUrl ?? currentImageSrc,
+    hasImage: previewUrl !== null || currentImageSrc !== undefined,
+    isPreviewing: previewUrl !== null,
+    isSaving: upload.isPending || isTransitioning || remove.isPending,
     handleFileChange,
     removeImage,
   };
