@@ -1,18 +1,18 @@
 import { useState, type ChangeEvent } from "react";
 import type { ProfilePageData } from "../queries";
-import { useProfileImage } from "./use-profile-image";
+import { useProfileImageActions } from "./use-profile-image-actions";
 import { useProfileImageCrop } from "./use-profile-image-crop";
 
-export type ProfileImageEditorStateInput = Readonly<
+export type ProfileImageEditorInput = Readonly<
   Pick<ProfilePageData, "handle" | "imageSrc" | "hasImage" | "imageCrop">
 >;
 
-export const useProfileImageEditorState = ({
+export const useProfileImageEditor = ({
   handle,
   imageSrc: pageImageSrc,
   hasImage: pageHasImage,
   imageCrop: pageCrop,
-}: ProfileImageEditorStateInput) => {
+}: ProfileImageEditorInput) => {
   const [imageUrlOverride, setImageUrlOverride] = useState<string | null>(null);
   const [sourceSize, setSourceSize] = useState({ width: 0, height: 0 });
   const [isCropOpen, setIsCropOpen] = useState(false);
@@ -20,7 +20,7 @@ export const useProfileImageEditorState = ({
   const src = imageUrlOverride ?? pageImageSrc;
   const hasImage =
     imageUrlOverride === null ? pageHasImage : imageUrlOverride.length > 0;
-  const image = useProfileImage(handle, src, (imageUrl) => {
+  const image = useProfileImageActions(handle, src, (imageUrl) => {
     setImageUrlOverride(imageUrl ?? "");
   });
   const isSaving = image.isSaving || crop.isSaving;

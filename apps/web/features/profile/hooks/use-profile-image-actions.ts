@@ -101,7 +101,7 @@ const removeSelectedImage = async ({
   }
 };
 
-export const useProfileImage = (
+export const useProfileImageActions = (
   handle: Handle,
   imageUrl: string | undefined,
   onImageUrlChange: (imageUrl?: string) => void,

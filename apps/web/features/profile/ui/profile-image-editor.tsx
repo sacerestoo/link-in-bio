@@ -6,16 +6,16 @@ import { ImageCropEditor } from "@grabbin/ui/components/image-crop-editor";
 import CircleFadingArrowUp from "lucide-react/icons/circle-fading-arrow-up";
 import { useRef, type ReactElement } from "react";
 import {
-  useProfileImageEditorState,
-  type ProfileImageEditorStateInput,
-} from "../hooks/use-profile-image-editor-state";
+  useProfileImageEditor,
+  type ProfileImageEditorInput,
+} from "../hooks/use-profile-image-editor";
 import { ProfileImageView } from "./profile-image-view";
 import { Trash } from "./trash";
 
 export function ProfileImageEditor(
-  props: ProfileImageEditorStateInput,
+  props: ProfileImageEditorInput,
 ): ReactElement {
-  const { image, cropEditor } = useProfileImageEditorState(props);
+  const { image, cropEditor } = useProfileImageEditor(props);
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
