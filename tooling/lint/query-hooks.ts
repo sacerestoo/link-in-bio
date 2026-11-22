@@ -8,6 +8,7 @@ import {
 } from "./naming/ast-utils.ts";
 import {
   isFeatureQueriesFile,
+  isFeatureQueriesImport,
   isQueryOptionsCall,
   report,
   resolveIdentifier,
@@ -51,21 +52,86 @@ function isTanStackQueryHookCall(
   );
 }
 
+function isFeatureQueryNamespaceOptionsCall(
+  context: Readonly<RuleContext>,
+  call: Readonly<AstNode>,
+): boolean {
+  const callee = getChild(call, "callee");
+  if (callee?.type !== "MemberExpression") return false;
+
+  const object = getChild(callee, "object");
+  const propertyName = getName(getChild(callee, "property"));
+  if (
+    object?.type !== "Identifier" ||
+    propertyName === undefined ||
+    propertyName === "all" ||
+    propertyName.startsWith("by")
+  ) {
+    return false;
+  }
+
+  const variable = resolveIdentifier(context, object);
+  return (
+    variable?.defs.some((definition) => {
+      const imported = definitionImport(definition);
+      if (
+        imported?.imported?.endsWith("Queries") === true &&
+        isFeatureQueriesImport(context.filename, imported.source)
+      ) {
+        return true;
+      }
+
+      if (
+        !isFeatureQueriesFile(context.filename) ||
+        definition.type !== "Variable" ||
+        !(getName(object) ?? "").endsWith("Queries")
+      ) {
+        return false;
+      }
+      const initializer = getChild(definition.node, "init");
+      return (
+        initializer?.type === "ObjectExpression" &&
+        getChildren(initializer, "properties").some((property) => {
+          const value = getChild(property, "value");
+          return (
+            getName(getChild(property, "key")) === propertyName &&
+            (value?.type === "ArrowFunctionExpression" ||
+              value?.type === "FunctionExpression")
+          );
+        })
+      );
+    }) ?? false
+  );
+}
+
 function isFeatureQueryOptionsFactoryCall(
   context: Readonly<RuleContext>,
   expression: unknown,
 ): boolean {
-  if (!isFeatureQueriesFile(context.filename)) return false;
   if (!isAstNode(expression) || expression.type !== "CallExpression") {
     return false;
   }
-  if (isQueryOptionsCall(context, expression)) return true;
+  if (isFeatureQueryNamespaceOptionsCall(context, expression)) return true;
+
+  const isQueriesFile = isFeatureQueriesFile(context.filename);
+  if (isQueriesFile && isQueryOptionsCall(context, expression)) return true;
+
   const callee = getChild(expression, "callee");
   if (callee?.type !== "Identifier") return false;
   const variable = resolveIdentifier(context, callee);
   return (
     variable?.defs.some((definition) => {
-      if (!(getName(callee) ?? "").endsWith("QueryOptions")) return false;
+      const imported = definitionImport(definition);
+      if (
+        imported?.imported?.endsWith("QueryOptions") === true &&
+        isFeatureQueriesImport(context.filename, imported.source)
+      ) {
+        return true;
+      }
+      if (!isQueriesFile || !(getName(callee) ?? "").endsWith("QueryOptions")) {
+        return false;
+      }
+
       if (definition.type === "Variable") {
         const initializer = getChild(definition.node, "init");
         return (
@@ -102,7 +168,7 @@ export const canonicalQueryHooks = defineRule({
     type: "problem",
     docs: {
       description:
-        "Keep TanStack useQuery calls in each feature's queries module",
+        "Use feature query options factories for TanStack useQuery calls",
     },
   },
   create(context) {
@@ -112,7 +178,6 @@ export const canonicalQueryHooks = defineRule({
           return;
         }
         if (
-          isFeatureQueriesFile(context.filename) &&
           usesFeatureQueryOptions(context, getChildren(input, "arguments")[0])
         ) {
           return;
@@ -120,7 +185,7 @@ export const canonicalQueryHooks = defineRule({
         report(
           context,
           getChild(input, "callee") ?? input,
-          "Call useQuery only from a feature's queries.ts using queryOptions.",
+          "Call useQuery using a queryOptions factory from the feature's queries.ts.",
         );
       },
     };

@@ -54,8 +54,14 @@ tester.run("canonical-query-hooks", canonicalQueryHooks, {
         const projectsQueryOptions = () => queryOptions({
           queryKey: projectsQueryKey(), queryFn: load
         });
+        const projectQueries = {
+          detail: () => projectsQueryOptions(),
+        };
         function useProjects() {
           return useQuery({ ...projectsQueryOptions(), enabled: true });
+        }
+        function useProjectDetail() {
+          return useQuery(projectQueries.detail());
         }`,
     },
     {
@@ -68,20 +74,24 @@ tester.run("canonical-query-hooks", canonicalQueryHooks, {
           }));
         }`,
     },
+    {
+      filename: queryHookFile,
+      code: `import { useQuery } from "@tanstack/react-query";
+        import { projectQueries, projectsQueryOptions } from "../queries";
+        function useProjects() { return useQuery(projectsQueryOptions()); }
+        function useProjectDetail() {
+          return useQuery(projectQueries.detail());
+        }`,
+    },
   ],
   invalid: [
     {
       filename: "apps/web/features/projects/ui/projects.tsx",
       code: `import { useQuery } from "@tanstack/react-query";
         function Projects() { return useQuery({ queryKey: [], queryFn: load }); }`,
-      errors: [{ message: /feature's queries\.ts/u }],
-    },
-    {
-      filename: queryHookFile,
-      code: `import { useQuery } from "@tanstack/react-query";
-        import { projectsQueryOptions } from "../queries";
-        function useProjects() { return useQuery(projectsQueryOptions()); }`,
-      errors: [{ message: /feature's queries\.ts/u }],
+      errors: [
+        { message: /queryOptions factory from the feature's queries\.ts/u },
+      ],
     },
     {
       filename: queriesFile,
@@ -89,7 +99,7 @@ tester.run("canonical-query-hooks", canonicalQueryHooks, {
         function useProjects() {
           return useQuery({ queryKey: [], queryFn: load });
         }`,
-      errors: [{ message: /using queryOptions/u }],
+      errors: [{ message: /queryOptions factory/u }],
     },
   ],
 });

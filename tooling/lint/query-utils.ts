@@ -1,4 +1,5 @@
 import type { defineRule, Variable } from "vite-plus/lint/plugins";
+import { posix } from "node:path";
 import { architecture } from "../architecture/project.ts";
 import {
   getChild,
@@ -119,6 +120,45 @@ export function isFeatureQueriesFile(filename: string): boolean {
   if (featureIndex === -1) return false;
   const relativeFile = normalizedFilename.slice(featureIndex + marker.length);
   return /^[^/]+\/queries\.[cm]?[jt]sx?$/u.test(relativeFile);
+}
+
+export function isFeatureQueriesImport(
+  filename: string,
+  source: string | undefined,
+): boolean {
+  if (source === undefined) return false;
+
+  const featureRoot = architecture.directories.features
+    .replaceAll("\\", "/")
+    .replace(/\/$/u, "");
+  const normalizedFilename = `/${filename.replaceAll("\\", "/")}`.replaceAll(
+    /\/+/gu,
+    "/",
+  );
+  const marker = `/${featureRoot}/`;
+  const featureIndex = normalizedFilename.lastIndexOf(marker);
+  if (featureIndex === -1) return false;
+
+  const relativeFile = normalizedFilename.slice(featureIndex + marker.length);
+  const featureName = relativeFile.split("/")[0];
+  if (featureName === undefined || featureName.length === 0) return false;
+
+  if (source.startsWith("@/")) {
+    const aliasPath = posix
+      .normalize(source.slice(2))
+      .replace(/\.[cm]?[jt]sx?$/u, "");
+    return aliasPath === `features/${featureName}/queries`;
+  }
+
+  if (!source.startsWith(".")) return false;
+  const importedPath = posix
+    .resolve(posix.dirname(normalizedFilename), source)
+    .replace(/\.[cm]?[jt]sx?$/u, "");
+  const queriesPath = `${normalizedFilename.slice(
+    0,
+    featureIndex + marker.length,
+  )}${featureName}/queries`;
+  return importedPath === queriesPath;
 }
 
 export function report(
