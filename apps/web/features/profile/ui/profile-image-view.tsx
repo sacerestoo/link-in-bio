@@ -25,7 +25,6 @@ export function ProfileImageView({
       <div
         className={cn(
           "absolute inset-0 overflow-hidden rounded-full bg-brand-light-gray text-sm font-medium text-muted-foreground profile-image-outline",
-          // hasImage ? "profile-image-outline" : "",
         )}
       >
         <PermissionGate

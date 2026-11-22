@@ -56,11 +56,11 @@ function CropPreview({
   return (
     <div
       aria-hidden="true"
-      className="absolute overflow-hidden rounded-md shadow-2xl"
+      className="absolute overflow-hidden rounded-full shadow-2xl profile-image-outline"
       style={getCropStyle(crop)}
     >
       <div
-        className="size-full rounded-md bg-cover bg-center"
+        className="size-full bg-cover bg-center"
         style={{ backgroundImage: `url(${JSON.stringify(src)})` }}
       />
       <span
@@ -232,7 +232,10 @@ export function ImageCropEditor({
   return (
     <div
       ref={editorRef}
-      className={`pointer-events-none absolute inset-0 ${editor.isOpen ? "z-10000" : ""}`}
+      className={cn(
+        `pointer-events-none absolute inset-0`,
+        editor.isOpen ? "z-10000" : "",
+      )}
     >
       <CropEditorContents
         src={src}
