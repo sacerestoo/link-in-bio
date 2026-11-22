@@ -1,3 +1,4 @@
+import CreateYoursLink from "@/features/auth/ui/create-yours-link";
 import { PermissionGate } from "@/features/auth/ui/permission-gate";
 import { profileQueries } from "@/features/profile/queries";
 import { Profile } from "@/features/profile/ui/profile";
@@ -8,8 +9,10 @@ import dynamic from "next/dynamic";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
-const CreateYoursLink = dynamic(
-  () => import("@/features/auth/ui/create-yours-link"),
+const MyPageLink = dynamic(() =>
+  import("@/features/profile/ui/my-page-link").then(
+    ({ MyPageLink: MyPageLinkComponent }) => MyPageLinkComponent,
+  ),
 );
 
 const ProfileActions = dynamic(() =>
@@ -42,16 +45,28 @@ export default async function HandlePage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <div className="min-h-svh">
+      <div className="flex min-h-svh flex-col">
         <Profile handle={handle} />
-        <div className="fixed inset-x-0 bottom-8 z-40 flex justify-start px-8">
+        <div
+          aria-hidden="true"
+          className="min-h-0 flex-1 page-wide:hidden"
+        />
+        <aside className="mx-auto flex w-full max-w-107 shrink-0 justify-center bg-background p-6 page-wide:fixed page-wide:inset-x-0 page-wide:bottom-8 page-wide:z-40 page-wide:max-w-none page-wide:justify-start page-wide:bg-transparent page-wide:p-0 page-wide:px-8">
           <PermissionGate
             allowed={page.isOwner}
             denied={!page.isOwner}
             whenAllowed={<ProfileActions />}
+            whenDenied={<MyPageLink />}
+          />
+        </aside>
+
+        <aside className="fixed bottom-18 left-1/2 z-40 w-max -translate-x-1/2 page-wide:bottom-8">
+          <PermissionGate
+            allowed={page.isOwner}
+            denied={!page.isOwner}
             whenDenied={<CreateYoursLink />}
           />
-        </div>
+        </aside>
       </div>
     </HydrationBoundary>
   );

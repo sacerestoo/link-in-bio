@@ -51,13 +51,17 @@ export class PagesService {
     return matchingPage === undefined;
   }
 
-  async findPageHandleForUser(userId: string): Promise<string | undefined> {
-    const page = await this.database.query.pages.findFirst({
-      columns: { handle: true },
+  findPageForUser(userId: string) {
+    return this.database.query.pages.findFirst({
+      columns: {
+        handle: true,
+        name: true,
+        bio: true,
+        imageKey: true,
+        imageCrop: true,
+      },
       where: (row, { eq }) => eq(row.userId, userId),
     });
-
-    return page?.handle;
   }
 
   findPageByHandle(handle: string) {

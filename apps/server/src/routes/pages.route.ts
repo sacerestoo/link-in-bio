@@ -32,13 +32,11 @@ export const pagesRoute = new Hono<{
 }>()
   .get("/me", requireSession, async (c) => {
     const pagesService = createPagesService(c.env.HYPERDRIVE.connectionString);
-    const userOwnedHandle = await pagesService.findPageHandleForUser(
-      c.get("session").user.id,
-    );
-    if (userOwnedHandle === undefined)
+    const page = await pagesService.findPageForUser(c.get("session").user.id);
+    if (page === undefined)
       throw new HTTPException(404, { message: "Page not found" });
 
-    return c.json({ handle: userOwnedHandle });
+    return c.json(v.parse(pageResponseSchema, { ...page, isOwner: true }));
   })
   .post(
     "/handle",
