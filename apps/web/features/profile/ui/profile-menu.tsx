@@ -4,7 +4,6 @@ import type { Handle } from "@grabbin/shared/schemas/page";
 import type { ReactElement } from "react";
 import { signOut } from "@/features/auth/auth";
 import { ChangeHandleDialog } from "@/features/auth/ui/change-handle-dialog";
-import { usePage } from "@/features/profile/queries";
 import { Button } from "@grabbin/ui/components/button";
 import {
   DropdownMenu,
@@ -76,7 +75,6 @@ function ProfileMenuItems({
   onSignOut: () => void;
 }>): ReactElement {
   const { handle } = useParams<{ handle: Handle }>();
-  const { data: page } = usePage(handle);
 
   return (
     <DropdownMenuContent
@@ -89,7 +87,7 @@ function ProfileMenuItems({
         onClick={onChangeHandle}
       >
         <span>Change handle</span>
-        <span className="text-muted-foreground">/{page.handle}</span>
+        <span className="text-muted-foreground">/{handle}</span>
       </DropdownMenuItem>
       <DropdownMenuItem
         className="h-12 px-3 font-normal"

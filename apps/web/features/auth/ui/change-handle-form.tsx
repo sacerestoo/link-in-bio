@@ -5,6 +5,7 @@ import { useUpdatePageHandle } from "@/features/auth/hooks/use-update-page-handl
 import { HandleInput } from "@/features/auth/ui/handle-input";
 import { usePage } from "@/features/profile/queries";
 import { Button } from "@grabbin/ui/components/button";
+import { Skeleton } from "@grabbin/ui/components/skeleton";
 import { useParams } from "next/navigation";
 import { type ReactElement, type ReactNode } from "react";
 
@@ -15,6 +16,8 @@ export function ChangeHandleForm({
 }>): ReactNode {
   const { handle: routeHandle } = useParams<{ handle: string }>();
   const { data: page } = usePage(routeHandle);
+  if (page === undefined) return <Skeleton className="h-11 w-full" />;
+
   const userOwnedHandle = page.handle;
 
   return (

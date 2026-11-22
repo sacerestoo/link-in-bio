@@ -1,10 +1,6 @@
 import { api, type ApiClient } from "@/lib/api-client";
 import { pageResponseSchema, type Handle } from "@grabbin/shared/schemas/page";
-import {
-  queryOptions,
-  useQuery,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import * as v from "valibot";
 
 export const getProfileImageUrl = (
@@ -87,6 +83,6 @@ export const useMyPage = (userId: string | null, client: ApiClient = api) =>
   useQuery(profileQueries.myPage(userId, client));
 
 export const usePage = (handle: Handle, client: ApiClient = api) =>
-  useSuspenseQuery(profileQueries.detail(handle, client));
+  useQuery(profileQueries.detail(handle, client));
 
 export type ProfilePageData = NonNullable<ReturnType<typeof usePage>["data"]>;

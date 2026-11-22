@@ -17,6 +17,15 @@ export function ProfileNameBio({
   handle,
 }: Readonly<Pick<ProfilePageData, "handle">>): ReactElement {
   const { data: page } = usePage(handle);
+  if (page === undefined)
+    return (
+      <ProfileFields
+        name=""
+        bio=""
+        readOnly
+      />
+    );
+
   const readOnlyFields = (
     <ProfileFields
       name={page.name}
