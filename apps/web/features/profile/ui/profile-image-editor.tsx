@@ -3,6 +3,7 @@
 import { PermissionGate } from "@/features/auth/ui/permission-gate";
 import { Button } from "@grabbin/ui/components/button";
 import { ImageCropEditor } from "@grabbin/ui/components/image-crop-editor";
+import { cn } from "@grabbin/ui/lib/utils";
 import CircleFadingArrowUp from "lucide-react/icons/circle-fading-arrow-up";
 import { useRef, type ReactElement } from "react";
 import type { ProfilePageData } from "../queries";
@@ -36,7 +37,10 @@ export function ProfileImageEditor({
             size="icon"
             aria-label="Change profile image"
             aria-busy={controls.isSaving}
-            className="profile-image-change-button pointer-events-auto absolute inset-0 flex size-full items-center justify-center overflow-visible rounded-full bg-transparent text-sm font-medium text-muted-foreground hover:bg-black/20"
+            className={cn(
+              "profile-image-change-button pointer-events-auto absolute inset-0 flex size-full items-center justify-center overflow-visible rounded-full bg-transparent text-sm font-medium text-muted-foreground",
+              hasImage ? "hover:bg-black/20" : "",
+            )}
             onClick={() => inputRef.current?.click()}
             disabled={controls.isImageChangeDisabled}
           >
