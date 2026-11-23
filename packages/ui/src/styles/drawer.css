@@ -37,6 +37,8 @@
     scaleY(calc(1 - (var(--indent-gap) / 50dvh)));
   border-top-left-radius: var(--indent-radius);
   border-top-right-radius: var(--indent-radius);
+  border-bottom-right-radius: var(--indent-radius);
+  border-bottom-left-radius: var(--indent-radius);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { MyPageLink } from "./my-page-link";
 import { ProfileActions } from "./profile-actions";
+import { ShareProfileDrawer } from "./share-profile-drawer";
 
 const ProfileSaveIndicator = dynamic(() =>
   import("@/features/profile/ui/indicator").then(
@@ -27,6 +28,7 @@ export default function ProfileFooter({
           whenAllowed={<ProfileActions />}
           whenDenied={<MyPageLink hasSessionCookie={hasSession} />}
         />
+        <ShareProfileDrawer />
         <Link
           href="/"
           className="px-2 text-sm font-medium text-muted-foreground hover:text-primary"
