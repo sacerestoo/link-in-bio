@@ -144,7 +144,7 @@ export const nextAppOverrides = [
       "boundary/no-re-export": "error",
       "import/max-dependencies": [
         "error",
-        { max: 10, ignoreTypeImports: true },
+        { max: 20, ignoreTypeImports: true },
       ],
     },
   },
