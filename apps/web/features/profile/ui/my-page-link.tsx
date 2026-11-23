@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactElement } from "react";
-import { PermissionGate } from "@/features/auth/ui/permission-gate";
+import CreateYoursLink from "@/features/auth/ui/create-yours-link";
 import { authClient } from "@/lib/auth-client";
 import { getCropStyle } from "@grabbin/shared/lib/image-crop";
 import {
@@ -66,37 +66,21 @@ export function MyPageLink(): ReactElement | null {
     isPending: isQueryPending,
   } = useMyPage(session?.user.id ?? null);
 
-  return (
-    <PermissionGate
-      allowed={isPending || (session !== null && isQueryPending)}
-      whenAllowed={<Skeleton className="h-9 w-26 page-wide:rounded-lg" />}
-      whenDenied={
-        <PermissionGate
-          allowed={!!session}
-          whenAllowed={
-            <PermissionGate
-              allowed={status === "success"}
-              whenAllowed={page && <MyPageLinkButton page={page} />}
-            />
-          }
-          whenDenied={
-            <Button
-              nativeButton={false}
-              variant="ghost"
-              size="default"
-              className="px-2.5 text-sm text-muted-foreground page-wide:gap-1.5 page-wide:px-2.5 page-wide:text-sm"
-              render={
-                <Link
-                  href="/sign-in"
-                  prefetch={false}
-                />
-              }
-            >
-              Sign in
-            </Button>
-          }
+  if (isPending || (session !== null && isQueryPending))
+    return <Skeleton className="h-9 w-26 page-wide:rounded-lg" />;
+
+  if (session === null)
+    return (
+      <div className="hidden page-wide:block">
+        <CreateYoursLink
+          size="lg"
+          variant="outline"
+          className="rounded-lg px-4"
         />
-      }
-    />
-  );
+      </div>
+    );
+
+  if (status !== "success" || page === undefined) return null;
+
+  return <MyPageLinkButton page={page} />;
 }

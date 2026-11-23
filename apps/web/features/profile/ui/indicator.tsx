@@ -20,7 +20,7 @@ export default function Indicator(): ReactElement | null {
     <p
       role="status"
       aria-live="polite"
-      className="flex items-center gap-2 text-xs text-muted-foreground"
+      className="flex items-center gap-2 text-sm font-medium text-muted-foreground"
     >
       <Loading
         aria-hidden="true"
