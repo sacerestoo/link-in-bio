@@ -36,7 +36,7 @@ export function ProfileImageEditor({
             size="icon"
             aria-label="Change profile image"
             aria-busy={controls.isSaving}
-            className="profile-image-change-button pointer-events-auto absolute inset-0 flex size-full items-center justify-center overflow-visible rounded-full bg-transparent text-sm font-medium text-muted-foreground hover:bg-muted/10"
+            className="profile-image-change-button pointer-events-auto absolute inset-0 flex size-full items-center justify-center overflow-visible rounded-full bg-transparent text-sm font-medium text-muted-foreground hover:bg-black/20"
             onClick={() => inputRef.current?.click()}
             disabled={controls.isImageChangeDisabled}
           >
