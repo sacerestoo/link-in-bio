@@ -24,8 +24,7 @@ function Avatar({
         "group/avatar relative flex size-8 shrink-0 rounded-full select-none after:absolute after:inset-0 after:rounded-full after:mix-blend-darken dark:after:mix-blend-lighten",
         "data-[size=2xl]:size-20 data-[size=2xs]:size-4 data-[size=lg]:size-10 data-[size=md]:size-7 data-[size=sm]:size-6 data-[size=xl]:size-12 data-[size=xs]:size-5",
         "data-[shape=square]:rounded-lg data-[shape=square]:after:rounded-lg",
-        outline &&
-          "outline outline-[0.5px] outline-offset-[-0.5px] outline-black/10",
+        outline && "outline-[0.5px] outline-offset-[-0.5px] outline-black/10",
         className,
       )}
       {...props}

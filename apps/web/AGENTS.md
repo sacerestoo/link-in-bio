@@ -14,3 +14,8 @@
   http://localhost:3000. Put local settings in `apps/web/.env.local`
   (gitignored), names from `apps/web/.env.example`; server settings go in
   `apps/server/.env.local`.
+
+## UI conventions
+
+- Use `PermissionGate` instead of a ternary expression to conditionally render
+  React components.
