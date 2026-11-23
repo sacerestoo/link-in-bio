@@ -27,4 +27,10 @@ export const authRoute = new Hono<{ Bindings: ServerBindings }>()
       },
     });
   })
+  .get("/error", (c) => {
+    if (c.req.query("error") === "signup_disabled") {
+      return Promise.resolve(c.redirect("/sign-up"));
+    }
+    return getAuth(c.env).handler(c.req.raw);
+  })
   .all("/*", (c) => getAuth(c.env).handler(c.req.raw));
