@@ -1,10 +1,15 @@
 import "server-only";
 import type { Database } from "@grabbin/db";
-import type { BetterAuthOptions } from "better-auth";
+import {
+  PAGE_CREATED_COOKIE_MAX_AGE_SECONDS,
+  PAGE_CREATED_COOKIE_NAME,
+  PAGE_CREATED_COOKIE_VALUE,
+} from "@grabbin/shared/lib/page-created-event";
 import {
   createCreemBeforeHook,
   getCreemProductIds,
 } from "@grabbin/subscription/creem";
+import { getProtocolFromSource, type BetterAuthOptions } from "better-auth";
 import { APIError, createAuthMiddleware, getOAuthState } from "better-auth/api";
 import type { ServerEnv } from "../env";
 import {
@@ -59,21 +64,44 @@ export const createAuthHooks = (settings: ServerEnv, database: Database) => {
       const session = ctx.context.newSession;
       if (!session) return;
 
+      const ensurePage = async (
+        userId: string,
+        rawHandle: unknown,
+      ): Promise<void> => {
+        const result = await pagesService.ensurePageForUser(userId, rawHandle);
+        throwIfPageOperationFailed(result);
+
+        if (result.status === PAGE_SERVICE_STATUS.created) {
+          const baseURL = ctx.context.options.baseURL;
+          const baseURLProtocol =
+            typeof baseURL === "string"
+              ? new URL(baseURL).protocol === "https:"
+                ? "https"
+                : "http"
+              : (baseURL?.protocol ?? "auto");
+          ctx.setCookie(PAGE_CREATED_COOKIE_NAME, PAGE_CREATED_COOKIE_VALUE, {
+            httpOnly: false,
+            maxAge: PAGE_CREATED_COOKIE_MAX_AGE_SECONDS,
+            path: "/",
+            sameSite: "lax",
+            secure:
+              ctx.context.options.advanced?.useSecureCookies ??
+              getProtocolFromSource(
+                ctx.headers ?? new Headers(),
+                baseURLProtocol,
+                ctx.context.options.advanced?.trustedProxyHeaders,
+              ) === "https",
+          });
+        }
+      };
+
       if (ctx.path === "/callback/:id") {
         const oauthState = await getOAuthState<{ handle?: unknown }>();
         if (oauthState?.handle !== undefined) {
-          const result = await pagesService.ensurePageForUser(
-            session.user.id,
-            oauthState.handle,
-          );
-          throwIfPageOperationFailed(result);
+          await ensurePage(session.user.id, oauthState.handle);
         }
       } else if (ctx.path === "/sign-in/email-otp") {
-        const result = await pagesService.ensurePageForUser(
-          session.user.id,
-          session.user.name,
-        );
-        throwIfPageOperationFailed(result);
+        await ensurePage(session.user.id, session.user.name);
       }
     }),
   };

@@ -16,7 +16,8 @@ export const PAGE_SERVICE_STATUS = {
   available: "available",
   invalidHandle: "invalid-handle",
   handleUnavailable: "handle-unavailable",
-  complete: "complete",
+  created: "created",
+  alreadyExists: "already-exists",
   notFound: "not-found",
   handleConflict: "handle-conflict",
   updated: "updated",
@@ -33,7 +34,11 @@ export type HandleAvailabilityResult =
     };
 
 export type EnsurePageForUserResult =
-  | { status: typeof PAGE_SERVICE_STATUS.complete }
+  | {
+      status:
+        | typeof PAGE_SERVICE_STATUS.created
+        | typeof PAGE_SERVICE_STATUS.alreadyExists;
+    }
   | Exclude<
       HandleAvailabilityResult,
       { status: typeof PAGE_SERVICE_STATUS.available }
@@ -146,21 +151,26 @@ export class PagesService {
       where: (page, { eq }) => eq(page.userId, userId),
     });
     if (existingPage !== undefined)
-      return { status: PAGE_SERVICE_STATUS.complete };
+      return { status: PAGE_SERVICE_STATUS.alreadyExists };
 
     const handleResult = await this.checkHandleAvailability(rawHandle);
     if (handleResult.status !== PAGE_SERVICE_STATUS.available)
       return handleResult;
 
     try {
-      await this.database
+      const [createdPage] = await this.database
         .insert(pages)
         .values({
           id: crypto.randomUUID(),
           userId,
           handle: handleResult.handle,
         })
-        .onConflictDoNothing({ target: pages.userId });
+        .onConflictDoNothing({ target: pages.userId })
+        .returning({ id: pages.id });
+
+      return createdPage === undefined
+        ? { status: PAGE_SERVICE_STATUS.alreadyExists }
+        : { status: PAGE_SERVICE_STATUS.created };
     } catch (error) {
       if (isPostgresUniqueViolation(error, "pages_handle_idx"))
         return {
@@ -169,8 +179,6 @@ export class PagesService {
         };
       throw error;
     }
-
-    return { status: PAGE_SERVICE_STATUS.complete };
   }
 
   ensureHandleAvailable(rawHandle: unknown): Promise<HandleAvailabilityResult> {
