@@ -7,7 +7,12 @@ import {
 } from "@grabbin/shared/lib/image-crop";
 import Crop from "lucide-react/icons/crop";
 import X from "lucide-react/icons/x";
-import { useRef, type PointerEventHandler, type ReactElement } from "react";
+import {
+  useRef,
+  type PointerEventHandler,
+  type ReactElement,
+  type WheelEventHandler,
+} from "react";
 import { useImageCropEditor } from "../hooks/use-image-crop-editor";
 import { cn } from "../lib/utils";
 import { Button } from "./button";
@@ -29,6 +34,7 @@ type CropSurfaceProps = Readonly<{
   onPointerDown: PointerEventHandler<HTMLButtonElement>;
   onPointerMove: PointerEventHandler<HTMLButtonElement>;
   onPointerEnd: PointerEventHandler<HTMLButtonElement>;
+  onWheel: WheelEventHandler<HTMLButtonElement>;
 }>;
 
 type CropButtonProps = Readonly<{
@@ -84,6 +90,7 @@ function CropSurface({
   onPointerDown,
   onPointerMove,
   onPointerEnd,
+  onWheel,
 }: CropSurfaceProps): ReactElement {
   return (
     <Button
@@ -91,13 +98,14 @@ function CropSurface({
       static
       variant="ghost"
       size="icon"
-      aria-label="Move image crop"
+      aria-label="Move or zoom image crop"
       aria-busy={isSaving}
       className="pointer-events-auto absolute inset-0 z-20 flex size-full cursor-move! touch-none items-center justify-center overflow-visible rounded-full bg-transparent text-sm font-medium text-muted-foreground"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerEnd}
       onPointerCancel={onPointerEnd}
+      onWheel={onWheel}
       disabled={isSaving}
     >
       <CropPreview
@@ -191,6 +199,7 @@ function CropEditorContents({
           onPointerDown={editor.handlePointerDown}
           onPointerMove={editor.handlePointerMove}
           onPointerEnd={editor.handlePointerEnd}
+          onWheel={editor.handleWheel}
         />
       ) : null}
       {canCrop && !isSaving ? (

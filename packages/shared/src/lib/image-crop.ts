@@ -56,6 +56,39 @@ export const moveCrop = (
   };
 };
 
+export const zoomCrop = (
+  crop: ImageCrop,
+  zoomFactor: number,
+  anchor: Readonly<{ x: number; y: number }>,
+  maximumCrop: ImageCrop,
+): ImageCrop => {
+  if (!Number.isFinite(zoomFactor) || zoomFactor <= 0) return crop;
+
+  const maximumScale = Math.min(
+    maximumCrop.width / crop.width,
+    maximumCrop.height / crop.height,
+  );
+  const minimumScale = Math.max(
+    maximumScale / 4,
+    0.1 / crop.width,
+    0.1 / crop.height,
+  );
+  const scale = Math.min(maximumScale, Math.max(minimumScale, 1 / zoomFactor));
+  const width = crop.width * scale;
+  const height = crop.height * scale;
+  const anchorX = Math.min(1, Math.max(0, anchor.x));
+  const anchorY = Math.min(1, Math.max(0, anchor.y));
+  const sourceX = crop.x + anchorX * crop.width;
+  const sourceY = crop.y + anchorY * crop.height;
+
+  return {
+    x: Math.min(100 - width, Math.max(0, sourceX - anchorX * width)),
+    y: Math.min(100 - height, Math.max(0, sourceY - anchorY * height)),
+    width,
+    height,
+  };
+};
+
 export const getCropStyle = (crop: ImageCrop) => ({
   position: "absolute" as const,
   maxWidth: "none",

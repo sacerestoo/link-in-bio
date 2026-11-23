@@ -4,7 +4,6 @@ import type { ImageCrop } from "@grabbin/shared/schemas/image-crop";
 import {
   getCenteredCrop,
   isCropCompatible,
-  moveCrop,
   type ImageDimensions,
 } from "@grabbin/shared/lib/image-crop";
 import {
@@ -12,31 +11,15 @@ import {
   useEffect,
   useRef,
   useState,
-  type Dispatch,
-  type PointerEvent as ReactPointerEvent,
   type RefObject,
-  type SetStateAction,
 } from "react";
-
-type CropDrag = Readonly<{
-  pointerId: number;
-  startX: number;
-  startY: number;
-  startCrop: ImageCrop;
-}>;
+import { useImageCropGestures } from "./use-image-crop-gestures";
 
 type CropDraftOptions = Readonly<{
   crop: ImageCrop | null;
   sourceSize: ImageDimensions;
   frameSize: ImageDimensions;
   onOpenChange: (isOpen: boolean) => void;
-}>;
-
-type CropDragOptions = Readonly<{
-  isOpen: boolean;
-  draftCrop: ImageCrop | undefined;
-  frameSize: ImageDimensions;
-  onDraftCropChange: Dispatch<SetStateAction<ImageCrop | undefined>>;
 }>;
 
 type ImageCropEditorOptions = Readonly<{
@@ -163,92 +146,6 @@ function useCancelOnOutsidePointerDown(
   }, [editorRef, isOpen, onCancel]);
 }
 
-function beginCropDrag(
-  event: ReactPointerEvent<HTMLButtonElement>,
-  crop: ImageCrop,
-): CropDrag {
-  event.preventDefault();
-  event.currentTarget.setPointerCapture(event.pointerId);
-  return {
-    pointerId: event.pointerId,
-    startX: event.clientX,
-    startY: event.clientY,
-    startCrop: crop,
-  };
-}
-
-function moveCropDrag(
-  event: ReactPointerEvent<HTMLButtonElement>,
-  drag: CropDrag,
-  frameSize: ImageDimensions,
-  onDraftCropChange: Dispatch<SetStateAction<ImageCrop | undefined>>,
-): void {
-  event.preventDefault();
-  onDraftCropChange(
-    moveCrop(
-      drag.startCrop,
-      event.clientX - drag.startX,
-      event.clientY - drag.startY,
-      frameSize,
-    ),
-  );
-}
-
-function endCropDrag(
-  event: ReactPointerEvent<HTMLButtonElement>,
-  dragRef: { current: CropDrag | null },
-): void {
-  if (dragRef.current?.pointerId !== event.pointerId) return;
-  dragRef.current = null;
-  if (event.currentTarget.hasPointerCapture(event.pointerId))
-    event.currentTarget.releasePointerCapture(event.pointerId);
-}
-
-function useCropDrag({
-  isOpen,
-  draftCrop,
-  frameSize,
-  onDraftCropChange,
-}: CropDragOptions) {
-  const dragRef = useRef<CropDrag | null>(null);
-  const resetDrag = useCallback(() => {
-    dragRef.current = null;
-  }, []);
-  const handlePointerDown = useCallback(
-    (event: ReactPointerEvent<HTMLButtonElement>) => {
-      if (
-        !isOpen ||
-        draftCrop === undefined ||
-        (event.pointerType === "mouse" && event.button !== 0)
-      )
-        return;
-      dragRef.current = beginCropDrag(event, draftCrop);
-    },
-    [draftCrop, isOpen],
-  );
-  const handlePointerMove = useCallback(
-    (event: ReactPointerEvent<HTMLButtonElement>) => {
-      const drag = dragRef.current;
-      if (
-        drag === null ||
-        draftCrop === undefined ||
-        drag.pointerId !== event.pointerId
-      )
-        return;
-      moveCropDrag(event, drag, frameSize, onDraftCropChange);
-    },
-    [draftCrop, frameSize, onDraftCropChange],
-  );
-  const handlePointerEnd = useCallback(
-    (event: ReactPointerEvent<HTMLButtonElement>) => {
-      endCropDrag(event, dragRef);
-    },
-    [],
-  );
-
-  return { handlePointerDown, handlePointerMove, handlePointerEnd, resetDrag };
-}
-
 export const useImageCropEditor = ({
   editorRef,
   src,
@@ -260,13 +157,14 @@ export const useImageCropEditor = ({
 }: ImageCropEditorOptions) => {
   const frameSize = useFrameSize(editorRef);
   const draft = useCropDraft({ crop, sourceSize, frameSize, onOpenChange });
-  const drag = useCropDrag({
+  const gestures = useImageCropGestures({
     isOpen: draft.isOpen,
     draftCrop: draft.draftCrop,
     frameSize,
+    sourceSize,
     onDraftCropChange: draft.setDraftCrop,
   });
-  const resetDrag = drag.resetDrag;
+  const resetDrag = gestures.reset;
   const cancelDraftCrop = draft.cancelCrop;
   const cancelCrop = useCallback(() => {
     resetDrag();
@@ -289,8 +187,9 @@ export const useImageCropEditor = ({
     cancelCrop,
     openCrop: draft.openCrop,
     applyCrop,
-    handlePointerDown: drag.handlePointerDown,
-    handlePointerMove: drag.handlePointerMove,
-    handlePointerEnd: drag.handlePointerEnd,
+    handlePointerDown: gestures.onPointerDown,
+    handlePointerMove: gestures.onPointerMove,
+    handlePointerEnd: gestures.onPointerEnd,
+    handleWheel: gestures.onWheel,
   };
 };
