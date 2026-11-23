@@ -15,10 +15,10 @@ import { getProfileImageUrl, profileQueries } from "./queries";
 
 type UpdateProfileOptions = Readonly<{
   client?: ApiClient;
-  onImageCropPreviewClear?: () => void;
+  onImageCropSaveSettled?: () => void;
 }>;
 type UpdateProfileContext = Readonly<{
-  previousCrop: PageResponse["imageCrop"];
+  previousImageCrop: PageResponse["imageCrop"];
 }>;
 
 const checkHandleAvailability = async (
@@ -117,7 +117,7 @@ export const profileMutations = {
         await queryClient.cancelQueries({
           queryKey: profileQueries.byHandle(handle),
         });
-        const previousCrop =
+        const previousImageCrop =
           queryClient.getQueryData<PageResponse>(
             profileQueries.byHandle(handle),
           )?.imageCrop ?? null;
@@ -126,9 +126,9 @@ export const profileMutations = {
           (page) =>
             page ? { ...page, imageCrop: update.imageCrop ?? null } : page,
         );
-        return { previousCrop };
+        return { previousImageCrop };
       },
-      onError: (...args) => {
+      onError: async (...args) => {
         const [, update, optimisticContext, { client: queryClient }] = args;
         if (update.imageCrop === undefined) return;
 
@@ -137,23 +137,20 @@ export const profileMutations = {
             profileQueries.byHandle(handle),
             (page) =>
               page
-                ? { ...page, imageCrop: optimisticContext.previousCrop }
+                ? { ...page, imageCrop: optimisticContext.previousImageCrop }
                 : page,
           );
 
-        options.onImageCropPreviewClear?.();
+        options.onImageCropSaveSettled?.();
+        await queryClient.invalidateQueries({
+          queryKey: profileQueries.byHandle(handle),
+        });
       },
       onSuccess: (...args) => {
         const [, update] = args;
-        if (update.imageCrop !== undefined) options.onImageCropPreviewClear?.();
-      },
-      onSettled: async (...args) => {
-        const [, , update, , { client }] = args;
         if (update.imageCrop === undefined) return;
 
-        await client.invalidateQueries({
-          queryKey: profileQueries.byHandle(handle),
-        });
+        options.onImageCropSaveSettled?.();
       },
     }),
   uploadImage: (handle: Handle) =>
@@ -163,6 +160,12 @@ export const profileMutations = {
         file: File;
         contentType: ProfileImageContentType;
       }) => uploadProfileImage(handle, input.file, input.contentType),
+      onError: async (...args) => {
+        const [, , , { client }] = args;
+        await client.invalidateQueries({
+          queryKey: profileQueries.byHandle(handle),
+        });
+      },
     }),
   removeImage: (handle: Handle) =>
     mutationOptions({

@@ -63,23 +63,38 @@ const preloadProfileImage = async (imageUrl: string): Promise<void> => {
   await image.decode();
 };
 
-const uploadSelectedImage = async ({
+const uploadImageWithLocalPreview = async ({
   file,
   contentType,
-  onPreviewUrlChange,
+  onLocalPreviewUrlChange,
   onUpload,
   onUploadSuccess,
 }: Readonly<{
   file: File;
   contentType: ProfileImageContentType;
-  onPreviewUrlChange: (imageUrl: string | null) => void;
+  onLocalPreviewUrlChange: (imageUrl: string | null) => void;
   onUpload: (input: ImageUploadInput) => Promise<UploadedImage>;
   onUploadSuccess: (image: UploadedImage) => void;
 }>): Promise<void> => {
+  let localPreviewUrl: string;
   try {
-    const previewUrl = URL.createObjectURL(file);
-    onPreviewUrlChange(previewUrl);
-    const uploadedImage = await onUpload({ file, contentType });
+    localPreviewUrl = URL.createObjectURL(file);
+  } catch (cause: unknown) {
+    reportImageError("Image preview failed", cause);
+    return;
+  }
+  onLocalPreviewUrlChange(localPreviewUrl);
+
+  let uploadedImage: UploadedImage;
+  try {
+    uploadedImage = await onUpload({ file, contentType });
+  } catch (cause: unknown) {
+    onLocalPreviewUrlChange(null);
+    reportImageError("Image upload failed", cause);
+    return;
+  }
+
+  try {
     onUploadSuccess(uploadedImage);
     if (uploadedImage.imageUrl === undefined) {
       reportImageError(
@@ -89,30 +104,24 @@ const uploadSelectedImage = async ({
       return;
     }
 
-    try {
-      await preloadProfileImage(uploadedImage.imageUrl);
-    } catch (cause: unknown) {
-      reportImageError("Image uploaded but the preview could not load", cause);
-      return;
-    }
-
-    onPreviewUrlChange(null);
+    await preloadProfileImage(uploadedImage.imageUrl);
   } catch (cause: unknown) {
-    onPreviewUrlChange(null);
-    reportImageError("Image upload failed", cause);
+    reportImageError("Image uploaded but the preview could not load", cause);
+  } finally {
+    onLocalPreviewUrlChange(null);
   }
 };
 
-const removeSelectedImage = async ({
+const removeImageAndClearLocalPreview = async ({
   onRemove,
-  onPreviewUrlChange,
+  onLocalPreviewUrlChange,
 }: Readonly<{
   onRemove: () => Promise<void>;
-  onPreviewUrlChange: (imageUrl: string | null) => void;
+  onLocalPreviewUrlChange: (imageUrl: string | null) => void;
 }>): Promise<void> => {
   try {
     await onRemove();
-    onPreviewUrlChange(null);
+    onLocalPreviewUrlChange(null);
   } catch (cause: unknown) {
     reportImageError("Image removal failed", cause);
   }
@@ -120,59 +129,59 @@ const removeSelectedImage = async ({
 
 export const useProfileImageActions = (
   handle: Handle,
-  currentImageSrc: string | undefined,
+  persistedImageSrc: string | undefined,
 ) => {
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isReplacingImage, setIsReplacingImage] = useState(false);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const upload = useMutation(profileMutations.uploadImage(handle));
   const remove = useMutation(profileMutations.removeImage(handle));
 
   useEffect(
     () => () => {
-      if (previewUrl !== null) URL.revokeObjectURL(previewUrl);
+      if (localPreviewUrl !== null) URL.revokeObjectURL(localPreviewUrl);
     },
-    [previewUrl],
+    [localPreviewUrl],
   );
 
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+  const onFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.currentTarget.files?.[0];
     event.currentTarget.value = "";
     if (file === undefined) return;
 
     const contentType = validateImageFile(file);
     if (contentType === null) return;
-    setIsTransitioning(true);
+    setIsReplacingImage(true);
     try {
-      await uploadSelectedImage({
+      await uploadImageWithLocalPreview({
         file,
         contentType,
-        onPreviewUrlChange: setPreviewUrl,
+        onLocalPreviewUrlChange: setLocalPreviewUrl,
         onUpload: upload.mutateAsync,
         onUploadSuccess: ({ imageKey }) => {
           updateProfileImageCache(queryClient, handle, imageKey);
         },
       });
     } finally {
-      setIsTransitioning(false);
+      setIsReplacingImage(false);
     }
   };
 
-  const removeImage = () =>
-    void removeSelectedImage({
+  const onRemove = () =>
+    void removeImageAndClearLocalPreview({
       onRemove: async () => {
         await remove.mutateAsync();
         updateProfileImageCache(queryClient, handle, null);
       },
-      onPreviewUrlChange: setPreviewUrl,
+      onLocalPreviewUrlChange: setLocalPreviewUrl,
     });
 
   return {
-    imageSrc: previewUrl ?? currentImageSrc,
-    hasImage: previewUrl !== null || currentImageSrc !== undefined,
-    isPreviewing: previewUrl !== null,
-    isSaving: upload.isPending || isTransitioning || remove.isPending,
-    handleFileChange,
-    removeImage,
+    imageSrc: localPreviewUrl ?? persistedImageSrc,
+    hasImage: localPreviewUrl !== null || persistedImageSrc !== undefined,
+    isReplacingImage,
+    isSaving: upload.isPending || isReplacingImage || remove.isPending,
+    onFileChange,
+    onRemove,
   };
 };

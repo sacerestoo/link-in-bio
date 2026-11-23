@@ -6,21 +6,21 @@ import { useState } from "react";
 import { profileMutations } from "../mutations";
 
 export const useProfileImageCrop = (handle: Handle) => {
-  const [imageCropPreview, setImageCropPreview] = useState<ImageCrop | null>(
+  const [pendingImageCrop, setPendingImageCrop] = useState<ImageCrop | null>(
     null,
   );
-  const cropMutation = useMutation(
+  const saveCropMutation = useMutation(
     profileMutations.updateProfile(handle, {
-      onImageCropPreviewClear: () => {
-        setImageCropPreview(null);
+      onImageCropSaveSettled: () => {
+        setPendingImageCrop(null);
       },
     }),
   );
 
   return {
-    imageCropPreview,
-    isSaving: cropMutation.isPending,
-    onError: (cause: unknown) => {
+    pendingImageCrop,
+    isSavingCrop: saveCropMutation.isPending,
+    onCropSaveError: (cause: unknown) => {
       toast.add({
         title: "Profile image crop failed",
         description:
@@ -28,9 +28,9 @@ export const useProfileImageCrop = (handle: Handle) => {
         type: "error",
       });
     },
-    onApply: (crop: ImageCrop) => {
-      setImageCropPreview(crop);
-      return cropMutation.mutateAsync({ imageCrop: crop });
+    onApplyCrop: (imageCrop: ImageCrop) => {
+      setPendingImageCrop(imageCrop);
+      return saveCropMutation.mutateAsync({ imageCrop });
     },
   };
 };

@@ -8,6 +8,7 @@ import type { ProfilePageData } from "../queries";
 type ProfileImageViewProps = Readonly<
   Pick<ProfilePageData, "imageSrc" | "hasImage"> & {
     crop: ProfilePageData["imageCrop"];
+    isCropEditorOpen?: boolean;
     onLoad?: (image: HTMLImageElement) => void;
     editorControls?: ReactNode;
   }
@@ -17,11 +18,17 @@ export function ProfileImageView({
   imageSrc,
   hasImage,
   crop,
+  isCropEditorOpen = false,
   onLoad,
   editorControls,
 }: ProfileImageViewProps): ReactElement {
   return (
-    <div className="group/image relative isolate size-28 self-start transition-[transform,scale] duration-200 ease-in-out has-[.profile-image-change-button:active]:scale-[0.97] page-wide:size-46">
+    <div
+      className={cn(
+        "group/image relative isolate size-28 self-start transition-[transform,scale] duration-200 ease-in-out has-[.profile-image-change-button:active]:scale-[0.97] page-wide:size-46",
+        isCropEditorOpen ? "z-50" : "",
+      )}
+    >
       <div
         className={cn(
           "absolute inset-0 overflow-hidden rounded-full bg-brand-light-gray text-sm font-medium text-muted-foreground profile-image-outline",

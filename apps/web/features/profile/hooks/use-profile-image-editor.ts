@@ -5,44 +5,59 @@ import { useProfileImageActions } from "./use-profile-image-actions";
 import { useProfileImageCrop } from "./use-profile-image-crop";
 
 export const useProfileImageEditor = (page: ProfilePageData) => {
-  const [isCropOpen, setIsCropOpen] = useState(false);
-  const [sourceSize, setSourceSize] = useState<ImageDimensions>({
-    width: 0,
-    height: 0,
-  });
-  const crop = useProfileImageCrop(page.handle);
+  const [isCropEditorOpen, setIsCropEditorOpen] = useState(false);
+  const [sourceImageDimensions, setSourceImageDimensions] =
+    useState<ImageDimensions>({
+      width: 0,
+      height: 0,
+    });
+
+  const cropSave = useProfileImageCrop(page.handle);
   const image = useProfileImageActions(page.handle, page.imageSrc);
-  const imageCrop = image.isPreviewing
-    ? null
-    : (crop.imageCropPreview ?? page.imageCrop);
-  const isSaving = image.isSaving || crop.isSaving;
+
+  const displayedImageCrop = (() => {
+    switch (image.isReplacingImage) {
+      case true:
+        // The incoming image must not inherit the previous image's crop.
+        return null;
+      case false:
+        if (cropSave.pendingImageCrop !== null)
+          return cropSave.pendingImageCrop;
+        return page.imageCrop;
+      default:
+        return page.imageCrop;
+    }
+  })();
+
+  const isSaving = image.isSaving || cropSave.isSavingCrop;
 
   return {
     view: {
       imageSrc: image.imageSrc,
       hasImage: image.hasImage,
-      crop: imageCrop,
-      onLoad: (imageElement: HTMLImageElement) => {
-        setSourceSize({
+      crop: displayedImageCrop,
+      isCropEditorOpen,
+      onImageLoad: (imageElement: HTMLImageElement) => {
+        setSourceImageDimensions({
           width: imageElement.naturalWidth,
           height: imageElement.naturalHeight,
         });
       },
     },
     controls: {
-      sourceSize,
+      sourceImageDimensions,
       isSaving,
-      isChangeDisabled: isSaving || isCropOpen,
-      canRemove: image.hasImage && !isCropOpen && !isSaving,
-      onRemove: image.removeImage,
+      isImageChangeDisabled: isSaving || isCropEditorOpen,
+      canRemoveImage: image.hasImage && !isCropEditorOpen && !isSaving,
+      onRemove: image.onRemove,
       onFileChange: (event: ChangeEvent<HTMLInputElement>) => {
-        void image.handleFileChange(event);
+        void image.onFileChange(event);
       },
     },
     cropEditor: {
-      onApply: crop.onApply,
-      onError: crop.onError,
-      onOpenChange: setIsCropOpen,
+      onApply: cropSave.onApplyCrop,
+      onError: cropSave.onCropSaveError,
+      onOpenChange: setIsCropEditorOpen,
     },
   };
 };

@@ -13,12 +13,20 @@ import { Trash } from "./trash";
 export function ProfileImageEditor({
   page,
 }: Readonly<{ page: ProfilePageData }>): ReactElement {
-  const { view, controls, cropEditor } = useProfileImageEditor(page);
+  const {
+    view: { imageSrc, hasImage, crop, isCropEditorOpen, onImageLoad },
+    controls,
+    cropEditor,
+  } = useProfileImageEditor(page);
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <ProfileImageView
-      {...view}
+      imageSrc={imageSrc}
+      hasImage={hasImage}
+      crop={crop}
+      isCropEditorOpen={isCropEditorOpen}
+      onLoad={onImageLoad}
       editorControls={
         <div className="pointer-events-none absolute inset-0">
           <Button
@@ -30,17 +38,17 @@ export function ProfileImageEditor({
             aria-busy={controls.isSaving}
             className="profile-image-change-button pointer-events-auto absolute inset-0 flex size-full items-center justify-center overflow-visible rounded-full bg-transparent text-sm font-medium text-muted-foreground hover:bg-muted/10"
             onClick={() => inputRef.current?.click()}
-            disabled={controls.isChangeDisabled}
+            disabled={controls.isImageChangeDisabled}
           >
             <PermissionGate
-              allowed={!view.hasImage}
+              allowed={!hasImage}
               whenAllowed={
                 <CircleFadingArrowUp className="size-7 xl:size-10" />
               }
             />
           </Button>
           <PermissionGate
-            allowed={controls.canRemove}
+            allowed={controls.canRemoveImage}
             whenAllowed={
               <Button
                 type="button"
@@ -69,9 +77,9 @@ export function ProfileImageEditor({
             onChange={controls.onFileChange}
           />
           <ImageCropEditor
-            src={view.hasImage ? view.imageSrc : undefined}
-            crop={view.crop}
-            sourceSize={controls.sourceSize}
+            src={hasImage ? imageSrc : undefined}
+            crop={crop}
+            sourceSize={controls.sourceImageDimensions}
             isSaving={controls.isSaving}
             onApply={cropEditor.onApply}
             onError={cropEditor.onError}
