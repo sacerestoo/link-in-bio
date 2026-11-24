@@ -68,7 +68,7 @@ function ShareDrawerContent({
   return (
     <>
       <DrawerHeader className="p-0 pb-4">
-        <DrawerTitle className={"text-lg"}>Share your page</DrawerTitle>
+        <DrawerTitle className={"text-lg"}>Share page</DrawerTitle>
         <DrawerDescription className={"sr-only"}>
           Scan this QR code to open your page.
         </DrawerDescription>
