@@ -22,7 +22,7 @@ export default function ProfileFooter({
 }: ProfileFooterProps) {
   return (
     <aside className="w-full shrink-0 bg-secondary page-wide:fixed page-wide:inset-x-0 page-wide:bottom-8 page-wide:z-40 page-wide:bg-transparent">
-      <div className="mx-auto flex h-17 w-full max-w-107 shrink-0 items-center justify-center gap-2 p-6 page-wide:h-9.5 page-wide:max-w-none page-wide:justify-start page-wide:p-0 page-wide:px-8">
+      <div className="mx-auto flex h-17 w-full max-w-107 shrink-0 items-center justify-center gap-1 p-6 page-wide:h-9.5 page-wide:max-w-none page-wide:justify-start page-wide:p-0 page-wide:px-8">
         <PermissionGate
           allowed={isOwner}
           whenAllowed={<ProfileActions />}
