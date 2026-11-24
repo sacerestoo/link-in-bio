@@ -84,7 +84,7 @@ export function MyPageLink({
     return createYoursLink;
 
   if (isPending || (session !== null && isQueryPending))
-    return <Skeleton className="h-9.5 w-26 page-wide:rounded-lg" />;
+    return <Skeleton className="h-9 w-26 page-wide:rounded-lg" />;
 
   if (session === null) return createYoursLink;
 
