@@ -5,7 +5,20 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { profileMutations } from "../mutations";
 
-export const useProfileImageCrop = (handle: Handle) => {
+const isSameCrop = (
+  currentCrop: ImageCrop | null,
+  nextCrop: ImageCrop,
+): boolean =>
+  currentCrop !== null &&
+  currentCrop.x === nextCrop.x &&
+  currentCrop.y === nextCrop.y &&
+  currentCrop.width === nextCrop.width &&
+  currentCrop.height === nextCrop.height;
+
+export const useProfileImageCrop = (
+  handle: Handle,
+  currentCrop: ImageCrop | null,
+) => {
   const [pendingImageCrop, setPendingImageCrop] = useState<ImageCrop | null>(
     null,
   );
@@ -29,6 +42,8 @@ export const useProfileImageCrop = (handle: Handle) => {
       });
     },
     onApplyCrop: (imageCrop: ImageCrop) => {
+      if (isSameCrop(currentCrop, imageCrop)) return Promise.resolve();
+
       setPendingImageCrop(imageCrop);
       return saveCropMutation.mutateAsync({ imageCrop });
     },

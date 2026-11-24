@@ -12,7 +12,7 @@ export const useProfileImageEditor = (page: ProfilePageData) => {
       height: 0,
     });
 
-  const cropSave = useProfileImageCrop(page.handle);
+  const cropSave = useProfileImageCrop(page.handle, page.imageCrop);
   const image = useProfileImageActions(page.handle, page.imageSrc);
 
   const displayedImageCrop = (() => {
