@@ -1,6 +1,10 @@
 import { isJSONObject } from "es-toolkit/predicate";
 import * as v from "valibot";
-import { BENTO_BLOCK_TYPES, bentoLayoutEntrySchema } from "./bento-layout";
+import {
+  BENTO_BLOCK_TYPES,
+  bentoLayoutEntrySchema,
+  bentoLayoutSchema,
+} from "./bento-layout";
 
 type BentoJsonValue =
   | string
@@ -55,10 +59,16 @@ export const bentoItemResponseSchema = v.union([
   unknownBentoItemSchema,
 ]);
 
-export const bentoBatchRequestSchema = v.strictObject({
-  upserts: v.array(bentoItemResponseSchema),
-  deletes: v.array(bentoItemIdSchema),
-});
+export const bentoBatchRequestSchema = v.pipe(
+  v.strictObject({
+    upserts: v.array(bentoItemResponseSchema),
+    deletes: v.array(bentoItemIdSchema),
+  }),
+  v.check(
+    (batch) => v.safeParse(bentoLayoutSchema, batch.upserts).success,
+    "Upserted items must have valid, non-overlapping layouts.",
+  ),
+);
 
 export type BentoItem = v.InferOutput<typeof bentoItemSchema>;
 export type UnknownBentoItem = v.InferOutput<typeof unknownBentoItemSchema>;
