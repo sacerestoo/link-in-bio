@@ -42,7 +42,7 @@ function EmailField({
         }}
         placeholder="Email"
         required
-        size="xl"
+        size="2xl"
         type="email"
         value={email}
       />
@@ -105,9 +105,9 @@ export default function EmailOtpForm({
           <Button
             className="w-full rounded-xl"
             pending={isPending}
-            size="xl"
+            size="2xl"
             type="submit"
-            variant="brand"
+            variant="default"
           >
             Send OTP
           </Button>

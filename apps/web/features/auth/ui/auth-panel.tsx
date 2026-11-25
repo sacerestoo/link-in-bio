@@ -44,29 +44,27 @@ function SocialProviderButtons({
   onSignIn: (provider: SocialProvider) => void;
 }>): ReactNode {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="flex justify-center gap-3">
       {socialProviders.map((provider) => (
         <Button
           key={provider.id}
-          className={
-            provider.id === "line" ? "col-span-2 rounded-full" : "rounded-full"
-          }
+          aria-label={provider.label}
+          className="size-12 rounded-full"
           disabled={pendingProvider !== undefined}
           pending={pendingProvider === provider.id}
           onClick={() => {
             onSignIn(provider.id);
           }}
           type="button"
-          variant="outline"
-          size="xl"
+          variant="secondary"
+          size="icon-lg"
         >
           <Image
             alt=""
-            height={18}
+            height={20}
             src={provider.icon}
-            width={18}
+            width={20}
           />
-          {provider.label}
         </Button>
       ))}
     </div>
@@ -191,7 +189,7 @@ export default function AuthPanel(props: AuthPanelProps): ReactNode {
   } = props;
 
   return (
-    <div className="w-full max-w-xs">
+    <div className="w-full max-w-sm">
       <Activity mode={emailOtp === undefined ? "visible" : "hidden"}>
         <AuthStartStage
           confirmedHandle={confirmedHandle}

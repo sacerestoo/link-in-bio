@@ -66,7 +66,7 @@ function HandleInputControl({
 }>): ReactNode {
   return (
     <InputGroup
-      size="xl"
+      size="2xl"
       variant="flat"
     >
       <InputGroupInput

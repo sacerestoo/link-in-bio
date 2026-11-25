@@ -55,7 +55,7 @@ export default function HandleForm({
         pending={checking}
         type="submit"
         variant="outline"
-        size="xl"
+        size="2xl"
       >
         Continue
       </Button>

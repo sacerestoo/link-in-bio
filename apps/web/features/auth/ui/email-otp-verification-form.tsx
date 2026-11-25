@@ -157,11 +157,11 @@ function VerificationActions({
   return (
     <Field className="gap-4">
       <Button
-        className="w-full rounded-full"
+        className="w-full rounded-lg"
         disabled={!canVerify || isSigningIn}
         onClick={onVerify}
         pending={isSigningIn}
-        size="xl"
+        size="2xl"
         type="button"
         variant="outline"
       >
@@ -194,7 +194,7 @@ export default function EmailOtpVerificationForm({
   const state = useEmailOtpVerification(email, handle, redirectTo);
 
   return (
-    <section className="w-full max-w-xs rounded-2xl bg-background">
+    <section className="w-full rounded-2xl bg-background">
       <header className="mb-6 space-y-1 text-center">
         <h1 className="text-xl font-medium tracking-tight">Check your inbox</h1>
         <div>
