@@ -19,6 +19,7 @@ function MyPageLinkButton({
 }: Readonly<{ page: ProfilePageData }>): ReactElement {
   return (
     <Button
+      nativeButton={false}
       variant="ghost"
       size="default"
       className="group h-9.5 px-2 text-sm page-wide:h-9.5 page-wide:gap-1.5 page-wide:rounded-lg page-wide:px-2 page-wide:text-sm"
