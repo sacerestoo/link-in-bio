@@ -57,6 +57,10 @@ it("disables React rules without changing the other profiles", () => {
   );
   expect(config.rules).toHaveProperty("query/canonical-query-hooks", "error");
   expect(config.rules).toHaveProperty("query/no-hardcoded-query-keys", "error");
+  expect(config.rules).toHaveProperty(
+    "query/no-query-key-helper-functions",
+    "error",
+  );
   expect(config.rules).toHaveProperty("query/no-page-set-query-data", "error");
 });
 
@@ -73,6 +77,10 @@ it("disables Vite+ lint rules while keeping TanStack rules", () => {
   expect(config.rules).not.toHaveProperty("testing/require-vite-plus-test");
   expect(config.rules).toHaveProperty("query/canonical-query-hooks", "error");
   expect(config.rules).toHaveProperty("query/no-hardcoded-query-keys", "error");
+  expect(config.rules).toHaveProperty(
+    "query/no-query-key-helper-functions",
+    "error",
+  );
   expect(config.rules).toHaveProperty("query/no-page-set-query-data", "error");
 });
 
@@ -85,6 +93,9 @@ it("lets TanStack Query be disabled independently", () => {
   expect(config.rules).not.toHaveProperty("query/canonical-query-definitions");
   expect(config.rules).not.toHaveProperty("query/canonical-query-hooks");
   expect(config.rules).not.toHaveProperty("query/no-hardcoded-query-keys");
+  expect(config.rules).not.toHaveProperty(
+    "query/no-query-key-helper-functions",
+  );
   expect(config.rules).not.toHaveProperty("query/no-page-set-query-data");
   expect(config.rules).toHaveProperty(
     "vite-plus/prefer-vite-plus-imports",

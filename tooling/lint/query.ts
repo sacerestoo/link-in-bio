@@ -6,6 +6,7 @@ import {
   isAstNode,
   type AstNode,
 } from "./naming/ast-utils.ts";
+import { noQueryKeyHelperFunctions } from "./no-query-key-helper-functions.ts";
 import { canonicalQueryHooks } from "./query-hooks.ts";
 import {
   definitionImport,
@@ -89,29 +90,15 @@ function isQueryKeyFactory(
   if (callee?.type !== "Identifier") return false;
   const variable = resolveIdentifier(context, callee);
   return (
-    variable?.defs.some((definition) => {
-      if (localQueryModule && definition.type === "Variable") {
-        if (!(getName(callee) ?? "").endsWith("QueryKey")) return false;
-        const initializer = getChild(definition.node, "init");
-        return (
-          initializer?.type === "ArrowFunctionExpression" ||
-          initializer?.type === "FunctionExpression"
-        );
-      }
-      if (localQueryModule && definition.type === "FunctionName") {
-        return (
-          (getName(callee) ?? "").endsWith("QueryKey") &&
-          isAstNode(definition.node) &&
-          definition.node.type === "FunctionDeclaration"
-        );
-      }
+    !localQueryModule &&
+    (variable?.defs.some((definition) => {
       const imported = definitionImport(definition);
       return (
-        !localQueryModule &&
         imported?.source.endsWith("/queries") === true &&
-        imported.imported?.endsWith("QueryKey") === true
+        imported.imported?.endsWith("Queries") === true
       );
-    }) ?? false
+    }) ??
+      false)
   );
 }
 
@@ -267,6 +254,7 @@ export default definePlugin({
     "canonical-query-definitions": canonicalQueryDefinitions,
     "canonical-query-hooks": canonicalQueryHooks,
     "no-hardcoded-query-keys": noHardcodedQueryKeys,
+    "no-query-key-helper-functions": noQueryKeyHelperFunctions,
     "no-page-set-query-data": noPageSetQueryData,
   },
 });

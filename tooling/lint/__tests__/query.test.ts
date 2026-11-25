@@ -16,6 +16,8 @@ const canonicalQueryDefinitions =
   queryPlugin.rules["canonical-query-definitions"];
 const canonicalQueryHooks = queryPlugin.rules["canonical-query-hooks"];
 const noHardcodedQueryKeys = queryPlugin.rules["no-hardcoded-query-keys"];
+const noQueryKeyHelperFunctions =
+  queryPlugin.rules["no-query-key-helper-functions"];
 const noPageSetQueryData = queryPlugin.rules["no-page-set-query-data"];
 const queriesFile = "apps/web/features/projects/queries.ts";
 const queryHookFile = "apps/web/features/projects/hooks/use-projects.ts";
@@ -109,12 +111,6 @@ tester.run("no-hardcoded-query-keys", noHardcodedQueryKeys, {
     {
       filename: queriesFile,
       code: `import { queryOptions } from "@tanstack/react-query";
-        export const userQueryKey = () => ["users"];
-        queryOptions({ queryKey: userQueryKey() });`,
-    },
-    {
-      filename: queriesFile,
-      code: `import { queryOptions } from "@tanstack/react-query";
         export const postQueries = {
           all: () => ["post"] as const,
           detail: (id: string) => queryOptions({
@@ -128,8 +124,8 @@ tester.run("no-hardcoded-query-keys", noHardcodedQueryKeys, {
     },
     {
       filename: "apps/web/features/projects/use-project-mutations.ts",
-      code: `import { projectsQueryKey as keys } from "./queries";
-        client.invalidateQueries({ queryKey: keys("user-1") });`,
+      code: `import { projectQueries as keys } from "./queries";
+        client.invalidateQueries({ queryKey: keys.byId("project-1") });`,
     },
     {
       filename: "apps/web/features/projects/use-project-mutations.ts",
@@ -137,11 +133,7 @@ tester.run("no-hardcoded-query-keys", noHardcodedQueryKeys, {
     },
     {
       filename: "apps/web/features/projects/use-project-mutations.ts",
-      code: 'import { projectsQueryKey } from "./queries"; client.getQueryData(projectsQueryKey());',
-    },
-    {
-      filename: "apps/web/features/projects/use-project-mutations.ts",
-      code: 'import { projectsQueryKey as keyFactory } from "./queries"; client.getQueryData(keyFactory());',
+      code: 'import { projectQueries } from "./queries"; client.getQueryData(projectQueries.byId("project-1"));',
     },
   ],
   invalid: [
@@ -168,6 +160,11 @@ tester.run("no-hardcoded-query-keys", noHardcodedQueryKeys, {
     },
     {
       filename: "apps/web/features/projects/use-project-mutations.ts",
+      code: 'import { projectsQueryKey } from "./queries"; client.getQueryData(projectsQueryKey());',
+      errors: [{ message: /queries\.ts/u }],
+    },
+    {
+      filename: "apps/web/features/projects/use-project-mutations.ts",
       code: 'import { projectsQueryKey } from "./queries"; function run(projectsQueryKey: () => string[]) { client.getQueryData(projectsQueryKey()); }',
       errors: [{ message: /queries\.ts/u }],
     },
@@ -175,6 +172,40 @@ tester.run("no-hardcoded-query-keys", noHardcodedQueryKeys, {
       filename: "apps/web/features/projects/use-project-mutations.ts",
       code: 'import { projectsQueryKey } from "./queries"; function run() { const projectsQueryKey = () => ["fake"]; client.getQueryData(projectsQueryKey()); }',
       errors: [{ message: /queries\.ts/u }],
+    },
+  ],
+});
+
+tester.run("no-query-key-helper-functions", noQueryKeyHelperFunctions, {
+  valid: [
+    {
+      filename: queriesFile,
+      code: `export const pageQueries = {
+          all: () => ["page"] as const,
+          myPage: (userId: string) => queryOptions({
+            queryKey: [...pageQueries.all(), "me", userId], queryFn: load
+          }),
+        };`,
+    },
+    {
+      filename: "apps/web/features/projects/use-projects.ts",
+      code: 'const projectsQueryKey = () => ["projects"] as const;',
+    },
+  ],
+  invalid: [
+    {
+      filename: queriesFile,
+      code: `function myPageQueryKey(userId: string) {
+          return ["page", "me", userId] as const;
+        }
+        queryOptions({ queryKey: myPageQueryKey("user-1") });`,
+      errors: [{ message: /not as standalone \*QueryKey functions/u }],
+    },
+    {
+      filename: queriesFile,
+      code: `const myPageQueryKey = (userId: string) => ["page", "me", userId] as const;
+        queryOptions({ queryKey: myPageQueryKey("user-1") });`,
+      errors: [{ message: /not as standalone \*QueryKey functions/u }],
     },
   ],
 });
@@ -204,6 +235,7 @@ it("registers the canonical query rules", () => {
     "canonical-query-definitions",
     "canonical-query-hooks",
     "no-hardcoded-query-keys",
+    "no-query-key-helper-functions",
     "no-page-set-query-data",
   ]);
 });

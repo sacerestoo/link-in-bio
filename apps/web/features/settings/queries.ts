@@ -19,8 +19,6 @@ const getBillingSession = (client: ApiClient = api) =>
   );
 
 const billingSessionRootKey = ["billing-session"] as const;
-export const billingSessionQueryKey = (userId: string) =>
-  [...billingSessionRootKey, userId] as const;
 const billingSessionQueryOptions = (
   {
     userId,
@@ -31,7 +29,7 @@ const billingSessionQueryOptions = (
   client: ApiClient = api,
 ) =>
   queryOptions({
-    queryKey: billingSessionQueryKey(userId),
+    queryKey: billingQueries.byUserId(userId),
     queryFn: () => getBillingSession(client),
     initialData,
     select: (billing) =>
@@ -42,7 +40,7 @@ const billingSessionQueryOptions = (
 
 export const billingQueries = {
   all: () => billingSessionRootKey,
-  byUserId: billingSessionQueryKey,
+  byUserId: (userId: string) => [...billingQueries.all(), userId] as const,
   session: billingSessionQueryOptions,
 };
 
