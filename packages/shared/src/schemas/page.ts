@@ -87,11 +87,12 @@ export const profileImageUploadResponseSchema = v.object({
 export const pageResponseSchema = v.object({
   ...pageSchema.entries,
   isOwner: v.boolean(),
+  bento: v.array(bentoItemResponseSchema),
 });
 
-export const pageSnapshotResponseSchema = v.object({
-  ...pageResponseSchema.entries,
-  bento: v.array(bentoItemResponseSchema),
+export const pageProfileResponseSchema = v.object({
+  ...pageSchema.entries,
+  isOwner: v.boolean(),
 });
 
 const pageProfileSchema = v.pipe(
@@ -119,7 +120,7 @@ export const pageSaveRequestSchema = v.pipe(
 export type Handle = v.InferOutput<typeof handleSchema>;
 export type PageUpdate = v.InferOutput<typeof pageUpdateSchema>;
 export type PageResponse = v.InferOutput<typeof pageResponseSchema>;
-export type PageSnapshotResponse = v.InferOutput<
-  typeof pageSnapshotResponseSchema
+export type PageProfileResponse = v.InferOutput<
+  typeof pageProfileResponseSchema
 >;
 export type PageSaveRequest = v.InferOutput<typeof pageSaveRequestSchema>;

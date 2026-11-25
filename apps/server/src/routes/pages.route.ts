@@ -3,8 +3,8 @@ import { createDatabase } from "@grabbin/db";
 import {
   HANDLE_UNAVAILABLE_MESSAGE,
   handleSchema,
+  pageProfileResponseSchema,
   pageResponseSchema,
-  pageSnapshotResponseSchema,
   profileImageUploadSchema,
   pageUpdateSchema,
 } from "@grabbin/shared/schemas/page";
@@ -31,14 +31,20 @@ const createPagesService = (connectionString: string) =>
 export const pagesRoute = new Hono<{
   Bindings: ServerBindings;
 }>()
-  .get("/me", requireSession, async (c) => {
+  .get("/me", requireSession, async (c): Promise<Response> => {
     const pagesService = createPagesService(c.env.HYPERDRIVE.connectionString);
     const userId = c.get("session").user.id;
-    const page = await pagesService.findPageInfo({ userId }, userId);
+    const page = await pagesService.findPageInfo({ userId });
     if (page === undefined)
       throw new HTTPException(404, { message: "Page not found" });
 
-    return c.json(v.parse(pageResponseSchema, page));
+    const { userId: ownerId, ...pageInfo } = page;
+    return c.json(
+      v.parse(pageProfileResponseSchema, {
+        ...pageInfo,
+        isOwner: ownerId === userId,
+      }),
+    );
   })
   .post(
     "/handle",
@@ -79,8 +85,8 @@ export const pagesRoute = new Hono<{
       const userId = c.get("session").user.id;
       const page = await createPagesService(
         c.env.HYPERDRIVE.connectionString,
-      ).findPageInfo({ handle }, userId);
-      if (page === undefined || !page.isOwner)
+      ).findPageInfo({ handle });
+      if (page === undefined || page.userId !== userId)
         throw new HTTPException(404, { message: "Page not found" });
 
       const upload = await createProfileImageUpload(
@@ -113,11 +119,17 @@ export const pagesRoute = new Hono<{
       const { handle } = c.req.valid("param");
       const userId = c.get("session")?.user.id;
 
-      const page = await pagesService.findPageInfo({ handle }, userId);
+      const page = await pagesService.findPageInfo({ handle });
       if (page === undefined)
         throw new HTTPException(404, { message: "Page not found" });
 
-      return c.json(v.parse(pageSnapshotResponseSchema, page));
+      const { userId: ownerId, ...pageInfo } = page;
+      return c.json(
+        v.parse(pageResponseSchema, {
+          ...pageInfo,
+          isOwner: ownerId === userId,
+        }),
+      );
     },
   )
   .patch(

@@ -1,21 +1,18 @@
 import "server-only";
 import type { Database } from "@grabbin/db";
+import { bentoItems } from "@grabbin/db/schema/bento-items";
 import { pages } from "@grabbin/db/schema/pages";
 import {
   HANDLE_UNAVAILABLE_MESSAGE,
   handleSchema,
   type Handle,
-  type PageSnapshotResponse,
+  type PageResponse,
   type PageUpdate,
 } from "@grabbin/shared/schemas/page";
 import { and, eq as equal } from "drizzle-orm";
 import * as v from "valibot";
 import { isPostgresUniqueViolation } from "../lib/postgres-error";
 import { shouldResetImageCrop } from "../lib/profile-images";
-import {
-  findPageSnapshotRows,
-  type PageSnapshotLookup,
-} from "./bento.repository";
 
 export const PAGE_SERVICE_STATUS = {
   available: "available",
@@ -49,7 +46,13 @@ export type EnsurePageForUserResult =
       { status: typeof PAGE_SERVICE_STATUS.available }
     >;
 
-type PageInfo = PageSnapshotResponse & { userId: string };
+type PageProfileInfo = Omit<PageResponse, "isOwner" | "bento"> & {
+  userId: string;
+};
+type PageInfo = Omit<PageResponse, "isOwner"> & {
+  userId: string;
+};
+type PageInfoLookup = { handle: string } | { userId: string };
 
 export class PagesService {
   constructor(private readonly database: Database) {}
@@ -63,19 +66,54 @@ export class PagesService {
     return matchingPage === undefined;
   }
 
+  findPageInfo(lookup: { handle: string }): Promise<PageInfo | undefined>;
+  findPageInfo(lookup: {
+    userId: string;
+  }): Promise<PageProfileInfo | undefined>;
   async findPageInfo(
-    lookup: PageSnapshotLookup,
-    currentUserId?: string,
-  ): Promise<PageInfo | undefined> {
-    const rows = await findPageSnapshotRows(this.database, lookup);
+    lookup: PageInfoLookup,
+  ): Promise<PageInfo | PageProfileInfo | undefined> {
+    if ("userId" in lookup)
+      return this.database.query.pages.findFirst({
+        columns: {
+          userId: true,
+          handle: true,
+          name: true,
+          bio: true,
+          imageKey: true,
+          imageCrop: true,
+        },
+        where: (page, { eq }) => eq(page.userId, lookup.userId),
+      });
+
+    const rows = await this.database
+      .select({
+        page: {
+          userId: pages.userId,
+          handle: pages.handle,
+          name: pages.name,
+          bio: pages.bio,
+          imageKey: pages.imageKey,
+          imageCrop: pages.imageCrop,
+        },
+        bento: {
+          id: bentoItems.id,
+          type: bentoItems.type,
+          data: bentoItems.data,
+          style: bentoItems.style,
+          layouts: bentoItems.layouts,
+        },
+      })
+      .from(pages)
+      .leftJoin(bentoItems, equal(bentoItems.pageId, pages.id))
+      .where(equal(pages.handle, lookup.handle));
     const firstRow = rows[0];
     if (firstRow === undefined) return undefined;
 
-    const { userId: ownerId, ...page } = firstRow.page;
+    const { userId, ...page } = firstRow.page;
     return {
       ...page,
-      userId: ownerId,
-      isOwner: ownerId === currentUserId,
+      userId,
       bento: rows.flatMap((row) => (row.bento === null ? [] : [row.bento])),
     };
   }
@@ -91,8 +129,8 @@ export class PagesService {
         page: null,
       } as const;
 
-    const page = await this.findPageInfo({ handle }, userId);
-    if (page?.isOwner !== true)
+    const page = await this.findPageInfo({ handle });
+    if (page === undefined || page.userId !== userId)
       return { status: PAGE_SERVICE_STATUS.notFound } as const;
 
     const nextImageKey =
