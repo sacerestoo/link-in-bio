@@ -24,7 +24,7 @@
     "better-auth": "catalog:",
     "canvas-confetti": "^1.9.4",
     "cuer": "^0.0.4",
-    "es-toolkit": "^1.53.2",
+    "es-toolkit": "catalog:",
     "evlog": "^2.35.1",
     "hono": "^4.13.18",
     "lucide-react": "^1.72.0",
