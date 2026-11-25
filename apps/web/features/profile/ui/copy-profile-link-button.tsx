@@ -43,7 +43,7 @@ export function CopyProfileLinkButton({
       type="button"
       variant="outline"
       size="2xl"
-      className="w-32 justify-center gap-2 bg-brand-green px-4 font-semibold text-background shadow-none! drop-shadow-sm hover:bg-brand-green/80! hover:text-background"
+      className="w-32 justify-center gap-2 bg-brand-green px-4 font-semibold text-background shadow-none! drop-shadow-xs hover:bg-brand-green/80! hover:text-background"
       onClick={() => {
         void handleCopy();
       }}
