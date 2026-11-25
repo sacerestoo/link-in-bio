@@ -1,5 +1,11 @@
 import { api, type ApiClient } from "@/lib/api-client";
-import { pageResponseSchema, type Handle } from "@grabbin/shared/schemas/page";
+import {
+  pageProfileResponseSchema,
+  pageResponseSchema,
+  type Handle,
+  type PageProfileResponse,
+  type PageResponse,
+} from "@grabbin/shared/schemas/page";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import * as v from "valibot";
 
@@ -18,34 +24,56 @@ export const getProfileImageUrl = (
   return `${imageBaseUrl.replace(/\/$/u, "")}/${encodedKey}`;
 };
 
-const getPage = async (handle: Handle, client: ApiClient = api) =>
-  v.parse(
-    pageResponseSchema,
-    await client.v1.pages[":handle"]
-      .$get({ param: { handle } })
-      .then((response) => response.json()),
-  );
+type PageInfoLookup =
+  | { currentUser: true }
+  | { handle: Handle }
+  | { userId: string };
 
-const getMyPage = async (client: ApiClient = api) =>
-  v.parse(
-    pageResponseSchema,
-    await client.v1.pages.me.$get().then((response) => response.json()),
-  );
+function getPageInfo(
+  lookup: { handle: Handle },
+  client?: ApiClient,
+): Promise<PageResponse>;
+function getPageInfo(
+  lookup: { currentUser: true } | { userId: string },
+  client?: ApiClient,
+): Promise<PageProfileResponse>;
+async function getPageInfo(
+  lookup: PageInfoLookup,
+  client: ApiClient = api,
+): Promise<PageResponse | PageProfileResponse> {
+  const response =
+    "handle" in lookup
+      ? await client.v1.pages[":handle"].$get({
+          param: { handle: lookup.handle },
+        })
+      : await client.v1.pages.me.$get();
+
+  const schema =
+    "handle" in lookup ? pageResponseSchema : pageProfileResponseSchema;
+  return v.parse(schema, await response.json());
+}
 
 const selectProfilePage = ({
+  handle,
+  name: savedName,
+  bio: savedBio,
   imageKey,
-  ...page
-}: Awaited<ReturnType<typeof getPage>>) => {
+  imageCrop,
+  isOwner,
+}: PageProfileResponse) => {
   const imageUrl = getProfileImageUrl(imageKey);
   const imageSrc =
     imageUrl !== undefined && imageUrl.length > 0 ? imageUrl : undefined;
-  const name = page.name ?? "";
-  const bio = page.bio ?? "";
+  const name = savedName ?? "";
+  const bio = savedBio ?? "";
 
   return {
-    ...page,
+    handle,
     name,
     bio,
+    imageKey,
+    imageCrop,
+    isOwner,
     imageUrl,
     imageSrc,
     hasImage: imageSrc !== undefined,
@@ -55,23 +83,23 @@ const selectProfilePage = ({
 export const profileQueries = {
   all: () => ["page"] as const,
   byHandle: (handle: Handle) => [...profileQueries.all(), handle] as const,
+  currentPage: (client: ApiClient = api) =>
+    getPageInfo({ currentUser: true }, client),
   myPage: (userId: string | null, client: ApiClient = api) =>
     queryOptions({
       queryKey: myPageQueryKey(userId),
       queryFn: () => {
         if (userId === null)
           throw new Error("Cannot fetch a page without a signed-in user.");
-        return getMyPage(client);
+        return getPageInfo({ userId }, client);
       },
       enabled: userId !== null,
-      select: selectProfilePage,
       retry: false,
     }),
   detail: (handle: Handle, client: ApiClient = api) =>
     queryOptions({
       queryKey: profileQueries.byHandle(handle),
-      queryFn: () => getPage(handle, client),
-      select: selectProfilePage,
+      queryFn: () => getPageInfo({ handle }, client),
     }),
 };
 
@@ -80,9 +108,15 @@ function myPageQueryKey(userId: string | null) {
 }
 
 export const useMyPage = (userId: string | null, client: ApiClient = api) =>
-  useQuery(profileQueries.myPage(userId, client));
+  useQuery({
+    ...profileQueries.myPage(userId, client),
+    select: selectProfilePage,
+  });
 
 export const usePage = (handle: Handle, client: ApiClient = api) =>
-  useQuery(profileQueries.detail(handle, client));
+  useQuery({
+    ...profileQueries.detail(handle, client),
+    select: selectProfilePage,
+  });
 
 export type ProfilePageData = NonNullable<ReturnType<typeof usePage>["data"]>;
