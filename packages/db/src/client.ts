@@ -3,6 +3,7 @@ import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as authSchema from "./schema/auth";
 import * as bentoItemsSchema from "./schema/bento-items";
+import * as bentoMediaAssetsSchema from "./schema/bento-media-assets";
 import * as pagesSchema from "./schema/pages";
 
 // One entry per src/schema/<domain>.ts file; check:architecture fails when a
@@ -10,6 +11,7 @@ import * as pagesSchema from "./schema/pages";
 export const schema = {
   ...authSchema,
   ...bentoItemsSchema,
+  ...bentoMediaAssetsSchema,
   ...pagesSchema,
 };
 
