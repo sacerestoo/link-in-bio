@@ -5,12 +5,17 @@ import {
   HANDLE_UNAVAILABLE_MESSAGE,
   handleSchema,
   type Handle,
+  type PageSnapshotResponse,
   type PageUpdate,
 } from "@grabbin/shared/schemas/page";
 import { and, eq as equal } from "drizzle-orm";
 import * as v from "valibot";
 import { isPostgresUniqueViolation } from "../lib/postgres-error";
 import { shouldResetImageCrop } from "../lib/profile-images";
+import {
+  findPageSnapshotRows,
+  type PageSnapshotLookup,
+} from "./bento.repository";
 
 export const PAGE_SERVICE_STATUS = {
   available: "available",
@@ -44,6 +49,8 @@ export type EnsurePageForUserResult =
       { status: typeof PAGE_SERVICE_STATUS.available }
     >;
 
+type PageInfo = PageSnapshotResponse & { userId: string };
+
 export class PagesService {
   constructor(private readonly database: Database) {}
 
@@ -56,31 +63,21 @@ export class PagesService {
     return matchingPage === undefined;
   }
 
-  findPageForUser(userId: string) {
-    return this.database.query.pages.findFirst({
-      columns: {
-        handle: true,
-        name: true,
-        bio: true,
-        imageKey: true,
-        imageCrop: true,
-      },
-      where: (row, { eq }) => eq(row.userId, userId),
-    });
-  }
+  async findPageInfo(
+    lookup: PageSnapshotLookup,
+    currentUserId?: string,
+  ): Promise<PageInfo | undefined> {
+    const rows = await findPageSnapshotRows(this.database, lookup);
+    const firstRow = rows[0];
+    if (firstRow === undefined) return undefined;
 
-  findPageByHandle(handle: string) {
-    return this.database.query.pages.findFirst({
-      columns: {
-        userId: true,
-        handle: true,
-        name: true,
-        bio: true,
-        imageKey: true,
-        imageCrop: true,
-      },
-      where: (page, { eq }) => eq(page.handle, handle),
-    });
+    const { userId: ownerId, ...page } = firstRow.page;
+    return {
+      ...page,
+      userId: ownerId,
+      isOwner: ownerId === currentUserId,
+      bento: rows.flatMap((row) => (row.bento === null ? [] : [row.bento])),
+    };
   }
 
   async getPageBeforeImageUpdate(
@@ -94,8 +91,8 @@ export class PagesService {
         page: null,
       } as const;
 
-    const page = await this.findPageByHandle(handle);
-    if (page?.userId !== userId)
+    const page = await this.findPageInfo({ handle }, userId);
+    if (page?.isOwner !== true)
       return { status: PAGE_SERVICE_STATUS.notFound } as const;
 
     const nextImageKey =
@@ -107,7 +104,10 @@ export class PagesService {
     )
       return { status: PAGE_SERVICE_STATUS.imageRequired } as const;
 
-    return { status: PAGE_SERVICE_STATUS.imageUpdateReady, page } as const;
+    return {
+      status: PAGE_SERVICE_STATUS.imageUpdateReady,
+      page: { imageKey: page.imageKey },
+    } as const;
   }
 
   async updatePageForUser(

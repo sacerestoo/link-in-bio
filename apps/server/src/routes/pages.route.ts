@@ -32,11 +32,12 @@ export const pagesRoute = new Hono<{
 }>()
   .get("/me", requireSession, async (c) => {
     const pagesService = createPagesService(c.env.HYPERDRIVE.connectionString);
-    const page = await pagesService.findPageForUser(c.get("session").user.id);
+    const userId = c.get("session").user.id;
+    const page = await pagesService.findPageInfo({ userId }, userId);
     if (page === undefined)
       throw new HTTPException(404, { message: "Page not found" });
 
-    return c.json(v.parse(pageResponseSchema, { ...page, isOwner: true }));
+    return c.json(v.parse(pageResponseSchema, page));
   })
   .post(
     "/handle",
@@ -77,8 +78,8 @@ export const pagesRoute = new Hono<{
       const userId = c.get("session").user.id;
       const page = await createPagesService(
         c.env.HYPERDRIVE.connectionString,
-      ).findPageByHandle(handle);
-      if (page === undefined || page.userId !== userId)
+      ).findPageInfo({ handle }, userId);
+      if (page === undefined || !page.isOwner)
         throw new HTTPException(404, { message: "Page not found" });
 
       const upload = await createProfileImageUpload(
@@ -111,17 +112,11 @@ export const pagesRoute = new Hono<{
       const { handle } = c.req.valid("param");
       const userId = c.get("session")?.user.id;
 
-      const page = await pagesService.findPageByHandle(handle);
+      const page = await pagesService.findPageInfo({ handle }, userId);
       if (page === undefined)
         throw new HTTPException(404, { message: "Page not found" });
 
-      const { userId: ownerId, ...pageData } = page;
-      return c.json(
-        v.parse(pageResponseSchema, {
-          ...pageData,
-          isOwner: ownerId === userId,
-        }),
-      );
+      return c.json(v.parse(pageResponseSchema, page));
     },
   )
   .patch(

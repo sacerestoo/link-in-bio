@@ -4,9 +4,11 @@ import { bentoItems } from "@grabbin/db/schema/bento-items";
 import { pages } from "@grabbin/db/schema/pages";
 import { eq } from "drizzle-orm";
 
-export function findPageSnapshotRowsByHandle(
+export type PageSnapshotLookup = { handle: string } | { userId: string };
+
+export function findPageSnapshotRows(
   database: Database,
-  handle: string,
+  lookup: PageSnapshotLookup,
 ) {
   return database
     .select({
@@ -28,5 +30,9 @@ export function findPageSnapshotRowsByHandle(
     })
     .from(pages)
     .leftJoin(bentoItems, eq(bentoItems.pageId, pages.id))
-    .where(eq(pages.handle, handle));
+    .where(
+      "handle" in lookup
+        ? eq(pages.handle, lookup.handle)
+        : eq(pages.userId, lookup.userId),
+    );
 }
