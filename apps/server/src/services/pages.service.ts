@@ -7,22 +7,27 @@ import {
   handleSchema,
   type Handle,
   type PageResponse,
+  type PageSaveRequest,
   type PageUpdate,
 } from "@grabbin/shared/schemas/page";
 import { and, eq as equal } from "drizzle-orm";
 import * as v from "valibot";
 import { isPostgresUniqueViolation } from "../lib/postgres-error";
 import { shouldResetImageCrop } from "../lib/profile-images";
+import {
+  PAGE_SAVE_STATUS,
+  savePage,
+  type SavePageForUserResult,
+} from "./page-save";
 
 export const PAGE_SERVICE_STATUS = {
+  ...PAGE_SAVE_STATUS,
   available: "available",
   invalidHandle: "invalid-handle",
   handleUnavailable: "handle-unavailable",
   created: "created",
   alreadyExists: "already-exists",
-  notFound: "not-found",
   handleConflict: "handle-conflict",
-  updated: "updated",
   imageUpdateReady: "image-update-ready",
   imageRequired: "image-required",
 } as const;
@@ -56,6 +61,14 @@ type PageInfoLookup = { handle: string } | { userId: string };
 
 export class PagesService {
   constructor(private readonly database: Database) {}
+
+  savePageForUser(
+    userId: string,
+    handle: string,
+    save: PageSaveRequest,
+  ): Promise<SavePageForUserResult> {
+    return savePage(this.database, userId, handle, save);
+  }
 
   async isPageHandleAvailable(handle: string): Promise<boolean> {
     const matchingPage = await this.database.query.pages.findFirst({
