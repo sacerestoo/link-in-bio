@@ -6,7 +6,7 @@ import type {
 import { bentoLayoutSchema } from "@grabbin/shared/schemas/bento-layout";
 import * as v from "valibot";
 
-type BentoBatchPolicyError =
+export type BentoBatchPolicyError =
   | "duplicate-upsert-id"
   | "duplicate-delete-id"
   | "upsert-delete-overlap"
