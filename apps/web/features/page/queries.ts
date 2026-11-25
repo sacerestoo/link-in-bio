@@ -167,7 +167,7 @@ export const pageQueries = {
   byHandle: (handle: Handle) => [...pageQueries.all(), handle] as const,
   myPage: (userId: string | null, client: ApiClient = api) =>
     queryOptions({
-      queryKey: myPageQueryKey(userId),
+      queryKey: [...pageQueries.all(), "me", userId],
       queryFn: () => getPageInfo({ currentUser: true }, client),
       retry: false,
     }),
@@ -177,10 +177,6 @@ export const pageQueries = {
       queryFn: () => getPageInfo({ handle }, client),
     }),
 };
-
-function myPageQueryKey(userId: string | null) {
-  return [...pageQueries.all(), "me", userId] as const;
-}
 
 export const useMyPage = (userId: string | null, client: ApiClient = api) =>
   useQuery({
