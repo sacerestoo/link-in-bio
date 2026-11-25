@@ -77,7 +77,7 @@ function ShareDrawerContent({
         imageSrc={page?.imageSrc}
         pathname={pathname}
       />
-      <DrawerFooter className="mx-auto p-4">
+      <DrawerFooter className="ml-auto p-2 px-4">
         <CopyProfileLinkButton pathname={pathname} />
       </DrawerFooter>
     </>

@@ -2,9 +2,7 @@
 
 import { Button } from "@grabbin/ui/components/button";
 import { toast } from "@grabbin/ui/components/toast";
-import { cn } from "@grabbin/ui/lib/utils";
-import CheckIcon from "lucide-react/icons/check";
-import CopyIcon from "lucide-react/icons/copy";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
 export function CopyProfileLinkButton({
@@ -44,8 +42,8 @@ export function CopyProfileLinkButton({
     <Button
       type="button"
       variant="outline"
-      size="lg"
-      className="w-full gap-2"
+      size="2xl"
+      className="w-32 justify-center gap-2 bg-brand-green px-4 font-semibold text-background shadow-none! drop-shadow-sm hover:bg-brand-green/80! hover:text-background"
       onClick={() => {
         void handleCopy();
       }}
@@ -58,63 +56,45 @@ export function CopyProfileLinkButton({
 function CopyProfileLinkButtonContent({
   isCopied,
 }: Readonly<{ isCopied: boolean }>) {
+  const label = isCopied ? "Copied" : "Copy link";
+  const prefersReducedMotion = useReducedMotion() ?? false;
+  const blur = prefersReducedMotion ? "blur(0px)" : "blur(2px)";
+  const transition = {
+    duration: prefersReducedMotion ? 0 : 0.15,
+    ease: "easeInOut" as const,
+  };
+
   return (
     <>
-      <span
-        aria-hidden="true"
-        className="relative"
+      <AnimatePresence
+        mode="wait"
+        initial={false}
       >
-        <span
-          className={cn(
-            "absolute inset-0 flex items-center justify-center transition-[opacity,filter,scale] duration-300 ease-in-out will-change-[opacity,filter,scale]",
-            isCopied
-              ? "blur-0 scale-100 opacity-100"
-              : "scale-[0.25] opacity-0 blur-xs",
-          )}
+        <motion.span
+          key={label}
+          aria-hidden="true"
+          className="inline-block"
+          initial={{
+            opacity: 0,
+            y: prefersReducedMotion ? 0 : 4,
+            filter: blur,
+          }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          exit={{
+            opacity: 0,
+            y: prefersReducedMotion ? 0 : -4,
+            filter: blur,
+          }}
+          transition={transition}
         >
-          <CheckIcon />
-        </span>
-        <span
-          className={cn(
-            "transition-[opacity,filter,scale] duration-300 ease-in-out will-change-[opacity,filter,scale]",
-            isCopied
-              ? "scale-[0.25] opacity-0 blur-xs"
-              : "blur-0 scale-100 opacity-100",
-          )}
-        >
-          <CopyIcon />
-        </span>
-      </span>
-      <span
-        aria-hidden="true"
-        className="relative grid"
-      >
-        <span
-          className={cn(
-            "col-start-1 row-start-1 transition-[opacity,filter,scale] duration-300 ease-in-out will-change-[opacity,filter,scale]",
-            isCopied
-              ? "blur-0 scale-100 opacity-100"
-              : "scale-[0.25] opacity-0 blur-xs",
-          )}
-        >
-          Copied link
-        </span>
-        <span
-          className={cn(
-            "col-start-1 row-start-1 transition-[opacity,filter,scale] duration-300 ease-in-out will-change-[opacity,filter,scale]",
-            isCopied
-              ? "scale-[0.25] opacity-0 blur-xs"
-              : "blur-0 scale-100 opacity-100",
-          )}
-        >
-          Copy link
-        </span>
-      </span>
+          {label}
+        </motion.span>
+      </AnimatePresence>
       <span
         aria-live="polite"
         className="sr-only"
       >
-        {isCopied ? "Copied link" : "Copy link"}
+        {isCopied ? "Copied" : "Copy link"}
       </span>
     </>
   );
