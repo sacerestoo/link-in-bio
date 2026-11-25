@@ -123,14 +123,25 @@ async function getPageInfo(
   return v.parse(schema, await response.json());
 }
 
-const selectProfilePage = ({
-  handle,
-  name: savedName,
-  bio: savedBio,
-  imageKey,
-  imageCrop,
-  isOwner,
-}: PageProfileResponse) => {
+type SelectedProfileFields = Readonly<{
+  name: string;
+  bio: string;
+  imageUrl: string | undefined;
+  imageSrc: string | undefined;
+  hasImage: boolean;
+}>;
+
+function selectProfileFields<T extends PageProfileResponse>(
+  page: T,
+): T & SelectedProfileFields {
+  const {
+    handle,
+    name: savedName,
+    bio: savedBio,
+    imageKey,
+    imageCrop,
+    isOwner,
+  } = page;
   const imageUrl = getProfileImageUrl(imageKey);
   const imageSrc =
     imageUrl !== undefined && imageUrl.length > 0 ? imageUrl : undefined;
@@ -138,6 +149,7 @@ const selectProfilePage = ({
   const bio = savedBio ?? "";
 
   return {
+    ...page,
     handle,
     name,
     bio,
@@ -148,7 +160,7 @@ const selectProfilePage = ({
     imageSrc,
     hasImage: imageSrc !== undefined,
   };
-};
+}
 
 export const pageQueries = {
   all: () => ["page"] as const,
@@ -174,13 +186,15 @@ export const useMyPage = (userId: string | null, client: ApiClient = api) =>
   useQuery({
     ...pageQueries.myPage(userId, client),
     enabled: userId !== null,
-    select: selectProfilePage,
+    select: selectProfileFields,
   });
+
+export type MyPageData = NonNullable<ReturnType<typeof useMyPage>["data"]>;
 
 export const usePage = (handle: Handle, client: ApiClient = api) =>
   useQuery({
     ...pageQueries.detail(handle, client),
-    select: selectProfilePage,
+    select: selectProfileFields,
   });
 
 export type ProfilePageData = NonNullable<ReturnType<typeof usePage>["data"]>;

@@ -11,12 +11,12 @@ import {
 import { Button } from "@grabbin/ui/components/button";
 import { Skeleton } from "@grabbin/ui/components/skeleton";
 import Link from "next/link";
-import { useMyPage, type ProfilePageData } from "../queries";
+import { useMyPage, type MyPageData } from "../queries";
 import CreateYoursLink from "./create-yours-link";
 
 function MyPageLinkButton({
   page,
-}: Readonly<{ page: ProfilePageData }>): ReactElement {
+}: Readonly<{ page: MyPageData }>): ReactElement {
   return (
     <Button
       nativeButton={false}
