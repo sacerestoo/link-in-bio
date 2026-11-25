@@ -4,6 +4,7 @@ import {
   HANDLE_UNAVAILABLE_MESSAGE,
   handleSchema,
   pageResponseSchema,
+  pageSnapshotResponseSchema,
   profileImageUploadSchema,
   pageUpdateSchema,
 } from "@grabbin/shared/schemas/page";
@@ -105,7 +106,7 @@ export const pagesRoute = new Hono<{
           message: result.error.map((issue) => issue.message).join(" "),
         });
     }),
-    async (c) => {
+    async (c): Promise<Response> => {
       const pagesService = createPagesService(
         c.env.HYPERDRIVE.connectionString,
       );
@@ -116,7 +117,7 @@ export const pagesRoute = new Hono<{
       if (page === undefined)
         throw new HTTPException(404, { message: "Page not found" });
 
-      return c.json(v.parse(pageResponseSchema, page));
+      return c.json(v.parse(pageSnapshotResponseSchema, page));
     },
   )
   .patch(
