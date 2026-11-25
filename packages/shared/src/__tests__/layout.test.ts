@@ -35,7 +35,7 @@ describe("bento layout configuration", (): void => {
     expect(WIDE_LAYOUT_BASE_WIDTH_REM).toBe(78.75);
   });
 
-  it("declares allowed presets per block type and retains unknown block sizes", (): void => {
+  it("declares allowed presets for every supported block type", (): void => {
     const cardPresets = [
       "squareSmall",
       "halfBanner",
@@ -55,8 +55,6 @@ describe("bento layout configuration", (): void => {
       spotify: cardPresets,
       tweet: ["portrait", "squareLarge"],
     });
-    expect(getAllowedSizePresets("legacy-block")).toEqual(cardPresets);
-
     for (const blockType of BENTO_BLOCK_TYPES) {
       expect(getAllowedSizePresets(blockType).length).toBeGreaterThan(0);
     }

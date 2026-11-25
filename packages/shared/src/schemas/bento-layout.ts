@@ -22,14 +22,6 @@ export const BENTO_SIZE_PRESETS = [
 
 export type BentoSizePreset = (typeof BENTO_SIZE_PRESETS)[number];
 
-const cardPresets = [
-  "squareSmall",
-  "halfBanner",
-  "landscape",
-  "portrait",
-  "squareLarge",
-] as const satisfies readonly BentoSizePreset[];
-
 export const BENTO_BLOCK_TYPES = [
   "section",
   "media",
@@ -69,17 +61,9 @@ export const BENTO_BLOCK_SIZE_PRESETS = {
   tweet: ["portrait", "squareLarge"],
 } as const satisfies Record<BentoBlockType, readonly BentoSizePreset[]>;
 
-// Unknown blocks use card sizes; only sections get full banners.
-export const BENTO_UNKNOWN_BLOCK_SIZE_PRESETS = cardPresets;
-
-const blockSizePresetsByType: Readonly<
-  Partial<Record<string, readonly BentoSizePreset[]>>
-> = BENTO_BLOCK_SIZE_PRESETS;
-
 export const getAllowedSizePresets = (
-  blockType: string,
-): readonly BentoSizePreset[] =>
-  blockSizePresetsByType[blockType] ?? BENTO_UNKNOWN_BLOCK_SIZE_PRESETS;
+  blockType: BentoBlockType,
+): readonly BentoSizePreset[] => BENTO_BLOCK_SIZE_PRESETS[blockType];
 
 export const BENTO_SIZE_PRESET_DIMENSIONS = {
   fullBanner: { width: 4, height: 1 },
@@ -111,7 +95,7 @@ const positionSchema = v.object({
 
 export const bentoLayoutEntrySchema = v.object({
   id: v.pipe(v.string(), v.minLength(1)),
-  type: v.pipe(v.string(), v.minLength(1)),
+  type: v.picklist(BENTO_BLOCK_TYPES),
   layouts: v.object({
     wide: positionSchema,
     compact: positionSchema,

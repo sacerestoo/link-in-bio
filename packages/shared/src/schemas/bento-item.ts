@@ -43,25 +43,11 @@ export const bentoItemSchema = v.strictObject({
   type: v.picklist(BENTO_BLOCK_TYPES),
 });
 
-export const unknownBentoItemSchema = v.pipe(
-  v.strictObject({
-    ...bentoItemFields,
-    type: v.pipe(v.string(), v.minLength(1)),
-  }),
-  v.check(
-    (item) => !(BENTO_BLOCK_TYPES as readonly string[]).includes(item.type),
-    "Unknown item types are only supported in saved responses.",
-  ),
-);
-
-export const bentoItemResponseSchema = v.union([
-  bentoItemSchema,
-  unknownBentoItemSchema,
-]);
+export const bentoItemResponseSchema = bentoItemSchema;
 
 export const bentoBatchRequestSchema = v.pipe(
   v.strictObject({
-    upserts: v.array(bentoItemResponseSchema),
+    upserts: v.array(bentoItemSchema),
     deletes: v.array(bentoItemIdSchema),
   }),
   v.check(
@@ -71,6 +57,5 @@ export const bentoBatchRequestSchema = v.pipe(
 );
 
 export type BentoItem = v.InferOutput<typeof bentoItemSchema>;
-export type UnknownBentoItem = v.InferOutput<typeof unknownBentoItemSchema>;
-export type BentoItemResponse = v.InferOutput<typeof bentoItemResponseSchema>;
+export type BentoItemResponse = BentoItem;
 export type BentoBatchRequest = v.InferOutput<typeof bentoBatchRequestSchema>;
