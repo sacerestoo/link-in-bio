@@ -5,14 +5,18 @@ import {
   handleSchema,
   pageProfileResponseSchema,
   pageResponseSchema,
+  pageSaveRequestSchema,
   profileImageUploadSchema,
   pageUpdateSchema,
+  type PageSaveRequest,
+  type PageUpdate,
 } from "@grabbin/shared/schemas/page";
 import { sValidator } from "@hono/standard-validator";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import * as v from "valibot";
 import type { ServerBindings } from "../lib/env";
+import { BentoItemPageConflictError } from "../lib/bento-item-page-conflict-error";
 import {
   createProfileImageUpload,
   deleteProfileImageObject,
@@ -27,6 +31,15 @@ import { PagesService, PAGE_SERVICE_STATUS } from "../services/pages.service";
 
 const createPagesService = (connectionString: string) =>
   new PagesService(createDatabase(connectionString));
+
+const pagePatchRequestSchema = v.union([
+  pageSaveRequestSchema,
+  pageUpdateSchema,
+]);
+
+const isPageSaveRequest = (
+  request: PageSaveRequest | PageUpdate,
+): request is PageSaveRequest => "page" in request || "bento" in request;
 
 export const pagesRoute = new Hono<{
   Bindings: ServerBindings;
@@ -141,7 +154,7 @@ export const pagesRoute = new Hono<{
           message: result.error.map((issue) => issue.message).join(" "),
         });
     }),
-    sValidator("json", pageUpdateSchema, (result) => {
+    sValidator("json", pagePatchRequestSchema, (result) => {
       if (!result.success)
         throw new HTTPException(400, {
           message: result.error.map((issue) => issue.message).join(" "),
@@ -154,7 +167,40 @@ export const pagesRoute = new Hono<{
       const userId = c.get("session").user.id;
 
       const { handle: currentHandle } = c.req.valid("param");
-      const update = c.req.valid("json");
+      const request = c.req.valid("json");
+
+      if (isPageSaveRequest(request)) {
+        try {
+          const savedPage = await pagesService.savePageForUser(
+            userId,
+            currentHandle,
+            request,
+          );
+
+          if (savedPage.status === PAGE_SERVICE_STATUS.notFound)
+            throw new HTTPException(404, { message: "Page not found" });
+          if (savedPage.status === PAGE_SERVICE_STATUS.invalidBentoBatch)
+            throw new HTTPException(400, {
+              message: `Invalid Bento batch: ${savedPage.reason}`,
+            });
+
+          const { userId: ownerId, ...pageInfo } = savedPage.data;
+          return c.json(
+            v.parse(pageResponseSchema, {
+              ...pageInfo,
+              isOwner: ownerId === userId,
+            }),
+          );
+        } catch (error) {
+          if (error instanceof BentoItemPageConflictError)
+            throw new HTTPException(409, {
+              message: "A Bento item belongs to another page.",
+            });
+          throw error;
+        }
+      }
+
+      const update = request;
       const pageBeforeImageUpdate = await pagesService.getPageBeforeImageUpdate(
         userId,
         currentHandle,
