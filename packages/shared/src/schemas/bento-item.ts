@@ -15,6 +15,8 @@ type BentoJsonObject = Record<string, BentoJsonValue>;
 // Valibot expects a boolean check; don't leak isJSONObject's any-based type guard.
 const isBentoJsonObject = (value: unknown): boolean => isJSONObject(value);
 
+export const bentoItemIdSchema = v.pipe(v.string(), v.uuid());
+
 export const bentoItemDataSchema = v.custom<BentoJsonObject>(
   isBentoJsonObject,
   "Data must be a JSON object.",
@@ -26,7 +28,7 @@ export const bentoItemStyleSchema = v.custom<BentoJsonObject>(
 );
 
 const bentoItemFields = {
-  id: v.pipe(v.string(), v.uuid()),
+  id: bentoItemIdSchema,
   data: bentoItemDataSchema,
   style: bentoItemStyleSchema,
   layouts: bentoLayoutEntrySchema.entries.layouts,
@@ -53,6 +55,12 @@ export const bentoItemResponseSchema = v.union([
   unknownBentoItemSchema,
 ]);
 
+export const bentoBatchRequestSchema = v.strictObject({
+  upserts: v.array(bentoItemResponseSchema),
+  deletes: v.array(bentoItemIdSchema),
+});
+
 export type BentoItem = v.InferOutput<typeof bentoItemSchema>;
 export type UnknownBentoItem = v.InferOutput<typeof unknownBentoItemSchema>;
 export type BentoItemResponse = v.InferOutput<typeof bentoItemResponseSchema>;
+export type BentoBatchRequest = v.InferOutput<typeof bentoBatchRequestSchema>;

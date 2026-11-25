@@ -4,6 +4,7 @@ import {
   PROFILE_IMAGE_CONTENT_TYPES,
   PROFILE_IMAGE_MAX_SIZE,
 } from "../lib/profile-image";
+import { bentoBatchRequestSchema, bentoItemResponseSchema } from "./bento-item";
 import { imageCropSchema } from "./image-crop";
 
 export const PAGE_NAME_MAX_LENGTH = 50;
@@ -88,6 +89,37 @@ export const pageResponseSchema = v.object({
   isOwner: v.boolean(),
 });
 
+export const pageSnapshotResponseSchema = v.object({
+  ...pageResponseSchema.entries,
+  bento: v.array(bentoItemResponseSchema),
+});
+
+const pageProfileSchema = v.pipe(
+  v.strictObject({
+    name: v.optional(pageSchema.entries.name),
+    bio: v.optional(pageSchema.entries.bio),
+  }),
+  v.check(
+    (page) => page.name !== undefined || page.bio !== undefined,
+    "Provide at least one page field to save.",
+  ),
+);
+
+export const pageSaveRequestSchema = v.pipe(
+  v.strictObject({
+    page: v.optional(pageProfileSchema),
+    bento: v.optional(bentoBatchRequestSchema),
+  }),
+  v.check(
+    (save) => save.page !== undefined || save.bento !== undefined,
+    "Provide page or Bento changes to save.",
+  ),
+);
+
 export type Handle = v.InferOutput<typeof handleSchema>;
 export type PageUpdate = v.InferOutput<typeof pageUpdateSchema>;
 export type PageResponse = v.InferOutput<typeof pageResponseSchema>;
+export type PageSnapshotResponse = v.InferOutput<
+  typeof pageSnapshotResponseSchema
+>;
+export type PageSaveRequest = v.InferOutput<typeof pageSaveRequestSchema>;
