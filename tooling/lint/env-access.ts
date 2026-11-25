@@ -8,7 +8,7 @@ import {
   type AstNode,
 } from "./naming/ast-utils.ts";
 
-// Files that may read the environment directly. Profile queries may read one
+// Files that may read the environment directly. Page queries may read one
 // public URL because the query module is shared with the browser bundle.
 export const envAccessAllowedFiles = [
   "apps/web/lib/env.ts",
@@ -44,7 +44,7 @@ function isAllowedPublicProfileImageUrl(
   const normalizedFilename = filename.replaceAll("\\", "/");
   const parent = getChild(node, "parent");
   return (
-    normalizedFilename.endsWith("apps/web/features/profile/queries.ts") &&
+    normalizedFilename.endsWith("apps/web/features/page/queries.ts") &&
     parent?.type === "MemberExpression" &&
     getChild(parent, "object") === node &&
     getPropertyName(parent) === "NEXT_PUBLIC_R2_PUBLIC_URL"

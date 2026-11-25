@@ -1,12 +1,12 @@
-import { PermissionGate } from "@/features/auth/ui/permission-gate";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { MyPageLink } from "./my-page-link";
+import { PermissionGate } from "./permission-gate";
 import { ProfileActions } from "./profile-actions";
 import { ShareProfileDrawer } from "./share-profile-drawer";
 
 const ProfileSaveIndicator = dynamic(() =>
-  import("@/features/profile/ui/indicator").then(
+  import("./indicator").then(
     ({ default: IndicatorComponent }) => IndicatorComponent,
   ),
 );

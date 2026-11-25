@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReactElement } from "react";
-import { PermissionGate } from "@/features/auth/ui/permission-gate";
 import { Skeleton } from "@grabbin/ui/components/skeleton";
 import { usePage, type ProfilePageData } from "../queries";
+import { PermissionGate } from "./permission-gate";
 import { ProfileImageEditor } from "./profile-image-editor";
 import { ProfileImageView } from "./profile-image-view";
 

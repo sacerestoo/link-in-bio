@@ -20,7 +20,7 @@ tester.run("no-direct-env", envAccessPlugin.rules["no-direct-env"], {
     { code: 'import { waitUntil } from "cloudflare:workers";' },
     {
       code: "const url = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;",
-      filename: "apps/web/features/profile/queries.ts",
+      filename: "apps/web/features/page/queries.ts",
     },
     { code: "const env = { A: 1 }; const value = env.A;" },
     { code: "const value = process.cwd();" },
@@ -33,7 +33,7 @@ tester.run("no-direct-env", envAccessPlugin.rules["no-direct-env"], {
     },
     {
       code: "const secret = process.env.R2_SECRET_ACCESS_KEY;",
-      filename: "apps/web/features/profile/queries.ts",
+      filename: "apps/web/features/page/queries.ts",
       errors: [{ messageId: "processEnv" }],
     },
     {

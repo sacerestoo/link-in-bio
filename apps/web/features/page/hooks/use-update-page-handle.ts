@@ -1,10 +1,10 @@
 import type { Handle, PageResponse } from "@grabbin/shared/schemas/page";
-import { profileMutations } from "@/features/profile/mutations";
-import { profileQueries } from "@/features/profile/queries";
 import { api as browserApi } from "@/lib/api-client";
 import { toast } from "@grabbin/ui/components/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { pageMutations } from "../mutations";
+import { pageQueries } from "../queries";
 
 export const useUpdatePageHandle = (
   currentHandle: Handle,
@@ -14,21 +14,21 @@ export const useUpdatePageHandle = (
   const queryClient = useQueryClient();
 
   return useMutation(
-    profileMutations.changeHandle(
+    pageMutations.changeHandle(
       currentHandle,
       {
         onSuccess: (updatedHandle) => {
           const page = queryClient.getQueryData<PageResponse>(
-            profileQueries.byHandle(currentHandle),
+            pageQueries.byHandle(currentHandle),
           );
           if (page !== undefined) {
             const updatedPage = { ...page, handle: updatedHandle };
             queryClient.setQueryData(
-              profileQueries.byHandle(currentHandle),
+              pageQueries.byHandle(currentHandle),
               updatedPage,
             );
             queryClient.setQueryData(
-              profileQueries.byHandle(updatedHandle),
+              pageQueries.byHandle(updatedHandle),
               updatedPage,
             );
           }

@@ -7,8 +7,8 @@ import { toast } from "@grabbin/ui/components/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { debounce, type DebouncedFunction } from "es-toolkit/function";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { profileMutations } from "../mutations";
-import { profileQueries, type ProfilePageData } from "../queries";
+import { pageMutations } from "../mutations";
+import { pageQueries, type ProfilePageData } from "../queries";
 
 type ProfileValues = Readonly<Pick<ProfilePageData, "name" | "bio">>;
 type AutosaveState = {
@@ -54,11 +54,11 @@ const reloadSavedValues = async ({
   stateRef,
 }: SaveContext): Promise<void> => {
   await queryClient.invalidateQueries(
-    { queryKey: profileQueries.byHandle(handle) },
+    { queryKey: pageQueries.byHandle(handle) },
     { throwOnError: true },
   );
   const page = queryClient.getQueryData<PageResponse>(
-    profileQueries.byHandle(handle),
+    pageQueries.byHandle(handle),
   );
   if (page === undefined) return;
 
@@ -76,7 +76,7 @@ const persistProfileDraft = async (
     await onProfileUpdate(update);
     state.saved = applyUpdate(state.saved, update);
     queryClient.setQueryData<PageResponse>(
-      profileQueries.byHandle(handle),
+      pageQueries.byHandle(handle),
       (page) =>
         page === undefined
           ? undefined
@@ -160,7 +160,7 @@ export const useProfileAutosave = (
   });
   const saveRef = useRef<SaveProfileRef["current"]>(async () => {});
   const { mutateAsync: updateProfile } = useMutation(
-    profileMutations.updateProfile(handle),
+    pageMutations.updateProfile(handle),
   );
   const queryClient = useQueryClient();
   const save = useCallback(

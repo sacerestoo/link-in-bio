@@ -2,8 +2,8 @@
 
 import { useConfirmInitialSignupHandle } from "@/features/auth/hooks/use-confirm-initial-signup-handle";
 import { useHandleCheck } from "@/features/auth/hooks/use-handle-check";
-import { HandleInput } from "@/features/auth/ui/handle-input";
 import { Button } from "@grabbin/ui/components/button";
+import { HandleInput } from "@grabbin/ui/components/handle-input";
 import { useState, type ReactNode } from "react";
 
 type HandleFormProps = Readonly<{

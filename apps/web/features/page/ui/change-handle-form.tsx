@@ -1,13 +1,13 @@
 "use client";
 
-import { useChangeHandleFormState } from "@/features/auth/hooks/use-change-handle-form-state";
-import { useUpdatePageHandle } from "@/features/auth/hooks/use-update-page-handle";
-import { HandleInput } from "@/features/auth/ui/handle-input";
-import { usePage } from "@/features/profile/queries";
 import { Button } from "@grabbin/ui/components/button";
+import { HandleInput } from "@grabbin/ui/components/handle-input";
 import { Skeleton } from "@grabbin/ui/components/skeleton";
 import { useParams } from "next/navigation";
 import { type ReactElement, type ReactNode } from "react";
+import { useChangeHandleFormState } from "../hooks/use-change-handle-form-state";
+import { useUpdatePageHandle } from "../hooks/use-update-page-handle";
+import { usePage } from "../queries";
 
 export function ChangeHandleForm({
   onSaved,

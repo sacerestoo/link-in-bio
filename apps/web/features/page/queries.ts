@@ -1,13 +1,19 @@
+import type { ProfileImageContentType } from "@grabbin/shared/lib/profile-image";
 import { api, type ApiClient } from "@/lib/api-client";
 import {
+  HANDLE_UNAVAILABLE_MESSAGE,
+  handleSchema,
+  profileImageUploadResponseSchema,
   pageProfileResponseSchema,
   pageResponseSchema,
   type Handle,
   type PageProfileResponse,
   type PageResponse,
+  type PageUpdate,
 } from "@grabbin/shared/schemas/page";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import * as v from "valibot";
+import { putProfileImage } from "./api";
 
 export const getProfileImageUrl = (
   imageKey: string | null,
@@ -24,17 +30,81 @@ export const getProfileImageUrl = (
   return `${imageBaseUrl.replace(/\/$/u, "")}/${encodedKey}`;
 };
 
-type PageInfoLookup =
-  | { currentUser: true }
-  | { handle: Handle }
-  | { userId: string };
+export const checkHandle = async (
+  rawHandle: string,
+  client: ApiClient = api,
+): Promise<Handle> => {
+  const validHandle = v.parse(handleSchema, rawHandle);
+  const { available } = v.parse(
+    v.object({ available: v.boolean() }),
+    await client.v1.pages.handle
+      .$post({ json: { handle: validHandle } })
+      .then((response) => response.json()),
+  );
+  if (!available) throw new Error(HANDLE_UNAVAILABLE_MESSAGE);
+  return validHandle;
+};
+
+export const updatePageHandle = async (
+  currentHandle: Handle,
+  requestedHandle: Handle,
+  client: ApiClient = api,
+): Promise<Handle> => {
+  await client.v1.pages[":handle"].$patch({
+    param: { handle: currentHandle },
+    json: { handle: requestedHandle },
+  });
+  return requestedHandle;
+};
+
+export const updatePageProfile = async (
+  handle: Handle,
+  update: PageUpdate,
+  client: ApiClient = api,
+): Promise<void> => {
+  await client.v1.pages[":handle"].$patch({
+    param: { handle },
+    json: update,
+  });
+};
+
+export const uploadProfileImage = async (
+  handle: Handle,
+  file: File,
+  contentType: ProfileImageContentType,
+): Promise<{ imageKey: string; imageUrl: string | undefined }> => {
+  const { imageKey, uploadUrl } = v.parse(
+    profileImageUploadResponseSchema,
+    await api.v1.pages[":handle"]["image-upload"]
+      .$post({ param: { handle }, json: { contentType, size: file.size } })
+      .then((response) => response.json()),
+  );
+  await putProfileImage(uploadUrl, file, contentType);
+  await api.v1.pages[":handle"].$patch({
+    param: { handle },
+    json: { imageKey, imageCrop: null },
+  });
+  return { imageKey, imageUrl: getProfileImageUrl(imageKey) };
+};
+
+export const removeProfileImage = async (
+  handle: Handle,
+  client: ApiClient = api,
+): Promise<void> => {
+  await client.v1.pages[":handle"].$patch({
+    param: { handle },
+    json: { imageKey: null, imageCrop: null },
+  });
+};
+
+type PageInfoLookup = { currentUser: true } | { handle: Handle };
 
 function getPageInfo(
   lookup: { handle: Handle },
   client?: ApiClient,
 ): Promise<PageResponse>;
 function getPageInfo(
-  lookup: { currentUser: true } | { userId: string },
+  lookup: { currentUser: true },
   client?: ApiClient,
 ): Promise<PageProfileResponse>;
 async function getPageInfo(
@@ -80,42 +150,36 @@ const selectProfilePage = ({
   };
 };
 
-export const profileQueries = {
+export const pageQueries = {
   all: () => ["page"] as const,
-  byHandle: (handle: Handle) => [...profileQueries.all(), handle] as const,
-  currentPage: (client: ApiClient = api) =>
-    getPageInfo({ currentUser: true }, client),
+  byHandle: (handle: Handle) => [...pageQueries.all(), handle] as const,
   myPage: (userId: string | null, client: ApiClient = api) =>
     queryOptions({
       queryKey: myPageQueryKey(userId),
-      queryFn: () => {
-        if (userId === null)
-          throw new Error("Cannot fetch a page without a signed-in user.");
-        return getPageInfo({ userId }, client);
-      },
-      enabled: userId !== null,
+      queryFn: () => getPageInfo({ currentUser: true }, client),
       retry: false,
     }),
   detail: (handle: Handle, client: ApiClient = api) =>
     queryOptions({
-      queryKey: profileQueries.byHandle(handle),
+      queryKey: pageQueries.byHandle(handle),
       queryFn: () => getPageInfo({ handle }, client),
     }),
 };
 
 function myPageQueryKey(userId: string | null) {
-  return [...profileQueries.all(), "me", userId] as const;
+  return [...pageQueries.all(), "me", userId] as const;
 }
 
 export const useMyPage = (userId: string | null, client: ApiClient = api) =>
   useQuery({
-    ...profileQueries.myPage(userId, client),
+    ...pageQueries.myPage(userId, client),
+    enabled: userId !== null,
     select: selectProfilePage,
   });
 
 export const usePage = (handle: Handle, client: ApiClient = api) =>
   useQuery({
-    ...profileQueries.detail(handle, client),
+    ...pageQueries.detail(handle, client),
     select: selectProfilePage,
   });
 

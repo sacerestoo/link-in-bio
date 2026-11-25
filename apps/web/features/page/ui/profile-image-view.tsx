@@ -1,9 +1,9 @@
 import type { ReactElement, ReactNode } from "react";
-import { PermissionGate } from "@/features/auth/ui/permission-gate";
 import { getCropStyle } from "@grabbin/shared/lib/image-crop";
 import { cn } from "@grabbin/ui/lib/utils";
 import Image from "next/image";
 import type { ProfilePageData } from "../queries";
+import { PermissionGate } from "./permission-gate";
 
 type ProfileImageViewProps = Readonly<
   Pick<ProfilePageData, "imageSrc" | "hasImage"> & {

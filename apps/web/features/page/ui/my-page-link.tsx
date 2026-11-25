@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactElement } from "react";
-import CreateYoursLink from "@/features/auth/ui/create-yours-link";
 import { authClient } from "@/lib/auth-client";
 import { getCropStyle } from "@grabbin/shared/lib/image-crop";
 import {
@@ -13,6 +12,7 @@ import { Button } from "@grabbin/ui/components/button";
 import { Skeleton } from "@grabbin/ui/components/skeleton";
 import Link from "next/link";
 import { useMyPage, type ProfilePageData } from "../queries";
+import CreateYoursLink from "./create-yours-link";
 
 function MyPageLinkButton({
   page,

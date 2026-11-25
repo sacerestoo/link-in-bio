@@ -1,11 +1,11 @@
 import "server-only";
 import type { ReactElement } from "react";
-import CreateYoursLink from "@/features/auth/ui/create-yours-link";
-import { PermissionGate } from "@/features/auth/ui/permission-gate";
-import { profileQueries } from "@/features/profile/queries";
-import { PageCreatedConfetti } from "@/features/profile/ui/page-created-confetti";
-import { Profile } from "@/features/profile/ui/profile";
-import ProfileFooter from "@/features/profile/ui/profile-footer";
+import { pageQueries } from "@/features/page/queries";
+import CreateYoursLink from "@/features/page/ui/create-yours-link";
+import { PageCreatedConfetti } from "@/features/page/ui/page-created-confetti";
+import { PermissionGate } from "@/features/page/ui/permission-gate";
+import { Profile } from "@/features/page/ui/profile";
+import ProfileFooter from "@/features/page/ui/profile-footer";
 import { getQueryClient } from "@/lib/query-client";
 import { createServerApiClient } from "@/lib/server-api-client";
 import {
@@ -28,7 +28,7 @@ export default async function HandlePage({
   const serverApi = await createServerApiClient(requestHeaders);
 
   const page = await queryClient
-    .query(profileQueries.detail(handle, serverApi))
+    .query(pageQueries.detail(handle, serverApi))
     .catch((error: unknown) => {
       if (
         error instanceof Error &&

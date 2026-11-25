@@ -90,10 +90,10 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
 - Read Worker settings through `readWebEnv()` (`apps/web/lib/env.ts`), and
   server and cron settings through `readServerEnv()`
   (`apps/server/src/lib/env.ts`) and `readCronEnv()` (`apps/cron/src/env.ts`).
-  The profile query may read only `NEXT_PUBLIC_R2_PUBLIC_URL` directly because
-  it is shared with the browser bundle. The `env-access/no-direct-env` rule
-  rejects direct environment reads elsewhere, except app env files,
-  `*.config.ts` and `tooling/`.
+  The page query may read only `NEXT_PUBLIC_R2_PUBLIC_URL` directly because it
+  is shared with the browser bundle. The `env-access/no-direct-env` rule rejects
+  direct environment reads elsewhere, except app env files, `*.config.ts` and
+  `tooling/`.
 - Keep fake examples next to their use: Neon Local and Drizzle Kit settings in
   the root `.env.example`, web settings in `apps/web/.env.example`, server
   settings in `apps/server/.env.example`, and cron settings in

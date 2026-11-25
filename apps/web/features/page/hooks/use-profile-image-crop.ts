@@ -3,7 +3,7 @@ import type { Handle } from "@grabbin/shared/schemas/page";
 import { toast } from "@grabbin/ui/components/toast";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import { profileMutations } from "../mutations";
+import { pageMutations } from "../mutations";
 
 const isSameCrop = (
   currentCrop: ImageCrop | null,
@@ -23,7 +23,7 @@ export const useProfileImageCrop = (
     null,
   );
   const saveCropMutation = useMutation(
-    profileMutations.updateProfile(handle, {
+    pageMutations.updateProfile(handle, {
       onImageCropSaveSettled: () => {
         setPendingImageCrop(null);
       },

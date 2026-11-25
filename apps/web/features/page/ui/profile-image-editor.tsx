@@ -1,6 +1,5 @@
 "use client";
 
-import { PermissionGate } from "@/features/auth/ui/permission-gate";
 import { Button } from "@grabbin/ui/components/button";
 import { ImageCropEditor } from "@grabbin/ui/components/image-crop-editor";
 import { cn } from "@grabbin/ui/lib/utils";
@@ -8,6 +7,7 @@ import CircleFadingArrowUp from "lucide-react/icons/circle-fading-arrow-up";
 import { useRef, type ReactElement } from "react";
 import type { ProfilePageData } from "../queries";
 import { useProfileImageEditor } from "../hooks/use-profile-image-editor";
+import { PermissionGate } from "./permission-gate";
 import { ProfileImageView } from "./profile-image-view";
 import { Trash } from "./trash";
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { PermissionGate } from "@/features/auth/ui/permission-gate";
 import { lazy, Suspense, type ReactElement } from "react";
 import { usePage, type ProfilePageData } from "../queries";
+import { PermissionGate } from "./permission-gate";
 import { ProfileFields } from "./profile-fields";
 
 const ProfileNameBioEditor = lazy(() =>

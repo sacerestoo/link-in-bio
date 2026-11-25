@@ -11,8 +11,8 @@ import {
   type QueryClient,
 } from "@tanstack/react-query";
 import { useEffect, useState, type ChangeEvent } from "react";
-import { profileMutations } from "../mutations";
-import { profileQueries } from "../queries";
+import { pageMutations } from "../mutations";
+import { pageQueries } from "../queries";
 
 type ImageUploadInput = Readonly<{
   file: File;
@@ -51,9 +51,8 @@ const updateProfileImageCache = (
   handle: Handle,
   imageKey: string | null,
 ) => {
-  queryClient.setQueryData<PageResponse>(
-    profileQueries.byHandle(handle),
-    (page) => (page ? { ...page, imageKey, imageCrop: null } : page),
+  queryClient.setQueryData<PageResponse>(pageQueries.byHandle(handle), (page) =>
+    page ? { ...page, imageKey, imageCrop: null } : page,
   );
 };
 
@@ -134,8 +133,8 @@ export const useProfileImageActions = (
   const [isReplacingImage, setIsReplacingImage] = useState(false);
   const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const upload = useMutation(profileMutations.uploadImage(handle));
-  const remove = useMutation(profileMutations.removeImage(handle));
+  const upload = useMutation(pageMutations.uploadImage(handle));
+  const remove = useMutation(pageMutations.removeImage(handle));
 
   useEffect(
     () => () => {

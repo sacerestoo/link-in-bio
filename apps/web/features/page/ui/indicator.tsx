@@ -5,13 +5,13 @@ import type { ReactElement } from "react";
 import Loading from "@grabbin/ui/components/loading";
 import { useIsMutating } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { profileQueries } from "../queries";
+import { pageQueries } from "../queries";
 
 export default function Indicator(): ReactElement | null {
   const { handle } = useParams<{ handle: Handle }>();
   const isSaving =
     useIsMutating({
-      mutationKey: profileQueries.byHandle(handle),
+      mutationKey: pageQueries.byHandle(handle),
     }) > 0;
 
   if (!isSaving) return null;

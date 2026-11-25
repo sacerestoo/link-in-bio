@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactElement } from "react";
-import { ChangeHandleForm } from "@/features/auth/ui/change-handle-form";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +16,7 @@ import {
   DrawerTitle,
 } from "@grabbin/ui/components/drawer";
 import { useIsMobile } from "@grabbin/ui/hooks/use-mobile";
+import { ChangeHandleForm } from "./change-handle-form";
 
 type ChangeHandleDialogProps = Readonly<{
   isOpen: boolean;

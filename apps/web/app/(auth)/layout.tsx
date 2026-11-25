@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { profileQueries } from "@/features/profile/queries";
+import { pageQueries } from "@/features/page/queries";
+import { getQueryClient } from "@/lib/query-client";
 import { createServerApiClient } from "@/lib/server-api-client";
 import { getSessionCookie } from "better-auth/cookies";
 import { DetailedError } from "hono/client";
@@ -15,7 +16,9 @@ const AuthLayout = async ({
   const serverApi = await createServerApiClient(requestHeaders);
 
   try {
-    const { handle } = await profileQueries.currentPage(serverApi);
+    const { handle } = await getQueryClient().query(
+      pageQueries.myPage(null, serverApi),
+    );
     redirect(`/${encodeURIComponent(handle)}`, "replace");
   } catch (error: unknown) {
     if (!(error instanceof DetailedError && error.statusCode === 401)) {
