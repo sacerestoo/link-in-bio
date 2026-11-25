@@ -161,7 +161,6 @@ export const useImageCropEditor = ({
     isOpen: draft.isOpen,
     draftCrop: draft.draftCrop,
     frameSize,
-    sourceSize,
     onDraftCropChange: draft.setDraftCrop,
   });
   const resetDrag = gestures.reset;
@@ -190,6 +189,5 @@ export const useImageCropEditor = ({
     handlePointerDown: gestures.onPointerDown,
     handlePointerMove: gestures.onPointerMove,
     handlePointerEnd: gestures.onPointerEnd,
-    handleWheel: gestures.onWheel,
   };
 };
