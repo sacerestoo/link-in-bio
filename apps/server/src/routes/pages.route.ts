@@ -1,4 +1,5 @@
 import "server-only";
+import type { BentoItem } from "@grabbin/shared/schemas/bento-item";
 import { createDatabase } from "@grabbin/db";
 import {
   HANDLE_UNAVAILABLE_MESSAGE,
@@ -17,6 +18,7 @@ import { HTTPException } from "hono/http-exception";
 import * as v from "valibot";
 import type { ServerBindings } from "../lib/env";
 import { BentoItemPageConflictError } from "../lib/bento-item-page-conflict-error";
+import { BentoMediaError } from "../lib/bento-media-error";
 import {
   createProfileImageUpload,
   deleteProfileImageObject,
@@ -27,7 +29,9 @@ import {
   optionalSession,
   requireSession,
 } from "../middleware/session.middleware";
+import { BentoMediaService } from "../services/bento-media.service";
 import { PagesService, PAGE_SERVICE_STATUS } from "../services/pages.service";
+import { bentoMediaRoute } from "./bento-media.route";
 
 const createPagesService = (connectionString: string) =>
   new PagesService(createDatabase(connectionString));
@@ -40,6 +44,27 @@ const pagePatchRequestSchema = v.union([
 const isPageSaveRequest = (
   request: PageSaveRequest | PageUpdate,
 ): request is PageSaveRequest => "page" in request || "bento" in request;
+
+const assertBentoMediaBatchIsReady = async (
+  pagesService: PagesService,
+  mediaService: BentoMediaService,
+  userId: string,
+  handle: string,
+  items: readonly BentoItem[],
+): Promise<void> => {
+  if (!items.some((item) => item.type === "media")) return;
+  const pageId = await pagesService.findOwnedPageId(userId, handle);
+  if (pageId === undefined)
+    throw new HTTPException(404, { message: "Page not found" });
+
+  try {
+    await mediaService.assertBatchMediaUploaded(pageId, items);
+  } catch (error) {
+    if (error instanceof BentoMediaError)
+      throw new HTTPException(error.status, { message: error.message });
+    throw error;
+  }
+};
 
 export const pagesRoute = new Hono<{
   Bindings: ServerBindings;
@@ -161,15 +186,23 @@ export const pagesRoute = new Hono<{
         });
     }),
     async (c) => {
-      const pagesService = createPagesService(
-        c.env.HYPERDRIVE.connectionString,
-      );
+      const database = createDatabase(c.env.HYPERDRIVE.connectionString);
+      const pagesService = new PagesService(database);
       const userId = c.get("session").user.id;
 
       const { handle: currentHandle } = c.req.valid("param");
       const request = c.req.valid("json");
 
       if (isPageSaveRequest(request)) {
+        if (request.bento !== undefined)
+          await assertBentoMediaBatchIsReady(
+            pagesService,
+            new BentoMediaService(database, c.env, c.req.url),
+            userId,
+            currentHandle,
+            request.bento.upserts,
+          );
+
         try {
           const savedPage = await pagesService.savePageForUser(
             userId,
@@ -196,6 +229,8 @@ export const pagesRoute = new Hono<{
             throw new HTTPException(409, {
               message: "A Bento item belongs to another page.",
             });
+          if (error instanceof BentoMediaError)
+            throw new HTTPException(error.status, { message: error.message });
           throw error;
         }
       }
@@ -250,4 +285,5 @@ export const pagesRoute = new Hono<{
 
       return c.json(updatedPage.data);
     },
-  );
+  )
+  .route("/", bentoMediaRoute);

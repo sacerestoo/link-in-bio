@@ -24,6 +24,7 @@ type UpdateProfileContext = Readonly<{
 export type PageSaveVariables = Readonly<{
   handle: Handle;
   save: PageSaveRequest;
+  waitForMediaUploads: () => Promise<void>;
 }>;
 type PageSaveContext = Readonly<{
   previousPage: PageResponse | undefined;
@@ -32,6 +33,8 @@ type PageSaveContext = Readonly<{
 export const pageMutationKeys = {
   savePage: (handle: Handle) =>
     [...pageQueries.byHandle(handle), "save"] as const,
+  uploadImage: (handle: Handle) =>
+    [...pageQueries.byHandle(handle), "profile-image-upload"] as const,
 };
 
 const updatePageHandle = async (
@@ -102,7 +105,10 @@ export const pageMutations = {
   savePage: (handle: Handle) =>
     mutationOptions<PageResponse, Error, PageSaveVariables, PageSaveContext>({
       mutationKey: pageMutationKeys.savePage(handle),
-      mutationFn: ({ handle: saveHandle, save }) => savePage(saveHandle, save),
+      mutationFn: async ({ handle: saveHandle, save, waitForMediaUploads }) => {
+        await waitForMediaUploads();
+        return savePage(saveHandle, save);
+      },
       onMutate: async ({ handle: saveHandle, save }, { client }) => {
         await client.cancelQueries({
           queryKey: pageQueries.byHandle(saveHandle),
@@ -193,7 +199,7 @@ export const pageMutations = {
     }),
   uploadImage: (handle: Handle) =>
     mutationOptions({
-      mutationKey: [...pageQueries.byHandle(handle), "profile-image-upload"],
+      mutationKey: pageMutationKeys.uploadImage(handle),
       mutationFn: (input: {
         file: File;
         contentType: ProfileImageContentType;

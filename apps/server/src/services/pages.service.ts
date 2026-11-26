@@ -79,6 +79,19 @@ export class PagesService {
     return matchingPage === undefined;
   }
 
+  async findOwnedPageId(
+    userId: string,
+    handle: string,
+  ): Promise<string | undefined> {
+    const matchingPage = await this.database.query.pages.findFirst({
+      columns: { id: true },
+      where: (page, { eq: equals }) =>
+        and(equals(page.userId, userId), equals(page.handle, handle)),
+    });
+
+    return matchingPage?.id;
+  }
+
   findPageInfo(lookup: { handle: string }): Promise<PageInfo | undefined>;
   findPageInfo(lookup: {
     userId: string;

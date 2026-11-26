@@ -47,6 +47,7 @@ type SaveLatestDraftContext = Readonly<{
   debouncedSaveRef: DebouncedSaveRef;
   queryClient: QueryClient;
   saveRef: SaveRef;
+  mediaUploadsRef: { current: Map<string, Promise<void>> };
   mutateAsync: (variables: PageSaveVariables) => Promise<PageResponse>;
 }>;
 
@@ -56,6 +57,7 @@ const saveLatestDraft = async ({
   debouncedSaveRef,
   queryClient,
   saveRef,
+  mediaUploadsRef,
   mutateAsync,
 }: SaveLatestDraftContext): Promise<void> => {
   const state = stateRef.current;
@@ -72,11 +74,44 @@ const saveLatestDraft = async ({
   if (save === null) return;
 
   try {
-    const savedPage = await mutateAsync({ handle, save });
+    const savedMediaKeys = new Set(
+      state.saved.bento.flatMap((item) => {
+        if (item.type !== "media") return [];
+        const objectKey = item.data.objectKey;
+        return typeof objectKey === "string" ? [objectKey] : [];
+      }),
+    );
+    const mediaUploads = new Map<string, Promise<void>>();
+    let hasUntrackedMediaUpload = false;
+    for (const item of save.bento?.upserts ?? []) {
+      if (item.type !== "media") continue;
+      const objectKey = item.data.objectKey;
+      if (typeof objectKey !== "string") {
+        hasUntrackedMediaUpload = true;
+        continue;
+      }
+      if (savedMediaKeys.has(objectKey)) continue;
+
+      const upload = mediaUploadsRef.current.get(objectKey);
+      if (upload === undefined) hasUntrackedMediaUpload = true;
+      else mediaUploads.set(objectKey, upload);
+    }
+    const waitForMediaUploads = async () => {
+      if (hasUntrackedMediaUpload)
+        throw new Error("Upload an image before saving this Bento item.");
+      for (const upload of mediaUploads.values()) {
+        await upload;
+      }
+    };
+    const savedPage = await mutateAsync({ handle, save, waitForMediaUploads });
     const latestState = stateRef.current;
     if (latestState.handle !== handle) return;
 
     latestState.saved = createPageSaveDraft(savedPage);
+    for (const [objectKey, upload] of mediaUploads) {
+      if (mediaUploadsRef.current.get(objectKey) === upload)
+        mediaUploadsRef.current.delete(objectKey);
+    }
   } catch {
     const latestState = stateRef.current;
     if (latestState.handle !== handle) return;
@@ -97,6 +132,7 @@ const saveLatestDraft = async ({
 export const usePageAutosave = (handle: Handle, initialPage: PageResponse) => {
   const debouncedSaveRef = useRef<DebouncedSaveRef["current"]>(null);
   const saveRef = useRef<SaveRef["current"]>(async () => {});
+  const mediaUploadsRef = useRef(new Map<string, Promise<void>>());
   const queryClient = useQueryClient();
   const initialDraft = createPageSaveDraft(initialPage);
   const [draft, setDraft] = useState(initialDraft);
@@ -110,6 +146,7 @@ export const usePageAutosave = (handle: Handle, initialPage: PageResponse) => {
         debouncedSaveRef,
         queryClient,
         saveRef,
+        mediaUploadsRef,
         mutateAsync,
       }),
     [handle, mutateAsync, queryClient],
@@ -125,6 +162,12 @@ export const usePageAutosave = (handle: Handle, initialPage: PageResponse) => {
     setDraft(nextDraft);
     debouncedSaveRef.current?.();
   }, []);
+  const registerBentoMediaUpload = useCallback(
+    (objectKey: string, completion: Promise<void>) => {
+      mediaUploadsRef.current.set(objectKey, completion);
+    },
+    [],
+  );
   const setName = useCallback(
     (name: string) => {
       updateDraft({ name });
@@ -163,6 +206,7 @@ export const usePageAutosave = (handle: Handle, initialPage: PageResponse) => {
     if (state.handle === handle) return;
 
     debouncedSaveRef.current?.cancel();
+    mediaUploadsRef.current.clear();
     const nextDraft = createPageSaveDraft(initialPage);
     stateRef.current = createPageAutosaveState(handle, nextDraft);
     setDraft(nextDraft);
@@ -175,5 +219,6 @@ export const usePageAutosave = (handle: Handle, initialPage: PageResponse) => {
     setName,
     setBio,
     setBento,
+    registerBentoMediaUpload,
   };
 };

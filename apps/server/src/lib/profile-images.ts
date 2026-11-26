@@ -5,18 +5,9 @@ import {
   PROFILE_IMAGE_MAX_SIZE,
   type ProfileImageContentType,
 } from "@grabbin/shared/lib/profile-image";
-import { AwsClient } from "aws4fetch";
 import { HTTPException } from "hono/http-exception";
 import type { ServerBindings } from "./env";
-
-const LOCAL_R2_ACCESS_KEY_ID = "grabbin-local-r2";
-const LOCAL_R2_SECRET_ACCESS_KEY = "grabbin-local-r2-secret";
-const R2_UPLOAD_URL_TTL_SECONDS = 300;
-type R2Signer = Readonly<{
-  client: AwsClient;
-  endpoint: string;
-  bucketName: string;
-}>;
+import { signR2Request } from "./r2";
 
 export const isProfileImageKeyOwnedByUser = (
   userId: string,
@@ -27,79 +18,6 @@ export const isProfileImageKeyOwnedByUser = (
 
 export const shouldResetImageCrop = (update: PageUpdate): boolean =>
   update.imageKey !== undefined && update.imageCrop === undefined;
-
-const createR2Signer = (
-  env: ServerBindings,
-  requestUrl: string,
-): R2Signer | null => {
-  const requestUrlObject = new URL(requestUrl);
-  const isLocal = ["localhost", "127.0.0.1", "::1"].includes(
-    requestUrlObject.hostname,
-  );
-  const accountId = env.R2_ACCOUNT_ID;
-  const accessKeyId = isLocal ? LOCAL_R2_ACCESS_KEY_ID : env.R2_ACCESS_KEY_ID;
-  const secretAccessKey = isLocal
-    ? LOCAL_R2_SECRET_ACCESS_KEY
-    : env.R2_SECRET_ACCESS_KEY;
-
-  if (env.R2_BUCKET_NAME === undefined || env.R2_BUCKET_NAME.length === 0)
-    return null;
-  if (
-    !isLocal &&
-    (accountId === undefined ||
-      accountId.length === 0 ||
-      accessKeyId === undefined ||
-      accessKeyId.length === 0 ||
-      secretAccessKey === undefined ||
-      secretAccessKey.length === 0)
-  )
-    return null;
-
-  return {
-    client: new AwsClient({
-      service: "s3",
-      region: "auto",
-      accessKeyId: accessKeyId ?? "",
-      secretAccessKey: secretAccessKey ?? "",
-    }),
-    endpoint: isLocal
-      ? `${requestUrlObject.origin}/cdn-cgi/local/r2/s3`
-      : `https://${accountId}.r2.cloudflarestorage.com`,
-    bucketName: env.R2_BUCKET_NAME,
-  };
-};
-
-const signR2Request = async (
-  env: ServerBindings,
-  requestUrl: string,
-  method: "DELETE" | "HEAD" | "PUT",
-  imageKey: string,
-  contentType?: string,
-  cacheControl?: string,
-): Promise<string | null> => {
-  const signer = createR2Signer(env, requestUrl);
-  if (signer === null) return null;
-  const { client, endpoint, bucketName } = signer;
-  const objectPath = [bucketName, ...imageKey.split("/")]
-    .map((segment) => encodeURIComponent(segment))
-    .join("/");
-  const signedRequest = await client.sign(
-    new Request(
-      `${endpoint}/${objectPath}?X-Amz-Expires=${R2_UPLOAD_URL_TTL_SECONDS}`,
-      {
-        method,
-        headers: {
-          ...(contentType === undefined ? {} : { "Content-Type": contentType }),
-          ...(cacheControl === undefined
-            ? {}
-            : { "Cache-Control": cacheControl }),
-        },
-      },
-    ),
-    { aws: { signQuery: true, allHeaders: true } },
-  );
-  return signedRequest.url;
-};
 
 export const createProfileImageUpload = async (
   env: ServerBindings,
@@ -114,14 +32,10 @@ export const createProfileImageUpload = async (
         ? "png"
         : "jpg";
   const imageKey = `profile-images/${userId}/${crypto.randomUUID()}.${extension}`;
-  const uploadUrl = await signR2Request(
-    env,
-    requestUrl,
-    "PUT",
-    imageKey,
-    contentType,
-    PROFILE_IMAGE_CACHE_CONTROL,
-  );
+  const uploadUrl = await signR2Request(env, requestUrl, "PUT", imageKey, {
+    "Content-Type": contentType,
+    "Cache-Control": PROFILE_IMAGE_CACHE_CONTROL,
+  });
   if (uploadUrl === null) return null;
   return { imageKey, uploadUrl };
 };

@@ -11,6 +11,8 @@ import {
   type BentoBatchPolicyError,
 } from "../lib/bento-batch-policy";
 import { BentoItemPageConflictError } from "../lib/bento-item-page-conflict-error";
+import { syncBentoMediaAssetReferences } from "./bento-media-assets.service";
+import { getBentoMediaObjectKey } from "./bento-media.service";
 
 type BentoDatabaseTransaction = Parameters<
   Parameters<Database["transaction"]>[0]
@@ -30,6 +32,19 @@ export class BentoService {
   ): Promise<BentoSaveResult> {
     const policy = applyBentoBatchPolicy(persistedItems, batch);
     if (policy.status === "invalid") return policy;
+
+    await syncBentoMediaAssetReferences(
+      this.executor,
+      pageId,
+      persistedItems.flatMap((item) => {
+        const objectKey = getBentoMediaObjectKey(item);
+        return objectKey === undefined ? [] : [objectKey];
+      }),
+      policy.items.flatMap((item) => {
+        const objectKey = getBentoMediaObjectKey(item);
+        return objectKey === undefined ? [] : [objectKey];
+      }),
+    );
 
     const hasUpserts = batch.upserts.length > 0;
     const hasDeletes = batch.deletes.length > 0;
