@@ -6,26 +6,8 @@ import { requireSession } from "../middleware/session.middleware";
 
 export const authRoute = new Hono<{ Bindings: ServerBindings }>()
   .get("/session", requireSession, (c) => {
-    const {
-      id,
-      name,
-      email,
-      image,
-      hasAccessGranted,
-      subscription,
-      subscriptions,
-    } = c.get("session").user;
-    return c.json({
-      user: {
-        id,
-        name,
-        email,
-        image,
-        hasAccessGranted,
-        subscription,
-        subscriptions,
-      },
-    });
+    const { user } = c.get("session");
+    return c.json({ user });
   })
   .get("/error", (c) => {
     if (c.req.query("error") === "signup_disabled") {
