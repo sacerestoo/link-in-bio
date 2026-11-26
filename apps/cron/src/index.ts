@@ -3,7 +3,7 @@ import { sentryPrivacyOptions } from "@grabbin/shared/observability";
 import * as Sentry from "@sentry/cloudflare";
 import { createLogger } from "evlog";
 import { readCronEnv } from "./env";
-import { runDailyJobs } from "./jobs";
+import { runDailyJobs, runWeeklyJobs, WEEKLY_MEDIA_CLEANUP_CRON } from "./jobs";
 
 declare global {
   interface Env {
@@ -30,7 +30,10 @@ export default Sentry.withSentry(
         versionId: env.CF_VERSION_METADATA.id,
       });
       try {
-        const results = await runDailyJobs(database);
+        const results =
+          controller.cron === WEEKLY_MEDIA_CLEANUP_CRON
+            ? await runWeeklyJobs(database, env.R2_BUCKET)
+            : await runDailyJobs(database);
         log.emit({ ok: true, results });
       } catch (error) {
         log.error(error instanceof Error ? error : String(error));

@@ -16,6 +16,7 @@
     "@grabbin/db": "workspace:*",
     "@grabbin/shared": "workspace:*",
     "@sentry/cloudflare": "^11.12.0",
+    "drizzle-orm": "^0.45.4",
     "evlog": "^2.35.1",
     "valibot": "catalog:"
   },
