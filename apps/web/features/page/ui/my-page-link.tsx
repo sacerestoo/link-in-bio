@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactElement } from "react";
-import { authClient } from "@/lib/auth-client";
 import { getCropStyle } from "@grabbin/shared/lib/image-crop";
 import {
   Avatar,
@@ -64,12 +63,7 @@ function MyPageLinkButton({
 export function MyPageLink({
   hasSessionCookie,
 }: Readonly<{ hasSessionCookie: boolean }>): ReactElement | null {
-  const { data: session, isPending } = authClient.useSession();
-  const {
-    data: page,
-    status,
-    isPending: isQueryPending,
-  } = useMyPage(session?.user.id ?? null);
+  const { data: page, isPending } = useMyPage();
 
   const createYoursLink = (
     <div className="hidden page-wide:block">
@@ -81,15 +75,12 @@ export function MyPageLink({
     </div>
   );
 
-  if (session === null && (!isPending || !hasSessionCookie))
-    return createYoursLink;
+  if (page !== undefined && page !== null)
+    return <MyPageLinkButton page={page} />;
 
-  if (isPending || (session !== null && isQueryPending))
-    return <Skeleton className="h-9 w-26 page-wide:rounded-lg" />;
+  if (page === null || !hasSessionCookie) return createYoursLink;
 
-  if (session === null) return createYoursLink;
+  if (isPending) return <Skeleton className="h-9 w-26 page-wide:rounded-lg" />;
 
-  if (status !== "success" || page === undefined) return null;
-
-  return <MyPageLinkButton page={page} />;
+  return null;
 }

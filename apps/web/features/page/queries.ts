@@ -7,6 +7,7 @@ import {
   type PageResponse,
 } from "@grabbin/shared/schemas/page";
 import { queryOptions, useQuery } from "@tanstack/react-query";
+import { DetailedError } from "hono/client";
 import * as v from "valibot";
 
 export const getProfileImageUrl = (
@@ -92,10 +93,19 @@ function selectProfileFields<T extends PageProfileResponse>(
 export const pageQueries = {
   all: () => ["page"] as const,
   byHandle: (handle: Handle) => [...pageQueries.all(), handle] as const,
-  myPage: (userId: string | null, client: ApiClient = api) =>
+  byMe: () => [...pageQueries.all(), "me"] as const,
+  myPage: (client: ApiClient = api) =>
     queryOptions({
-      queryKey: [...pageQueries.all(), "me", userId],
-      queryFn: () => getPageInfo({ currentUser: true }, client),
+      queryKey: pageQueries.byMe(),
+      queryFn: async () => {
+        try {
+          return await getPageInfo({ currentUser: true }, client);
+        } catch (error: unknown) {
+          if (error instanceof DetailedError && error.statusCode === 401)
+            return null;
+          throw error;
+        }
+      },
       retry: false,
     }),
   detail: (handle: Handle, client: ApiClient = api) =>
@@ -105,11 +115,10 @@ export const pageQueries = {
     }),
 };
 
-export const useMyPage = (userId: string | null, client: ApiClient = api) =>
+export const useMyPage = (client: ApiClient = api) =>
   useQuery({
-    ...pageQueries.myPage(userId, client),
-    enabled: userId !== null,
-    select: selectProfileFields,
+    ...pageQueries.myPage(client),
+    select: (page) => (page === null ? null : selectProfileFields(page)),
   });
 
 export type MyPageData = NonNullable<ReturnType<typeof useMyPage>["data"]>;

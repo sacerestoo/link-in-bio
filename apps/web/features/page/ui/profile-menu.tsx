@@ -3,6 +3,7 @@
 import type { Handle } from "@grabbin/shared/schemas/page";
 import type { ReactElement } from "react";
 import { authClient } from "@/lib/auth-client";
+import { getQueryClient } from "@/lib/query-client";
 import { Button } from "@grabbin/ui/components/button";
 import {
   DropdownMenu,
@@ -15,12 +16,16 @@ import Settings2 from "lucide-react/icons/settings-2";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { overlay } from "overlay-kit";
+import { pageQueries } from "../queries";
 import { ChangeHandleDialog } from "./change-handle-dialog";
 
 async function handleSignOut(onRefresh: () => void): Promise<void> {
   try {
     const result = await authClient.signOut();
     if (result.error) throw new Error("Sign out failed");
+    await getQueryClient().resetQueries({
+      queryKey: pageQueries.byMe(),
+    });
     onRefresh();
   } catch {
     toast.add({
