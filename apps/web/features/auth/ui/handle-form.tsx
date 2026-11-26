@@ -1,7 +1,7 @@
 "use client";
 
 import { useConfirmInitialSignupHandle } from "@/features/auth/hooks/use-confirm-initial-signup-handle";
-import { useHandleCheck } from "@/features/auth/hooks/use-handle-check";
+import { useHandleAvailabilityCheck } from "@/lib/use-handle-availability-check";
 import { Button } from "@grabbin/ui/components/button";
 import { HandleInput } from "@grabbin/ui/components/handle-input";
 import { useState, type ReactNode } from "react";
@@ -19,11 +19,11 @@ export default function HandleForm({
 }: HandleFormProps): ReactNode {
   const [handleInput, setHandleInput] = useState("");
   const [checkedHandle, setCheckedHandle] = useState<string>();
-  const { onCheckHandle, checking, error } = useHandleCheck(
+  const { onCheckHandle, checking, error } = useHandleAvailabilityCheck({
     handleInput,
     initialHandle,
-    setCheckedHandle,
-  );
+    onCheckedHandleChange: setCheckedHandle,
+  });
   useConfirmInitialSignupHandle(
     initialHandle,
     onCheckHandle,

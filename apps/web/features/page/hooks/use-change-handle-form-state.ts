@@ -1,6 +1,5 @@
 import { useHandleAvailabilityCheck } from "@/lib/use-handle-availability-check";
 import { useState } from "react";
-import { checkHandle } from "../queries";
 
 export const useChangeHandleFormState = (currentHandle: string) => {
   const [requestedHandleInput, setRequestedHandleInput] =
@@ -8,7 +7,6 @@ export const useChangeHandleFormState = (currentHandle: string) => {
   const { checkedHandle, checking, error, reset } = useHandleAvailabilityCheck({
     handleInput: requestedHandleInput,
     initialHandle: currentHandle,
-    onCheckHandle: checkHandle,
   });
   const requestedHandleIsCurrent = requestedHandleInput === currentHandle;
   const requestedHandleIsChecked = checkedHandle === requestedHandleInput;

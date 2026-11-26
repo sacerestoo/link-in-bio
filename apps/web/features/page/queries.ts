@@ -1,8 +1,6 @@
 import type { ProfileImageContentType } from "@grabbin/shared/lib/profile-image";
 import { api, type ApiClient } from "@/lib/api-client";
 import {
-  HANDLE_UNAVAILABLE_MESSAGE,
-  handleSchema,
   profileImageUploadResponseSchema,
   pageProfileResponseSchema,
   pageResponseSchema,
@@ -28,21 +26,6 @@ export const getProfileImageUrl = (
     .map((segment) => encodeURIComponent(segment))
     .join("/");
   return `${imageBaseUrl.replace(/\/$/u, "")}/${encodedKey}`;
-};
-
-export const checkHandle = async (
-  rawHandle: string,
-  client: ApiClient = api,
-): Promise<Handle> => {
-  const validHandle = v.parse(handleSchema, rawHandle);
-  const { available } = v.parse(
-    v.object({ available: v.boolean() }),
-    await client.v1.pages.handle
-      .$post({ json: { handle: validHandle } })
-      .then((response) => response.json()),
-  );
-  if (!available) throw new Error(HANDLE_UNAVAILABLE_MESSAGE);
-  return validHandle;
 };
 
 export const updatePageHandle = async (

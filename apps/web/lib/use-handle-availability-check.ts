@@ -1,3 +1,9 @@
+import { api } from "@/lib/api-client";
+import {
+  HANDLE_UNAVAILABLE_MESSAGE,
+  handleSchema,
+  type Handle,
+} from "@grabbin/shared/schemas/page";
 import { useMutation } from "@tanstack/react-query";
 import { debounce } from "es-toolkit/function";
 import { useCallback, useEffect } from "react";
@@ -6,14 +12,24 @@ import * as v from "valibot";
 type HandleCheckOptions = Readonly<{
   handleInput: string;
   initialHandle: string | undefined;
-  onCheckHandle: (handle: string) => Promise<string>;
   onCheckedHandleChange?: (handle: string | undefined) => void;
 }>;
+
+const checkHandle = async (rawHandle: string): Promise<Handle> => {
+  const handle = v.parse(handleSchema, rawHandle);
+  const { available } = v.parse(
+    v.object({ available: v.boolean() }),
+    await api.v1.pages.handle
+      .$post({ json: { handle } })
+      .then((response) => response.json()),
+  );
+  if (!available) throw new Error(HANDLE_UNAVAILABLE_MESSAGE);
+  return handle;
+};
 
 export const useHandleAvailabilityCheck = ({
   handleInput,
   initialHandle,
-  onCheckHandle,
   onCheckedHandleChange,
 }: HandleCheckOptions) => {
   const {
@@ -22,8 +38,11 @@ export const useHandleAvailabilityCheck = ({
     isPending,
     error,
     reset,
-  } = useMutation({ mutationFn: (handle: string) => onCheckHandle(handle) });
-  const checkHandle = useCallback(
+  } = useMutation({
+    mutationKey: ["handle-availability", "check"],
+    mutationFn: checkHandle,
+  });
+  const checkHandleSafely = useCallback(
     async (handle: string): Promise<string | undefined> => {
       try {
         return await mutateAsync(handle);
@@ -37,7 +56,7 @@ export const useHandleAvailabilityCheck = ({
   useEffect(() => {
     let active = true;
     const checkDebounced = debounce((handle: string) => {
-      void checkHandle(handle).then((checked) => {
+      void checkHandleSafely(handle).then((checked) => {
         if (active)
           onCheckedHandleChange?.(checked === undefined ? undefined : handle);
         return checked;
@@ -50,10 +69,10 @@ export const useHandleAvailabilityCheck = ({
       active = false;
       checkDebounced.cancel();
     };
-  }, [handleInput, initialHandle, checkHandle, onCheckedHandleChange]);
+  }, [handleInput, initialHandle, checkHandleSafely, onCheckedHandleChange]);
 
   return {
-    onCheckHandle: checkHandle,
+    onCheckHandle: checkHandleSafely,
     checkedHandle,
     checking: isPending,
     reset,
