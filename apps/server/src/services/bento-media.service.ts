@@ -1,67 +1,66 @@
 import "server-only";
 import type { Database } from "@grabbin/db";
-import type { BentoItem } from "@grabbin/shared/schemas/bento-item";
-import type {
-  BentoMediaUploadRequest,
-  BentoMediaUploadResponse,
-} from "@grabbin/shared/schemas/bento-media";
 import {
+  renewPendingBentoMediaUpload,
+  reserveBentoMediaUpload,
+} from "@grabbin/db/repositories/bento";
+import {
+  BentoError,
   BENTO_MEDIA_MAX_SIZE,
+  getBentoMediaObjectKey,
   isBentoMediaContentType,
-} from "@grabbin/shared/lib/bento-media";
+  isBentoMediaObjectKeyForPage,
+  type BentoItem,
+  type BentoMediaUploadRequest,
+  type BentoMediaUploadResponse,
+} from "@grabbin/domain/bento";
 import type { ServerBindings } from "../lib/env";
-import { BentoMediaError } from "../lib/bento-media-error";
-import { isBentoMediaObjectKeyForPage } from "../lib/bento-media-object-key";
 import { signR2Request } from "../lib/r2";
-import { BentoMediaAssetsService } from "./bento-media-assets.service";
-
-export const getBentoMediaObjectKey = (item: BentoItem): string | undefined => {
-  if (item.type !== "media") return undefined;
-  const objectKey = item.data.objectKey;
-  return typeof objectKey === "string" ? objectKey : undefined;
-};
 
 export class BentoMediaService {
-  private readonly assets: BentoMediaAssetsService;
-
   constructor(
     private readonly database: Database,
     private readonly env: ServerBindings,
     private readonly requestUrl: string,
-  ) {
-    this.assets = new BentoMediaAssetsService(database);
-  }
+  ) {}
 
   async createUpload(
     pageId: string,
     request: BentoMediaUploadRequest,
   ): Promise<BentoMediaUploadResponse> {
-    const asset = await this.assets.reserveUpload(request.uploadId, pageId);
+    const asset = await reserveBentoMediaUpload(
+      this.database,
+      request.uploadId,
+      pageId,
+    );
     if (!isBentoMediaObjectKeyForPage(asset.objectKey, pageId))
-      throw new BentoMediaError(
+      throw new BentoError(
+        "media-upload-page-conflict",
         "This media upload ID belongs to another page.",
-        409,
       );
     if (asset.status === "pending_delete")
-      throw new BentoMediaError(
+      throw new BentoError(
+        "media-upload-expired",
         "This media upload has expired. Choose the file again.",
-        410,
       );
 
     const inspection = await this.inspectObject(asset.objectKey);
     if (inspection === "uploaded")
       return { status: "uploaded", objectKey: asset.objectKey };
     if (asset.status !== "pending")
-      throw new BentoMediaError(
+      throw new BentoError(
+        "saved-media-missing",
         "The saved image is missing from storage.",
-        409,
       );
 
-    const renewedAsset = await this.assets.renewPendingUpload(request.uploadId);
+    const renewedAsset = await renewPendingBentoMediaUpload(
+      this.database,
+      request.uploadId,
+    );
     if (renewedAsset === undefined)
-      throw new BentoMediaError(
+      throw new BentoError(
+        "media-upload-expired",
         "This media upload has expired. Choose the file again.",
-        410,
       );
 
     const uploadUrl = await signR2Request(
@@ -75,7 +74,10 @@ export class BentoMediaService {
       },
     );
     if (uploadUrl === null)
-      throw new BentoMediaError("Image uploads are unavailable.", 503);
+      throw new BentoError(
+        "media-upload-unavailable",
+        "Image uploads are unavailable.",
+      );
 
     return {
       status: "pending",
@@ -96,9 +98,9 @@ export class BentoMediaService {
         objectKey === undefined ||
         !isBentoMediaObjectKeyForPage(objectKey, pageId)
       )
-        throw new BentoMediaError(
+        throw new BentoError(
+          "media-upload-required",
           "Upload an image before saving this Bento item.",
-          400,
         );
       mediaKeys.add(objectKey);
     }
@@ -106,9 +108,9 @@ export class BentoMediaService {
     for (const objectKey of mediaKeys) {
       const inspection = await this.inspectObject(objectKey);
       if (inspection === "missing")
-        throw new BentoMediaError(
+        throw new BentoError(
+          "media-upload-required",
           "Upload the image before saving this Bento item.",
-          400,
         );
     }
   }
@@ -123,23 +125,26 @@ export class BentoMediaService {
       objectKey,
     );
     if (headUrl === null)
-      throw new BentoMediaError("Image uploads are unavailable.", 503);
+      throw new BentoError(
+        "media-upload-unavailable",
+        "Image uploads are unavailable.",
+      );
 
     let response: Response;
     try {
       response = await fetch(headUrl, { method: "HEAD" });
     } catch {
-      throw new BentoMediaError(
+      throw new BentoError(
+        "media-confirmation-failed",
         "Could not confirm the media upload. Try again.",
-        503,
       );
     }
 
     if (response.status === 404) return "missing";
     if (!response.ok)
-      throw new BentoMediaError(
+      throw new BentoError(
+        "media-confirmation-failed",
         "Could not confirm the media upload. Try again.",
-        503,
       );
 
     const contentLength = Number(response.headers.get("content-length"));
@@ -154,9 +159,9 @@ export class BentoMediaService {
       contentLength < 1 ||
       contentLength > BENTO_MEDIA_MAX_SIZE
     )
-      throw new BentoMediaError(
+      throw new BentoError(
+        "invalid-media-file",
         "Choose a GIF, JPG, PNG, MP4, WebM, or MOV file up to 5 MB.",
-        400,
       );
 
     return "uploaded";

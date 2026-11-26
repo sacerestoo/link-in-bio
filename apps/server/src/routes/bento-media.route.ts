@@ -1,19 +1,19 @@
 import "server-only";
 import { createDatabase } from "@grabbin/db";
 import { findOwnedPageId } from "@grabbin/db/repositories/page";
-import { handleSchema } from "@grabbin/domain/page";
 import {
   bentoMediaUploadRequestSchema,
   bentoMediaUploadResponseSchema,
-} from "@grabbin/shared/schemas/bento-media";
+} from "@grabbin/domain/bento";
+import { handleSchema } from "@grabbin/domain/page";
 import { sValidator } from "@hono/standard-validator";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import * as v from "valibot";
 import type { ServerBindings } from "../lib/env";
-import { BentoMediaError } from "../lib/bento-media-error";
 import { requireSession } from "../middleware/session.middleware";
 import { BentoMediaService } from "../services/bento-media.service";
+import { withDomainErrors } from "./domain-route-errors";
 
 export const bentoMediaRoute = new Hono<{
   Bindings: ServerBindings;
@@ -32,26 +32,21 @@ export const bentoMediaRoute = new Hono<{
         message: result.error.map((issue) => issue.message).join(" "),
       });
   }),
-  async (c) => {
-    const { handle } = c.req.valid("param");
-    const userId = c.get("session").user.id;
-    const database = createDatabase(c.env.HYPERDRIVE.connectionString);
-    const pageId = await findOwnedPageId(database, userId, handle);
-    if (pageId === undefined)
-      throw new HTTPException(404, { message: "Page not found" });
+  (c) =>
+    withDomainErrors(async () => {
+      const { handle } = c.req.valid("param");
+      const userId = c.get("session").user.id;
+      const database = createDatabase(c.env.HYPERDRIVE.connectionString);
+      const pageId = await findOwnedPageId(database, userId, handle);
+      if (pageId === undefined)
+        throw new HTTPException(404, { message: "Page not found" });
 
-    const mediaService = new BentoMediaService(database, c.env, c.req.url);
-    try {
+      const mediaService = new BentoMediaService(database, c.env, c.req.url);
       return c.json(
         v.parse(
           bentoMediaUploadResponseSchema,
           await mediaService.createUpload(pageId, c.req.valid("json")),
         ),
       );
-    } catch (error) {
-      if (error instanceof BentoMediaError)
-        throw new HTTPException(error.status, { message: error.message });
-      throw error;
-    }
-  },
+    }),
 );

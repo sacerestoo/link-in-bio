@@ -1,6 +1,6 @@
 import "server-only";
-import type { BentoItem } from "@grabbin/shared/schemas/bento-item";
-import { createDatabase, type Executor } from "@grabbin/db";
+import type { BentoItem } from "@grabbin/domain/bento";
+import { createDatabase } from "@grabbin/db";
 import {
   findOwnedPageId,
   findOwnedPageImageKey,
@@ -18,15 +18,12 @@ import {
   pageSaveRequestSchema,
   profileImageUploadSchema,
   shouldResetImageCrop,
-  type PageSaveRequest,
 } from "@grabbin/domain/page";
 import { sValidator } from "@hono/standard-validator";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import * as v from "valibot";
 import type { ServerBindings } from "../lib/env";
-import { BentoItemPageConflictError } from "../lib/bento-item-page-conflict-error";
-import { BentoMediaError } from "../lib/bento-media-error";
 import {
   createProfileImageUpload,
   deleteProfileImageObject,
@@ -38,8 +35,7 @@ import {
   requireSession,
 } from "../middleware/session.middleware";
 import { BentoMediaService } from "../services/bento-media.service";
-import { BentoService } from "../services/bento.service";
-import { withPageErrors } from "./page-route-errors";
+import { withDomainErrors } from "./domain-route-errors";
 
 const assertBentoMediaBatchIsReady = async (
   database: ReturnType<typeof createDatabase>,
@@ -52,38 +48,14 @@ const assertBentoMediaBatchIsReady = async (
   const pageId = await findOwnedPageId(database, userId, handle);
   if (pageId === undefined) throw new PageError("not-found", "Page not found");
 
-  try {
-    await mediaService.assertBatchMediaUploaded(pageId, items);
-  } catch (error) {
-    if (error instanceof BentoMediaError)
-      throw new HTTPException(error.status, { message: error.message });
-    throw error;
-  }
-};
-
-const saveBentoBatch = async (
-  executor: Executor,
-  pageId: string,
-  batch: PageSaveRequest["bento"],
-): Promise<readonly BentoItem[]> => {
-  const bentoService = new BentoService(executor);
-  if (batch === undefined) return bentoService.list(pageId);
-
-  const result = await bentoService.save(pageId, batch);
-  if (result.status === "invalid")
-    throw new PageError(
-      "invalid-bento-batch",
-      `Invalid Bento batch: ${result.reason}`,
-      result.reason,
-    );
-  return result.items;
+  await mediaService.assertBatchMediaUploaded(pageId, items);
 };
 
 export const pagesRoute = new Hono<{
   Bindings: ServerBindings;
 }>()
   .get("/me", requireSession, (c): Promise<Response> =>
-    withPageErrors(async () => {
+    withDomainErrors(async () => {
       const database = createDatabase(c.env.HYPERDRIVE.connectionString);
       const userId = c.get("session").user.id;
       const page = await findPageInfoByUserId(database, userId);
@@ -130,7 +102,7 @@ export const pagesRoute = new Hono<{
         });
     }),
     (c) =>
-      withPageErrors(async () => {
+      withDomainErrors(async () => {
         const { handle } = c.req.valid("param");
         const { contentType } = c.req.valid("json");
         const userId = c.get("session").user.id;
@@ -162,7 +134,7 @@ export const pagesRoute = new Hono<{
         });
     }),
     (c): Promise<Response> =>
-      withPageErrors(async () => {
+      withDomainErrors(async () => {
         const database = createDatabase(c.env.HYPERDRIVE.connectionString);
         const { handle } = c.req.valid("param");
         const userId = c.get("session")?.user.id;
@@ -196,7 +168,7 @@ export const pagesRoute = new Hono<{
         });
     }),
     (c) =>
-      withPageErrors(async () => {
+      withDomainErrors(async () => {
         const database = createDatabase(c.env.HYPERDRIVE.connectionString);
         const userId = c.get("session").user.id;
         const { handle: currentHandle } = c.req.valid("param");
@@ -249,24 +221,12 @@ export const pagesRoute = new Hono<{
             request.bento.upserts,
           );
 
-        let savedPage: Awaited<ReturnType<typeof savePageForUser>>;
-        try {
-          savedPage = await savePageForUser(
-            database,
-            userId,
-            currentHandle,
-            save,
-            saveBentoBatch,
-          );
-        } catch (error) {
-          if (error instanceof BentoItemPageConflictError)
-            throw new HTTPException(409, {
-              message: "A Bento item belongs to another page.",
-            });
-          if (error instanceof BentoMediaError)
-            throw new HTTPException(error.status, { message: error.message });
-          throw error;
-        }
+        const savedPage = await savePageForUser(
+          database,
+          userId,
+          currentHandle,
+          save,
+        );
 
         if (
           update?.imageKey !== undefined &&
