@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./bento": "./src/bento.ts",
+    "./bento-layout": "./src/bento-layout.ts",
     "./health": "./src/health.ts",
     "./image-crop": "./src/image-crop.ts",
     "./page": "./src/page.ts"
@@ -14,7 +16,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@grabbin/shared": "workspace:*",
+    "es-toolkit": "catalog:",
     "valibot": "catalog:"
   },
   "devDependencies": {

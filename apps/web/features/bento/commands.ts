@@ -1,8 +1,8 @@
-import type { BentoItem } from "@grabbin/shared/schemas/bento-item";
+import type { BentoItem } from "@grabbin/domain/bento";
 import type {
   BentoLayoutMode,
   BentoSizePreset,
-} from "@grabbin/shared/schemas/bento-layout";
+} from "@grabbin/domain/bento-layout";
 
 export type BentoCommand =
   | { type: "add"; item: BentoItem }

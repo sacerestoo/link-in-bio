@@ -1,4 +1,4 @@
-import { bentoMediaUploadResponseSchema } from "@grabbin/shared/schemas/bento-media";
+import { bentoMediaUploadResponseSchema } from "@grabbin/domain/bento";
 import * as v from "valibot";
 
 export const bentoMediaUploadResponseContract = v.pipe(

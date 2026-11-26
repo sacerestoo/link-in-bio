@@ -1,5 +1,4 @@
 import type { Handle } from "@grabbin/domain/page";
-import type { BentoMediaUploadResponse } from "@grabbin/shared/schemas/bento-media";
 import { bentoMediaUploadResponseContract } from "@/features/bento/contracts";
 import { api, type ApiClient } from "@/lib/api-client";
 import { readJson } from "@/shared/lib/contract";
@@ -7,7 +6,8 @@ import {
   BENTO_MEDIA_MAX_SIZE,
   isBentoMediaContentType,
   type BentoMediaContentType,
-} from "@grabbin/shared/lib/bento-media";
+  type BentoMediaUploadResponse,
+} from "@grabbin/domain/bento";
 
 export type BentoMediaUploadTask = Readonly<{
   objectKey: string;

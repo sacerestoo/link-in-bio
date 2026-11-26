@@ -1,8 +1,5 @@
-import {
-  bentoBatchRequestSchema,
-  bentoItemResponseSchema,
-} from "@grabbin/shared/schemas/bento-item";
 import * as v from "valibot";
+import { bentoBatchRequestSchema, bentoItemResponseSchema } from "./bento";
 
 const reservedHandles = new Set([
   "admin",

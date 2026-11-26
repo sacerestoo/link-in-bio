@@ -1,8 +1,5 @@
+import type { BentoBatchRequest, BentoItem } from "@grabbin/domain/bento";
 import type { PageResponse, PageSaveRequest } from "@grabbin/domain/page";
-import type {
-  BentoBatchRequest,
-  BentoItem,
-} from "@grabbin/shared/schemas/bento-item";
 import isEqual from "es-toolkit/compat/isEqual";
 
 export type PageSaveDraft = Readonly<{

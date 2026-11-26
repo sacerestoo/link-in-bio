@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./api-version": "./src/api-version.ts",
+    "./event": "./src/event.ts",
     "./lib/*": "./src/lib/*.ts",
     "./observability": "./src/observability.ts",
     "./types/*": "./src/types/*.ts",
@@ -16,7 +17,6 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "es-toolkit": "catalog:",
     "valibot": "catalog:"
   }
 }

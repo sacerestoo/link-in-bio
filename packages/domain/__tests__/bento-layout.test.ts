@@ -9,7 +9,7 @@ import {
   bentoLayoutSchema,
   getSizePresetDimensions,
   getAllowedSizePresets,
-} from "../schemas/bento-layout.ts";
+} from "../src/bento-layout.ts";
 
 const textBlock = {
   id: "text-1",
@@ -127,7 +127,7 @@ describe("bentoLayoutSchema", (): void => {
   });
 });
 
-describe("bentoLayoutSchema collision and fallback checks", (): void => {
+describe("bentoLayoutSchema collision and block type checks", (): void => {
   it("rejects overlapping blocks in either layout", (): void => {
     const secondBlock = {
       ...textBlock,
@@ -170,7 +170,7 @@ describe("bentoLayoutSchema collision and fallback checks", (): void => {
     );
   });
 
-  it("lets unknown block types use card presets that fit the grid", (): void => {
+  it("rejects unknown block types", (): void => {
     const unknownBlock = {
       id: "future-1",
       type: "future-block",
@@ -180,6 +180,6 @@ describe("bentoLayoutSchema collision and fallback checks", (): void => {
       },
     };
 
-    expect(v.safeParse(bentoLayoutSchema, [unknownBlock]).success).toBe(true);
+    expect(v.safeParse(bentoLayoutSchema, [unknownBlock]).success).toBe(false);
   });
 });

@@ -1,8 +1,8 @@
-import type { BentoItem } from "@grabbin/shared/schemas/bento-item";
+import type { BentoItem } from "@grabbin/domain/bento";
 import {
   getAllowedSizePresets,
   type BentoLayoutMode,
-} from "@grabbin/shared/schemas/bento-layout";
+} from "@grabbin/domain/bento-layout";
 import isEqual from "es-toolkit/compat/isEqual";
 import type { BentoCommand } from "./commands";
 

@@ -1,4 +1,4 @@
-import type { BentoItem } from "@grabbin/shared/schemas/bento-item";
+import type { BentoItem } from "@grabbin/domain/bento";
 import { useCallback } from "react";
 import type { BentoCommand } from "../commands";
 import { reduceBentoItems } from "../reducer";
