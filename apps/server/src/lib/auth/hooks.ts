@@ -15,7 +15,7 @@ import {
   PAGE_CREATED_COOKIE_MAX_AGE_SECONDS,
   PAGE_CREATED_COOKIE_NAME,
   PAGE_CREATED_COOKIE_VALUE,
-} from "@grabbin/shared/lib/page-created-event";
+} from "@grabbin/shared/event";
 import {
   createCreemBeforeHook,
   getCreemProductIds,

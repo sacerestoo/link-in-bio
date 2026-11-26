@@ -11,7 +11,7 @@ import { createServerApiClient } from "@/lib/server-api-client";
 import {
   PAGE_CREATED_COOKIE_NAME,
   PAGE_CREATED_COOKIE_VALUE,
-} from "@grabbin/shared/lib/page-created-event";
+} from "@grabbin/shared/event";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { getSessionCookie } from "better-auth/cookies";
 import { cookies, headers } from "next/headers";

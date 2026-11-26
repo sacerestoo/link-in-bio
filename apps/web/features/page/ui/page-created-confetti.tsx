@@ -1,6 +1,6 @@
 "use client";
 
-import { PAGE_CREATED_COOKIE_NAME } from "@grabbin/shared/lib/page-created-event";
+import { PAGE_CREATED_COOKIE_NAME } from "@grabbin/shared/event";
 import { useEffect, useRef } from "react";
 
 const clearPageCreatedCookie = (): void => {
