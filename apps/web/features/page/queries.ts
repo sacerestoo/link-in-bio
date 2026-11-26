@@ -1,17 +1,13 @@
-import type { ProfileImageContentType } from "@grabbin/shared/lib/profile-image";
 import { api, type ApiClient } from "@/lib/api-client";
 import {
-  profileImageUploadResponseSchema,
   pageProfileResponseSchema,
   pageResponseSchema,
   type Handle,
   type PageProfileResponse,
   type PageResponse,
-  type PageUpdate,
 } from "@grabbin/shared/schemas/page";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import * as v from "valibot";
-import { putProfileImage } from "./api";
 
 export const getProfileImageUrl = (
   imageKey: string | null,
@@ -26,58 +22,6 @@ export const getProfileImageUrl = (
     .map((segment) => encodeURIComponent(segment))
     .join("/");
   return `${imageBaseUrl.replace(/\/$/u, "")}/${encodedKey}`;
-};
-
-export const updatePageHandle = async (
-  currentHandle: Handle,
-  requestedHandle: Handle,
-  client: ApiClient = api,
-): Promise<Handle> => {
-  await client.v1.pages[":handle"].$patch({
-    param: { handle: currentHandle },
-    json: { handle: requestedHandle },
-  });
-  return requestedHandle;
-};
-
-export const updatePageProfile = async (
-  handle: Handle,
-  update: PageUpdate,
-  client: ApiClient = api,
-): Promise<void> => {
-  await client.v1.pages[":handle"].$patch({
-    param: { handle },
-    json: update,
-  });
-};
-
-export const uploadProfileImage = async (
-  handle: Handle,
-  file: File,
-  contentType: ProfileImageContentType,
-): Promise<{ imageKey: string; imageUrl: string | undefined }> => {
-  const { imageKey, uploadUrl } = v.parse(
-    profileImageUploadResponseSchema,
-    await api.v1.pages[":handle"]["image-upload"]
-      .$post({ param: { handle }, json: { contentType, size: file.size } })
-      .then((response) => response.json()),
-  );
-  await putProfileImage(uploadUrl, file, contentType);
-  await api.v1.pages[":handle"].$patch({
-    param: { handle },
-    json: { imageKey, imageCrop: null },
-  });
-  return { imageKey, imageUrl: getProfileImageUrl(imageKey) };
-};
-
-export const removeProfileImage = async (
-  handle: Handle,
-  client: ApiClient = api,
-): Promise<void> => {
-  await client.v1.pages[":handle"].$patch({
-    param: { handle },
-    json: { imageKey: null, imageCrop: null },
-  });
 };
 
 type PageInfoLookup = { currentUser: true } | { handle: Handle };

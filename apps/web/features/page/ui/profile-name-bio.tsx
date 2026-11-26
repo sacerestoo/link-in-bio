@@ -1,7 +1,7 @@
 "use client";
 
 import { lazy, Suspense, type ReactElement } from "react";
-import { usePage, type ProfilePageData } from "../queries";
+import { usePage } from "../queries";
 import { PermissionGate } from "./permission-gate";
 import { ProfileFields } from "./profile-fields";
 
@@ -15,7 +15,7 @@ const ProfileNameBioEditor = lazy(() =>
 
 export function ProfileNameBio({
   handle,
-}: Readonly<Pick<ProfilePageData, "handle">>): ReactElement {
+}: Readonly<{ handle: string }>): ReactElement {
   const { data: page } = usePage(handle);
   if (page === undefined)
     return (
@@ -39,11 +39,7 @@ export function ProfileNameBio({
       allowed={page.isOwner}
       whenAllowed={
         <Suspense fallback={readOnlyFields}>
-          <ProfileNameBioEditor
-            handle={handle}
-            name={page.name}
-            bio={page.bio}
-          />
+          <ProfileNameBioEditor page={page} />
         </Suspense>
       }
       whenDenied={readOnlyFields}

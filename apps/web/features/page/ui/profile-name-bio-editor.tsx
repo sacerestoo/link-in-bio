@@ -1,23 +1,16 @@
 "use client";
 
+import type { PageResponse } from "@grabbin/shared/schemas/page";
 import type { ReactElement } from "react";
-import type { ProfilePageData } from "../queries";
-import { useProfileAutosave } from "../hooks/use-profile-autosave";
+import { usePageAutosave } from "../hooks/use-page-autosave";
 import { ProfileFields } from "./profile-fields";
 
-type ProfileNameBioEditorProps = Readonly<
-  Pick<ProfilePageData, "handle" | "name" | "bio">
->;
+type ProfileNameBioEditorProps = Readonly<{ page: PageResponse }>;
 
 export function ProfileNameBioEditor({
-  handle,
-  name,
-  bio,
+  page,
 }: ProfileNameBioEditorProps): ReactElement {
-  const draft = useProfileAutosave(handle, {
-    name,
-    bio,
-  });
+  const draft = usePageAutosave(page.handle, page);
 
   return (
     <ProfileFields
