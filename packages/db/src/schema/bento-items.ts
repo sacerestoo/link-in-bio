@@ -1,5 +1,5 @@
-import type { BentoItemResponse } from "@grabbin/shared/schemas/bento-item";
-import { BENTO_BLOCK_TYPES } from "@grabbin/shared/schemas/bento-layout";
+import type { BentoItem } from "@grabbin/domain/bento";
+import { BENTO_BLOCK_TYPES } from "@grabbin/domain/bento-layout";
 import { relations } from "drizzle-orm";
 import {
   index,
@@ -22,9 +22,9 @@ export const bentoItems = pgTable(
       .notNull()
       .references(() => pages.id, { onDelete: "cascade" }),
     type: bentoBlockTypeEnum("type").notNull(),
-    data: jsonb("data").$type<BentoItemResponse["data"]>().notNull(),
-    style: jsonb("style").$type<BentoItemResponse["style"]>().notNull(),
-    layouts: jsonb("layouts").$type<BentoItemResponse["layouts"]>().notNull(),
+    data: jsonb("data").$type<BentoItem["data"]>().notNull(),
+    style: jsonb("style").$type<BentoItem["style"]>().notNull(),
+    layouts: jsonb("layouts").$type<BentoItem["layouts"]>().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

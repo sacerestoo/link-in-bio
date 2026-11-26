@@ -1,15 +1,13 @@
-import type {
-  BentoBatchRequest,
-  BentoItem,
-} from "@grabbin/shared/schemas/bento-item";
+import type { BentoItem } from "@grabbin/domain/bento";
 import {
   HANDLE_UNAVAILABLE_MESSAGE,
   type PageSaveRequest,
 } from "@grabbin/domain/page";
 import { and, eq, type InferSelectModel } from "drizzle-orm";
-import type { Database, Executor } from "../client";
+import type { Database } from "../client";
 import { bentoItems } from "../schema/bento-items";
 import { pages } from "../schema/pages";
+import { listBentoItems, saveBentoBatch } from "./bento";
 
 type PageRecord = InferSelectModel<typeof pages>;
 type PageProfileInfo = Pick<
@@ -36,12 +34,6 @@ export class PageError extends Error {
     this.name = "PageError";
   }
 }
-
-type SaveBentoBatch = (
-  executor: Executor,
-  pageId: string,
-  batch: BentoBatchRequest | undefined,
-) => Promise<readonly BentoItem[]>;
 
 const isPostgresUniqueViolation = (
   error: unknown,
@@ -189,7 +181,6 @@ export const savePageForUser = async (
   userId: string,
   handle: string,
   save: PageSaveRequest,
-  onSaveBentoBatch: SaveBentoBatch,
 ): Promise<PageInfo> => {
   try {
     return await database.transaction(async (transaction) => {
@@ -211,11 +202,23 @@ export const savePageForUser = async (
       if (page === undefined)
         throw new PageError("not-found", "Page not found");
 
-      const savedItems = await onSaveBentoBatch(
-        transaction,
-        page.id,
-        save.bento,
-      );
+      let savedItems: readonly BentoItem[];
+      if (save.bento === undefined) {
+        savedItems = await listBentoItems(transaction, page.id);
+      } else {
+        const bentoSave = await saveBentoBatch(
+          transaction,
+          page.id,
+          save.bento,
+        );
+        if (bentoSave.status === "invalid")
+          throw new PageError(
+            "invalid-bento-batch",
+            `Invalid Bento batch: ${bentoSave.reason}`,
+            bentoSave.reason,
+          );
+        savedItems = bentoSave.items;
+      }
 
       let updatedPage = page;
       if (save.page !== undefined) {
