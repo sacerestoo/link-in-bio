@@ -1,8 +1,8 @@
 import "server-only";
 import { createDatabase } from "@grabbin/db";
 import { betterAuth } from "better-auth";
-import { createAuthOptions } from "./auth/options";
 import { readServerEnv, type ServerBindings } from "./env";
+import { createAuthOptions } from "./options";
 
 export const getAuth = (bindings: Readonly<ServerBindings>) => {
   const settings = readServerEnv(bindings);

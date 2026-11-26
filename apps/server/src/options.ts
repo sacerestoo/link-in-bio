@@ -1,7 +1,7 @@
 import "server-only";
 import type { Database } from "@grabbin/db";
 import type { BetterAuthOptions } from "better-auth";
-import type { ServerEnv } from "../env";
+import type { ServerEnv } from "./env";
 import { createCoreAuthOptions } from "./core-options";
 import { createUserOptions } from "./email";
 import { createAuthHooks, createDatabaseHooks } from "./hooks";

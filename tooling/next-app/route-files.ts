@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
 
 /**
  * App Router file conventions. app/ only holds routing files, so feature
@@ -101,7 +101,7 @@ function checkAppDirectory(
       );
     } else if (display.startsWith(`${config.apiDirectory}/`)) {
       errors.push(
-        `Remove ${display}: web API route handlers were removed; add Hono routes under apps/server/src/routes/.`,
+        `Remove ${display}: web API route handlers were removed; add Hono routes under apps/server/src/http/.`,
       );
     } else if (!isAllowedAppFile(entry.name, isRoot, config)) {
       errors.push(
@@ -134,11 +134,14 @@ function checkRequestInterceptors(
   root: string,
   config: NextAppConfig,
 ): string[] {
+  const webRoot = join(root, dirname(config.proxyFile));
+  if (!existsSync(webRoot)) return [];
+
   const generated = new Set(config.generatedDirectories);
-  const middleware = findFiles(root, generated, (fileName) =>
+  const middleware = findFiles(webRoot, generated, (fileName) =>
     /^middleware\.[cm]?[jt]sx?$/u.test(fileName),
   ).map((path) => relative(root, path));
-  const proxies = findFiles(root, generated, (fileName) =>
+  const proxies = findFiles(webRoot, generated, (fileName) =>
     /^proxy\.[cm]?[jt]sx?$/u.test(fileName),
   ).map((path) => relative(root, path));
   return [

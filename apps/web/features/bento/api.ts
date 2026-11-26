@@ -7,7 +7,7 @@ import {
   isBentoMediaContentType,
   type BentoMediaContentType,
   type BentoMediaUploadResponse,
-} from "@grabbin/domain/bento";
+} from "@grabbin/domain/bento-media";
 
 export type BentoMediaUploadTask = Readonly<{
   objectKey: string;

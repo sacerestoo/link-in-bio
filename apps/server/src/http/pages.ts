@@ -12,6 +12,11 @@ import {
   savePageForUser,
 } from "@grabbin/db/repositories/page";
 import {
+  BentoMediaError,
+  getBentoMediaObjectKey,
+  isBentoMediaObjectKeyForPage,
+} from "@grabbin/domain/bento-media";
+import {
   handleSchema,
   pageProfileResponseSchema,
   pageResponseSchema,
@@ -23,23 +28,21 @@ import { sValidator } from "@hono/standard-validator";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import * as v from "valibot";
-import type { ServerBindings } from "../lib/env";
+import type { ServerBindings } from "../env";
+import { inspectBentoMediaObject } from "../bento-media";
+import { withDomainErrors } from "../domain-error";
+import { optionalSession, requireSession } from "../middleware";
 import {
   createProfileImageUpload,
   deleteProfileImageObject,
   ensureProfileImageIsValid,
   isProfileImageKeyOwnedByUser,
-} from "../lib/profile-images";
-import {
-  optionalSession,
-  requireSession,
-} from "../middleware/session.middleware";
-import { BentoMediaService } from "../services/bento-media.service";
-import { withDomainErrors } from "./domain-route-errors";
+} from "../profile-images";
 
 const assertBentoMediaBatchIsReady = async (
   database: ReturnType<typeof createDatabase>,
-  mediaService: BentoMediaService,
+  env: ServerBindings,
+  requestUrl: string,
   userId: string,
   handle: string,
   items: readonly BentoItem[],
@@ -48,7 +51,33 @@ const assertBentoMediaBatchIsReady = async (
   const pageId = await findOwnedPageId(database, userId, handle);
   if (pageId === undefined) throw new PageError("not-found", "Page not found");
 
-  await mediaService.assertBatchMediaUploaded(pageId, items);
+  const mediaKeys = new Set<string>();
+  for (const item of items) {
+    if (item.type !== "media") continue;
+    const objectKey = getBentoMediaObjectKey(item);
+    if (
+      objectKey === undefined ||
+      !isBentoMediaObjectKeyForPage(objectKey, pageId)
+    )
+      throw new BentoMediaError(
+        "media-upload-required",
+        "Upload an image before saving this Bento item.",
+      );
+    mediaKeys.add(objectKey);
+  }
+
+  for (const objectKey of mediaKeys) {
+    const inspection = await inspectBentoMediaObject(
+      env,
+      requestUrl,
+      objectKey,
+    );
+    if (inspection === "missing")
+      throw new BentoMediaError(
+        "media-upload-required",
+        "Upload the image before saving this Bento item.",
+      );
+  }
 };
 
 export const pagesRoute = new Hono<{
@@ -215,7 +244,8 @@ export const pagesRoute = new Hono<{
         if (request.bento !== undefined)
           await assertBentoMediaBatchIsReady(
             database,
-            new BentoMediaService(database, c.env, c.req.url),
+            c.env,
+            c.req.url,
             userId,
             currentHandle,
             request.bento.upserts,

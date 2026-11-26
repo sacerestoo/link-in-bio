@@ -45,9 +45,9 @@ const files = {
     '"use server";\n\nimport { parseInput } from "@/shared/lib/contract";\nimport { createItemInput } from "./contracts";\n\nexport const createItem = async (raw: unknown): Promise<string> => {\n  const input = parseInput(createItemInput, raw);\n  return input.name;\n};\n',
   "packages/db/src/client.ts":
     'import "server-only";\n\nexport const client = {};\n',
-  "apps/server/src/routes/auth.route.ts":
+  "apps/server/src/http/auth.ts":
     'import { createDatabase } from "@grabbin/db";\nexport const authRoute = createDatabase;\n',
-  "apps/server/src/lib/auth.ts":
+  "apps/server/src/auth.ts":
     'import { createDatabase } from "@grabbin/db";\nexport const service = createDatabase;\n',
   "apps/web/lib/auth.ts":
     'import { createDatabase } from "@grabbin/db";\nexport const service = createDatabase;\n',
@@ -78,7 +78,7 @@ describe("env access wiring", (): void => {
     expect(codesFor("apps/web/lib/env.ts")).not.toContain(
       "env-access(no-direct-env)",
     );
-    expect(codesFor("apps/server/src/lib/auth.ts")).not.toContain(
+    expect(codesFor("apps/server/src/auth.ts")).not.toContain(
       "env-access(no-direct-env)",
     );
     expect(codesFor("packages/db/drizzle.config.ts")).not.toContain(
@@ -147,7 +147,7 @@ describe("callback naming wiring", (): void => {
 
 describe("database boundary wiring", (): void => {
   it("allows packages/db only in server and apps/cron", (): void => {
-    expect(codesFor("apps/server/src/lib/auth.ts")).not.toContain(
+    expect(codesFor("apps/server/src/auth.ts")).not.toContain(
       "eslint(no-restricted-imports)",
     );
     expect(codesFor("apps/cron/src/jobs.ts")).not.toContain(

@@ -4,7 +4,7 @@ import {
   architectureDirectories,
 } from "../architecture/paths.ts";
 
-const { app, routes, features, cron, db, ui } = architectureDirectories;
+const { app, http, features, cron, db, ui } = architectureDirectories;
 
 export const nextAppJsPlugins = [
   { name: "next-app", specifier: "./tooling/lint/next-app-rules.ts" },
@@ -168,7 +168,7 @@ export const nextAppOverrides = [
   {
     files: [
       `${app}/**/route.ts`,
-      `${routes}/**`,
+      `${http}/**`,
       `${features}/*/actions.ts`,
       `${features}/*/api.ts`,
       "apps/web/proxy.ts",
@@ -182,7 +182,7 @@ export const nextAppOverrides = [
       `${features}/*/api.ts`,
       `${features}/*/queries.ts`,
       `${architectureDirectories.server}/**`,
-      `${routes}/**`,
+      `${http}/**`,
       `${cron}/**`,
     ],
     rules: { "eslint/no-restricted-globals": "off" },

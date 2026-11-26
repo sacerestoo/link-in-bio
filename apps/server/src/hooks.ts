@@ -23,7 +23,7 @@ import {
 import { getProtocolFromSource, type BetterAuthOptions } from "better-auth";
 import { APIError, createAuthMiddleware, getOAuthState } from "better-auth/api";
 import * as v from "valibot";
-import type { ServerEnv } from "../env";
+import type { ServerEnv } from "./env";
 
 const ensureHandleAvailable = async (
   database: Database,

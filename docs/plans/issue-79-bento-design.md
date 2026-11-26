@@ -45,14 +45,13 @@
 | `packages/domain/src/page.ts`                                   | 페이지 응답과 페이지 전체 저장 요청을 정의. 저장 요청은 변경된 page 필드와 선택적 `bento` batch를 함께 받음                                   |
 | `packages/db/src/schema/bento-items.ts`                         | Bento 아이템 테이블과 관계. `type`은 text, `data`·`style`·`layouts`는 JSONB                                                                   |
 | `packages/db/src/schema/bento-media-assets.ts`                  | 업로드 예약 ID, object key, `pending → attached → pending_delete` 상태, URL 만료와 7일 보관 시각. 같은 예약 ID의 재요청은 같은 자산 행을 사용 |
-| `apps/server/src/routes/pages.route.ts`                         | 인증·입력 검증·에러 변환과 page repository 호출, Bento 저장 조율 담당                                                                         |
+| `apps/server/src/http/pages.ts`                                 | 인증·입력 검증·에러 변환과 page repository 호출, Bento 저장 조율 담당                                                                         |
 | `packages/db/src/repositories/page.ts`                          | 페이지 조회·수정 SQL과 page 및 Bento 저장 트랜잭션을 처리                                                                                     |
-| `apps/server/src/services/bento.service.ts`                     | 전달받은 transaction 안에서 순수 Bento 정책과 저장 함수를 조합                                                                                |
-| `apps/server/src/services/bento.repository.ts`                  | 페이지 스코프 벌크 변경 SQL 함수. 호출자가 건넨 DB/트랜잭션에서 동작                                                                          |
-| `apps/server/src/lib/bento-batch-policy.ts`                     | DB에 의존하지 않는 net-diff 적용, 중복 검사, 최종 스냅샷 구성                                                                                 |
-| `apps/server/src/services/bento-media-assets.service.ts`        | 트랜잭션에 참여하는 미디어 등록·첨부·삭제 예약. R2 직접 삭제는 하지 않음                                                                      |
-| `apps/server/src/services/bento-media.service.ts`               | 파일 타입/크기 확인, 반복해도 같은 예약을 쓰는 presigned URL 발급, 불명확한 업로드 확인, 아이템 저장 시 R2 `HEAD` 검사                        |
-| `apps/server/src/services/bento-link-preview.service.ts`        | HTTPS 링크의 제한된 HTML 조회와 표준 메타데이터 반환. DB 쓰기 없음                                                                            |
+| `packages/domain/src/bento.ts`                                  | DB에 의존하지 않는 net-diff 적용, 중복 검사, 최종 스냅샷과 저장 정책                                                                          |
+| `packages/db/src/repositories/bento.ts`                         | 페이지 스코프 벌크 변경 SQL. 정책을 적용하고 전달받은 DB/트랜잭션 안에서 동작                                                                 |
+| `packages/db/src/repositories/bento-media.ts`                   | 미디어 예약·첨부·삭제 상태의 DB 연산. R2 직접 삭제는 하지 않                                                                                  |
+| `apps/server/src/bento-media.ts`                                | R2 `HEAD`로 업로드 확인과 파일 타입·크기 검증                                                                                                 |
+| `apps/server/src/bento-link-preview.ts`                         | HTTPS 링크의 제한된 HTML 조회와 표준 메타데이터 반환. DB 쓰기 없음                                                                            |
 | `apps/web/features/page/api.ts`, `queries.ts`                   | handle 페이지 스냅샷 조회와 페이지 전체 저장 API                                                                                              |
 | `apps/web/features/page/hooks/use-page-autosave.ts`             | page 필드와 Bento 변경을 모으는 단일 1.5초 debounce와 저장 요청 소유자                                                                        |
 | `apps/web/features/bento/api.ts`                                | 미디어 업로드·링크 preview 호출. Bento batch 저장은 page 저장 API가 담당                                                                      |
@@ -84,9 +83,10 @@
   인증과 검증 뒤 필요한 연산만 호출한다.
 
 Grabbin에서는 같은 원칙을 적용하되, OpenAnalytics의 `packages/postgres`처럼
-repository 계층을 새 workspace package로 옮기지 않는다. 프로젝트 규칙상 테이블
-schema는 `packages/db`에, SQL 접근과 트랜잭션 조합은
-`apps/server/src/services/`에 둔다.
+repository 계층을 새 workspace package로 옮기지 않는다. 프로젝트 규칙상 schema와
+SQL 접근, 트랜잭션 조합은 `packages/db`에 둔다. HTTP 경로가 domain 정책과
+repository 함수를 직접 조합하고, 외부 연동 helper는 `apps/server/src/` 바로
+아래에 둔다. 별도 service layer는 두지 않는다.
 
 ## 계약과 저장 모델
 
@@ -304,8 +304,8 @@ metadata는 다음 batch 저장에 포함된다. provider별 보강은 제외한
 
 한 번에 큰 기능을 만들지 않는다. **테스트 코드로 모듈의 역할과 협력 관계를 먼저
 정하고, 그 기대를 만족시키는 코드를 만든 뒤 다음 모듈과 연결한다.** 여기서
-객체는 클래스에 한정하지 않는다. Grabbin 코드에서는 함수나 서비스 모듈도 역할을
-맡는다.
+객체는 클래스에 한정하지 않는다. Grabbin 코드에서는 함수와 repository 모듈이
+각자 역할을 맡는다.
 
 각 모듈의 테스트에는 먼저 세 가지를 적는다.
 
@@ -313,15 +313,15 @@ metadata는 다음 batch 저장에 포함된다. provider별 보강은 제외한
 2. **돌려줄 결과:** 성공하거나 실패할 때 호출자에게 무엇을 돌려주는가.
 3. **협력할 상대:** 결과를 만들기 위해 어떤 다른 모듈에 무엇을 요청하는가.
 
-예를 들어 page 저장 서비스는 page와 Bento 변경 요청을 받고, 저장된 전체 page
-결과를 돌려준다. 테스트는 이 서비스가 page 저장과 Bento 저장 모듈에 **같은 DB
-transaction** 안에서 일을 요청하는지, Bento 저장이 실패하면 전체 저장이
-취소되는지를 확인한다. 이 기대가 서비스와 저장 모듈의 책임 경계를 정한다.
+예를 들어 `savePageForUser` repository 함수는 page와 Bento 변경 요청을 받고,
+저장된 전체 page 결과를 돌려준다. 테스트는 page 저장과 Bento 저장이 **같은 DB
+transaction** 안에서 처리되는지, Bento 저장이 실패하면 전체 저장이 취소되는지를
+확인한다. HTTP 경로는 권한과 입력을 확인한 뒤 이 repository 함수를 부른다.
 
 그 다음 테스트를 먼저 실행해 의도한 이유로 실패하는지 확인하고, 통과에 필요한
 최소 코드를 만든다. 통과 후 코드를 정리하고 다시 확인한다. 테스트는 내부 코드
 모양을 고정하는 대신 모듈 사이에 주고받는 요청·결과·협력을 확인한다. 순수한
-계산은 단위 테스트로, 서비스의 DB 작업은 좁은 범위의 서버 테스트로 확인한다.
+계산은 단위 테스트로, repository의 DB 작업은 좁은 범위의 서버 테스트로 확인한다.
 컴포넌트 테스트와 E2E 테스트는 작성하지 않는다. UI 연결은 타입 검사와 수동
 확인으로 마무리한다.
 
@@ -345,8 +345,8 @@ transaction** 안에서 일을 요청하는지, Bento 저장이 실패하면 전
 7. **조회 결과 정리 함수** — `packages/db/src/repositories/page.ts`가 JOIN 행을
    page 하나와 `bento` 배열로 묶는다. 완료 기준: 아이템이 없을 때도 page가
    반환된다.
-8. **GET 경로 연결** — `pages.route.ts`가 repository 함수를 부른다. 완료 기준:
-   `GET /pages/:handle` 한 번으로 page와 `bento`를 받는다.
+8. **GET 경로 연결** — `apps/server/src/http/pages.ts`가 repository 함수를
+   부른다. 완료 기준: `GET /pages/:handle` 한 번으로 page와 `bento`를 받는다.
 9. **브라우저 조회 요청** — `features/page/api.ts`와 `queries.ts`에 handle
    조회를 연결한다. 완료 기준: 서버 선조회와 브라우저가 같은 query key를 쓴다.
 10. **화면 변경 함수** — `features/bento/commands.ts`와 `reducer.ts`에 추가,
@@ -355,34 +355,37 @@ transaction** 안에서 일을 요청하는지, Bento 저장이 실패하면 전
 11. **저장할 변경 계산** — `features/bento/batch.ts`가 서버에서 받은 목록과 화면
     목록을 비교한다. 완료 기준: 저장 전에 만들고 지운 항목은 빠지고, 지운 기존
     항목은 삭제 대상으로 잡힌다.
-12. **Bento DB 저장 함수** — `bento.repository.ts`에 page 범위가 붙은 저장과
-    삭제를 둔다. 완료 기준: 다른 page의 항목을 수정하거나 지울 수 없다.
-13. **Bento 저장 규칙** — `bento-batch-policy.ts`가 중복 ID와 최종 배치를 DB
-    없이 검사한다. 완료 기준: 중복 ID와 범위 밖 배치는 거부된다.
-14. **Bento 저장 연결** — `bento.service.ts`가 12번 DB 함수와 13번 규칙을
-    연결한다. 완료 기준: 한 page의 Bento 변경만 저장된다.
+12. **Bento DB 저장 함수** — `packages/db/src/repositories/bento.ts`에 page
+    범위가 붙은 저장과 삭제를 둔다. 완료 기준: 다른 page의 항목을 수정하거나
+    지울 수 없다.
+13. **Bento 저장 규칙** — `packages/domain/src/bento.ts`가 중복 ID와 최종 배치를
+    DB 없이 검사한다. 완료 기준: 중복 ID와 범위 밖 배치는 거부된다.
+14. **Bento 저장 연결** — Bento repository가 domain 정책과 page 범위 DB 함수를
+    조합한다. 완료 기준: 한 page의 Bento 변경만 저장된다.
 15. **page+Bento 한꺼번에 저장** — `packages/db/src/repositories/page.ts`가 page
     필드와 Bento 저장을 한 transaction으로 묶는다. 완료 기준: 어느 한쪽이
     실패하면 둘 다 저장되지 않는다.
-16. **PATCH 경로 연결** — `pages.route.ts`가 권한·입력 확인 후 repository 함수를
-    부른다. 완료 기준: page만, Bento만, 둘 다 바뀐 요청이 같은 경로를 쓴다.
+16. **PATCH 경로 연결** — `apps/server/src/http/pages.ts`가 권한·입력 확인 후
+    repository 함수를 부른다. 완료 기준: page만, Bento만, 둘 다 바뀐 요청이 같은
+    경로를 쓴다.
 17. **자동 저장 대기열** — `use-page-autosave.ts`가 page와 Bento 변경을 모아
     1.5초 뒤 16번 경로로 보낸다. 완료 기준: 같은 대기 시간 안의 두 변경이 PATCH
     한 번에 담긴다.
 18. **저장 실패 문구** — `features/page/ui/indicator.tsx`는 바깥에서 받은 문구만
     보여준다. 완료 기준: 실패 때 page 전체에 destructive 색상 글자가 보이며 성공
     토스트나 재시도 동작은 없다.
-19. **미디어 예약 서비스** — 미디어 서비스가 파일 key와 예약 상태를 DB에
-    기록한다. 완료 기준: 같은 예약 ID는 항상 같은 기록과 key를 돌려준다.
+19. **미디어 예약 저장** — `packages/db/src/repositories/bento-media.ts`가 파일
+    key와 예약 상태를 DB에 기록한다. 완료 기준: 같은 예약 ID는 항상 같은 기록과
+    key를 돌려준다.
 20. **미디어 전송 연결** — 브라우저가 예약 key로 R2에 파일을 올리고, 서버가
     Bento 저장 전에 파일 존재를 확인한다. 완료 기준: 업로드 확인 전에는 Bento
     저장 요청을 보내지 않는다.
 21. **주간 미디어 정리** — `apps/cron`이 삭제 대기 파일과 만료된 미사용 예약을
     정리한다. 완료 기준: R2 삭제 실패는 다음 주 실행에서 이어서 처리되고, Bento
     저장 요청은 R2 파일을 지우지 않는다.
-22. **링크 미리보기** — `bento-link-preview.service.ts`가 HTTPS 페이지에서 제목,
-    설명, 이미지 등을 읽는다. 완료 기준: DB를 바꾸지 않고, 화면의 URL이 요청
-    URL과 같을 때만 결과를 반영한다.
+22. **링크 미리보기** — `apps/server/src/bento-link-preview.ts`가 HTTPS
+    페이지에서 제목, 설명, 이미지 등을 읽는다. 완료 기준: DB를 바꾸지 않고,
+    화면의 URL이 요청 URL과 같을 때만 결과를 반영한다.
 23. **화면 조립** — page 조회, Bento 화면 변경, 자동 저장, 실패 문구를 UI에
     연결한다. 완료 기준: Bento 편집이 page autosave 흐름에 포함된다.
     새로고침하면 저장된 값이 보이고, 저장 실패 때 편집 중인 값과 실패 문구가

@@ -9,7 +9,7 @@
 - `lib/api-client.ts` imports the server Hono app type only; browser requests
   still use `/v1/*` on the web origin.
 - `lib/env.ts` validates web settings. Server settings are in
-  `apps/server/src/lib/env.ts`.
+  `apps/server/src/env.ts`.
 - Local dev: `vp dev` from here (or `bun run dev` at the root) on
   http://localhost:3000. Put local settings in `apps/web/.env.local`
   (gitignored), names from `apps/web/.env.example`; server settings go in

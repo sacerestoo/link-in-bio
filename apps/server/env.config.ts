@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import * as v from "valibot";
 import { readDotenvEntries, type EnvEntry } from "../../tooling/dotenv";
-import { serverEnvSchema } from "./src/lib/env";
+import { serverEnvSchema } from "./src/env";
 
 export function loadLocalEnv(): void {
   const localEnvPath = join(import.meta.dirname, ".env.local");

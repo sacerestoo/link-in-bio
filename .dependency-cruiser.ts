@@ -12,9 +12,8 @@ const directory = (key: keyof typeof architectureDirectories): string =>
   escapePattern(architectureDirectories[key]);
 
 const appPath = directory("app");
-const routePath = directory("routes");
+const httpPath = directory("http");
 const featurePath = directory("features");
-const servicePath = directory("services");
 const cronPath = directory("cron");
 const databasePath = directory("db");
 const subscriptionPath = directory("subscription");
@@ -137,12 +136,11 @@ export default {
     },
     {
       name: "no-orphans-in-web-code",
-      comment:
-        "Route, service and feature source files should be used by the app.",
+      comment: "HTTP route and feature source files should be used by the app.",
       severity: "error",
       from: {
         orphan: true,
-        path: `^(?:${routePath}|${servicePath}|${featurePath})/`,
+        path: `^(?:${httpPath}|${featurePath})/`,
         pathNot: testPath,
       },
       to: {},

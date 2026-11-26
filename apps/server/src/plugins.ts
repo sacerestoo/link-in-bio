@@ -1,7 +1,7 @@
 import "server-only";
 import { creemPlugin, type CreemKeys } from "@grabbin/subscription/creem";
 import { createBillingSessionPlugin } from "@grabbin/subscription/subscription-session";
-import type { ServerEnv } from "../env";
+import type { ServerEnv } from "./env";
 import { createEmailOtpPlugin } from "./email";
 import { createLineOAuthPlugins } from "./providers";
 

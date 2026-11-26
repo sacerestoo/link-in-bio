@@ -13,7 +13,6 @@ const sourceRoots = [
   "apps/server/src",
   "apps/web/features",
   "apps/web/lib",
-  "apps/server/src/services",
   "apps/cron/src",
   "packages/db/src",
   "packages/domain/src",
@@ -84,7 +83,7 @@ describe("dependency-cruiser database boundary", (): void => {
     const fixture = createFixture("depcruise-db-allowed-");
     writeAll(fixture, {
       "packages/db/src/client.ts": "export const schema = {};\n",
-      "apps/server/src/lib/auth.ts":
+      "apps/server/src/auth.ts":
         'import { schema } from "@grabbin/db";\nexport const service = schema;\n',
       "apps/cron/src/index.ts":
         'import { schema } from "@grabbin/db";\nexport const job = schema;\n',
@@ -102,7 +101,7 @@ describe("dependency-cruiser database boundary", (): void => {
       "apps/web/lib/api-client.ts":
         'import type { AppType } from "@grabbin/server";\nexport type Client = AppType;\n',
       "apps/server/src/app.ts": "export type AppType = unknown;\n",
-      "apps/server/src/routes/auth.route.ts":
+      "apps/server/src/http/auth.ts":
         'import { schema } from "@grabbin/db";\nexport const authRoute = schema;\n',
       "packages/ui/src/components/leak.tsx":
         'import { schema } from "@grabbin/db";\nexport const leak = schema;\n',

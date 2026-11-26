@@ -1,6 +1,9 @@
 import type { Database } from "@grabbin/db";
-import { bentoMediaAssets } from "@grabbin/db/schema/bento-media-assets";
-import { and, asc, eq, gt, inArray, lte } from "drizzle-orm";
+import {
+  deletePendingBentoMediaUploads,
+  listPendingDeleteBentoMediaUploads,
+  markExpiredBentoMediaUploadsForDeletion,
+} from "@grabbin/db/repositories/bento-media";
 
 const R2_DELETE_BATCH_SIZE = 1000;
 
@@ -19,37 +22,18 @@ export const runWeeklyJobs = async (
       { job: "weekly-bento-media-cleanup", ok: true, usedDatabase: false },
     ];
 
-  await database
-    .update(bentoMediaAssets)
-    .set({ status: "pending_delete" })
-    .where(
-      and(
-        eq(bentoMediaAssets.status, "pending"),
-        lte(bentoMediaAssets.cleanupAfter, new Date()),
-      ),
-    );
+  await markExpiredBentoMediaUploadsForDeletion(database, new Date());
 
   let cursor: string | undefined;
   let firstFailure: unknown;
   let hasFailure = false;
 
   while (true) {
-    const batch = await database
-      .select({
-        uploadId: bentoMediaAssets.uploadId,
-        objectKey: bentoMediaAssets.objectKey,
-      })
-      .from(bentoMediaAssets)
-      .where(
-        cursor === undefined
-          ? eq(bentoMediaAssets.status, "pending_delete")
-          : and(
-              eq(bentoMediaAssets.status, "pending_delete"),
-              gt(bentoMediaAssets.uploadId, cursor),
-            ),
-      )
-      .orderBy(asc(bentoMediaAssets.uploadId))
-      .limit(R2_DELETE_BATCH_SIZE);
+    const batch = await listPendingDeleteBentoMediaUploads(
+      database,
+      cursor,
+      R2_DELETE_BATCH_SIZE,
+    );
     if (batch.length === 0) break;
 
     const lastAsset = batch.at(-1);
@@ -58,14 +42,9 @@ export const runWeeklyJobs = async (
 
     try {
       await bucket.delete(batch.map(({ objectKey }) => objectKey));
-      await database.delete(bentoMediaAssets).where(
-        and(
-          eq(bentoMediaAssets.status, "pending_delete"),
-          inArray(
-            bentoMediaAssets.uploadId,
-            batch.map(({ uploadId }) => uploadId),
-          ),
-        ),
+      await deletePendingBentoMediaUploads(
+        database,
+        batch.map(({ uploadId }) => uploadId),
       );
     } catch (error) {
       if (!hasFailure) firstFailure = error;

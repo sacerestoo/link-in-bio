@@ -58,10 +58,10 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
   layer.
 - `packages/ui` must never import `packages/db`, `packages/subscription`, or app
   code.
-- `apps/server/src/lib/auth.ts` assembles Better Auth configuration and builds
-  the request-scoped auth instance from Worker bindings and the server database.
+- `apps/server/src/auth.ts` assembles Better Auth configuration and builds the
+  request-scoped auth instance from Worker bindings and the server database.
   Keep provider, email, hook and subscription settings in focused modules under
-  `apps/server/src/lib/auth/`.
+  `apps/server/src/`.
 - `packages/subscription` holds server-side Creem and subscription integrations.
   It accesses subscription records through Better Auth's adapter and never
   imports `packages/db` or app code.
@@ -83,20 +83,21 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
   `SERVER` service binding.
 - Root `bun run dev` starts web on port 3000 and server on port 3001 as separate
   local Workers; the service binding connects them.
-- Put domain Hono routers in `apps/server/src/routes/<domain>.route.ts` and
-  domain services in `apps/server/src/services/`. The API app composes them in
-  `apps/server/src/app.ts`. API route handlers do not belong under the web app.
-- `apps/server/src/lib/auth.ts` owns the Better Auth configuration and server
+- Put domain Hono routers in `apps/server/src/http/<domain>.ts`. Route handlers
+  coordinate domain logic and call `packages/db` repositories directly; focused
+  external-integration helpers live directly in `apps/server/src/`. Do not add a
+  service layer. The API app composes routers in `apps/server/src/app.ts`. API
+  route handlers do not belong under the web app.
+- `apps/server/src/auth.ts` owns the Better Auth configuration and server
   database adapter. Web's `lib/api-client.ts` imports the server app type only.
 - Bindings and plain vars live in each app's `wrangler.jsonc`.
   `vp run -r typegen` writes `worker-configuration.d.ts` (gitignored) from it.
 - Read Worker settings through `readWebEnv()` (`apps/web/lib/env.ts`), and
-  server and cron settings through `readServerEnv()`
-  (`apps/server/src/lib/env.ts`) and `readCronEnv()` (`apps/cron/src/env.ts`).
-  The page query may read only `NEXT_PUBLIC_R2_PUBLIC_URL` directly because it
-  is shared with the browser bundle. The `env-access/no-direct-env` rule rejects
-  direct environment reads elsewhere, except app env files, `*.config.ts` and
-  `tooling/`.
+  server and cron settings through `readServerEnv()` (`apps/server/src/env.ts`)
+  and `readCronEnv()` (`apps/cron/src/env.ts`). The page query may read only
+  `NEXT_PUBLIC_R2_PUBLIC_URL` directly because it is shared with the browser
+  bundle. The `env-access/no-direct-env` rule rejects direct environment reads
+  elsewhere, except app env files, `*.config.ts` and `tooling/`.
 - Keep fake examples next to their use: Neon Local and Drizzle Kit settings in
   the root `.env.example`, web settings in `apps/web/.env.example`, server
   settings in `apps/server/.env.example`, and cron settings in

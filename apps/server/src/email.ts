@@ -3,7 +3,7 @@ import type { BetterAuthOptions } from "better-auth";
 import { sendAccountDeletionEmail } from "@grabbin/email/account-deletion";
 import { sendOtpEmail } from "@grabbin/email/otp";
 import { emailOTP } from "better-auth/plugins/email-otp";
-import type { ServerEnv } from "../env";
+import type { ServerEnv } from "./env";
 
 export const createUserOptions = (
   settings: ServerEnv,

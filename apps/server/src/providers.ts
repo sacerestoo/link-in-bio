@@ -1,7 +1,7 @@
 import "server-only";
 import type { BetterAuthOptions } from "better-auth";
 import { genericOAuth, line } from "better-auth/plugins/generic-oauth";
-import type { ServerEnv } from "../env";
+import type { ServerEnv } from "./env";
 
 export const createSocialProviders = (
   settings: ServerEnv,

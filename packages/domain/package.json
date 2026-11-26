@@ -6,6 +6,7 @@
   "exports": {
     "./bento": "./src/bento.ts",
     "./bento-layout": "./src/bento-layout.ts",
+    "./bento-media": "./src/bento-media.ts",
     "./health": "./src/health.ts",
     "./image-crop": "./src/image-crop.ts",
     "./page": "./src/page.ts"

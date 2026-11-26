@@ -14,7 +14,7 @@ export const envAccessAllowedFiles = [
   "apps/web/lib/env.ts",
   "apps/web/features/app-shell/ui/providers.tsx",
   "apps/server/src/index.ts",
-  "apps/server/src/lib/env.ts",
+  "apps/server/src/env.ts",
   "apps/server/env.config.ts",
   "apps/cron/src/env.ts",
   "**/*.config.ts",

@@ -1,5 +1,9 @@
 import { PageError, type PageViolation } from "@grabbin/db/repositories/page";
 import { BentoError, type BentoViolation } from "@grabbin/domain/bento";
+import {
+  BentoMediaError,
+  type BentoMediaViolation,
+} from "@grabbin/domain/bento-media";
 import { HTTPException } from "hono/http-exception";
 
 const pageErrorStatus: Record<PageViolation, 400 | 404 | 409> = {
@@ -11,8 +15,14 @@ const pageErrorStatus: Record<PageViolation, 400 | 404 | 409> = {
   "image-required": 400,
 };
 
-const bentoErrorStatus: Record<BentoViolation, 400 | 409 | 410 | 503> = {
+const bentoErrorStatus: Record<BentoViolation, 409> = {
   "item-page-conflict": 409,
+};
+
+const bentoMediaErrorStatus: Record<
+  BentoMediaViolation,
+  400 | 409 | 410 | 503
+> = {
   "media-upload-page-conflict": 409,
   "media-key-page-mismatch": 400,
   "media-upload-expired": 410,
@@ -36,6 +46,10 @@ export const withDomainErrors = async <T>(
       });
     if (error instanceof BentoError)
       throw new HTTPException(bentoErrorStatus[error.violation], {
+        message: error.message,
+      });
+    if (error instanceof BentoMediaError)
+      throw new HTTPException(bentoMediaErrorStatus[error.violation], {
         message: error.message,
       });
     throw error;

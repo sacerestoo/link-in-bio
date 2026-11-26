@@ -5,11 +5,11 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { timing } from "hono/timing";
 import { trimTrailingSlash } from "hono/trailing-slash";
-import type { ServerBindings } from "./lib/env";
-import { authRoute } from "./routes/auth.route";
-import { bentoMediaRoute } from "./routes/bento-media.route";
-import { healthRoute } from "./routes/health.route";
-import { pagesRoute } from "./routes/pages.route";
+import type { ServerBindings } from "./env";
+import { authRoute } from "./http/auth";
+import { bentoMediaRoute } from "./http/bento-media";
+import { healthRoute } from "./http/health";
+import { pagesRoute } from "./http/pages";
 
 initLogger({ env: { service: "grabbin-server" } });
 

@@ -3,7 +3,7 @@ import {
   disabledCreemPaths,
   getCreemSettings,
 } from "@grabbin/subscription/creem";
-import type { ServerEnv } from "../env";
+import type { ServerEnv } from "./env";
 
 export const createSubscriptionOptions = (settings: ServerEnv) => ({
   creem: getCreemSettings({

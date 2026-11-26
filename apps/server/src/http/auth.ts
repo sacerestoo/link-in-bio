@@ -1,8 +1,8 @@
 import "server-only";
 import { Hono } from "hono";
-import type { ServerBindings } from "../lib/env";
-import { getAuth } from "../lib/auth";
-import { requireSession } from "../middleware/session.middleware";
+import type { ServerBindings } from "../env";
+import { getAuth } from "../auth";
+import { requireSession } from "../middleware";
 
 export const authRoute = new Hono<{ Bindings: ServerBindings }>()
   .get("/session", requireSession, (c) => {
