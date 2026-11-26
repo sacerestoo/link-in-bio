@@ -1,16 +1,76 @@
-import * as v from "valibot";
-import { isReservedHandle } from "../lib/handle";
 import {
-  PROFILE_IMAGE_CONTENT_TYPES,
-  PROFILE_IMAGE_MAX_SIZE,
-} from "../lib/profile-image";
-import { bentoBatchRequestSchema, bentoItemResponseSchema } from "./bento-item";
-import { imageCropSchema } from "./image-crop";
+  bentoBatchRequestSchema,
+  bentoItemResponseSchema,
+} from "@grabbin/shared/schemas/bento-item";
+import * as v from "valibot";
+
+const reservedHandles = new Set([
+  "admin",
+  "api",
+  "auth",
+  "billing",
+  "changelog",
+  "check",
+  "create",
+  "demo",
+  "explore",
+  "favicon",
+  "health",
+  "llms",
+  "log-in",
+  "login",
+  "manifest",
+  "new",
+  "pages",
+  "privacy",
+  "robots",
+  "setting",
+  "settings",
+  "sign-in",
+  "sitemap",
+  "terms",
+  "update",
+]);
+
+const isReservedHandle = (handle: string): boolean =>
+  reservedHandles.has(handle);
 
 export const PAGE_NAME_MAX_LENGTH = 50;
 export const PAGE_BIO_MAX_LENGTH = 150;
+export const PROFILE_IMAGE_MAX_SIZE = 5 * 1024 * 1024;
+export const PROFILE_IMAGE_CACHE_CONTROL =
+  "public, max-age=300, s-maxage=3600, immutable";
+export const PROFILE_IMAGE_CONTENT_TYPES = [
+  "image/gif",
+  "image/jpeg",
+  "image/png",
+] as const;
 
-// Page contracts shared by the web app and its API.
+export type ProfileImageContentType =
+  (typeof PROFILE_IMAGE_CONTENT_TYPES)[number];
+
+export const isProfileImageContentType = (
+  contentType: string | null,
+): contentType is ProfileImageContentType =>
+  PROFILE_IMAGE_CONTENT_TYPES.some(
+    (allowedType) => allowedType === contentType,
+  );
+
+export const imageCropSchema = v.pipe(
+  v.object({
+    x: v.pipe(v.number(), v.minValue(0), v.maxValue(100)),
+    y: v.pipe(v.number(), v.minValue(0), v.maxValue(100)),
+    width: v.pipe(v.number(), v.minValue(0.1), v.maxValue(100)),
+    height: v.pipe(v.number(), v.minValue(0.1), v.maxValue(100)),
+  }),
+  v.check(
+    (crop) => crop.x + crop.width <= 100 && crop.y + crop.height <= 100,
+    "Crop must stay within the image bounds.",
+  ),
+);
+
+export type ImageCrop = v.InferOutput<typeof imageCropSchema>;
+
 export const handleSchema = v.pipe(
   v.string("Enter a page handle."),
   v.trim(),
@@ -95,20 +155,9 @@ export const pageProfileResponseSchema = v.object({
   isOwner: v.boolean(),
 });
 
-const pageProfileSchema = v.pipe(
-  v.strictObject({
-    name: v.optional(pageSchema.entries.name),
-    bio: v.optional(pageSchema.entries.bio),
-  }),
-  v.check(
-    (page) => page.name !== undefined || page.bio !== undefined,
-    "Provide at least one page field to save.",
-  ),
-);
-
 export const pageSaveRequestSchema = v.pipe(
   v.strictObject({
-    page: v.optional(pageProfileSchema),
+    page: v.optional(pageUpdateSchema),
     bento: v.optional(bentoBatchRequestSchema),
   }),
   v.check(
@@ -124,3 +173,6 @@ export type PageProfileResponse = v.InferOutput<
   typeof pageProfileResponseSchema
 >;
 export type PageSaveRequest = v.InferOutput<typeof pageSaveRequestSchema>;
+
+export const shouldResetImageCrop = (update: PageUpdate): boolean =>
+  update.imageKey !== undefined && update.imageCrop === undefined;

@@ -13,6 +13,7 @@ export const nextAppArchitecture: NextAppConfig = {
 export const databaseArchitecture: DatabaseConfig = {
   databaseDirectory: architecture.directories.db,
   schemaDirectory: `${architecture.directories.db}/schema`,
+  repositoriesDirectory: `${architecture.directories.db}/repositories`,
   clientFile: `${architecture.directories.db}/client.ts`,
   migrationsDirectory: `${architecture.directories.db}/migrations`,
 };

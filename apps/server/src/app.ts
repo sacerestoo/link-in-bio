@@ -7,6 +7,7 @@ import { timing } from "hono/timing";
 import { trimTrailingSlash } from "hono/trailing-slash";
 import type { ServerBindings } from "./lib/env";
 import { authRoute } from "./routes/auth.route";
+import { bentoMediaRoute } from "./routes/bento-media.route";
 import { healthRoute } from "./routes/health.route";
 import { pagesRoute } from "./routes/pages.route";
 
@@ -49,6 +50,7 @@ const app = new Hono<{
   )
   .route("/health", healthRoute)
   .route("/pages", pagesRoute)
+  .route("/pages", bentoMediaRoute)
   .route("/auth", authRoute);
 
 export type AppType = typeof app;

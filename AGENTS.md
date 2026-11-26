@@ -31,7 +31,8 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
 | `apps/web`              | vinext (Next.js App Router on Vite), routes `/v1/*` to the server Worker |
 | `apps/server`           | Hono API and Better Auth on its own Cloudflare Worker                    |
 | `apps/cron`             | Cloudflare Worker, weekly media cleanup Sundays at 07:00 UTC (16:00 KST) |
-| `packages/db`           | Drizzle schema and client. Server-only                                   |
+| `packages/db`           | Drizzle schema, repositories and client. Server-only                     |
+| `packages/domain`       | Business rules and schemas grouped by domain                             |
 | `packages/subscription` | Server-side Creem and subscription integrations                          |
 | `packages/ui`           | shadcn components, `cn`, hooks and the Tailwind stylesheet               |
 | `packages/shared`       | Types and valibot schemas shared by apps and packages                    |
@@ -67,6 +68,8 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
 - `packages/shared` imports no other workspace code. Packages never import
   `apps/*`; apps do not import each other's runtime code. Web may import the
   server Hono app type for its API client.
+- `packages/domain` owns business constraints and domain errors. It may depend
+  on `packages/shared`, but `packages/shared` never imports domain code.
 - Inside `apps/web`: `app/` holds only Next.js route and metadata files; only
   `app/` imports `app/`; features do not import other features; feature UI never
   imports `packages/db` or `packages/subscription`.

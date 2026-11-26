@@ -75,7 +75,7 @@ export default {
     {
       name: "ui-only-to-shared",
       comment:
-        "packages/ui renders on the client; it may use packages/shared but not db, subscription, or app code.",
+        "packages/ui renders on the client; it may use packages/shared and packages/domain but not db, subscription, or app code.",
       severity: "error",
       from: { path: `^${uiPath}/` },
       to: {

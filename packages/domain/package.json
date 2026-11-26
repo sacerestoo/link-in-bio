@@ -1,0 +1,23 @@
+{
+  "name": "@grabbin/domain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./health": "./src/health.ts",
+    "./image-crop": "./src/image-crop.ts",
+    "./page": "./src/page.ts"
+  },
+  "scripts": {
+    "lint": "vp lint",
+    "test": "vp test run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@grabbin/shared": "workspace:*",
+    "valibot": "catalog:"
+  },
+  "devDependencies": {
+    "vite-plus": "catalog:"
+  }
+}

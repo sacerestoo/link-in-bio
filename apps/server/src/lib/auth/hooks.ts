@@ -1,6 +1,17 @@
 import "server-only";
 import type { Database } from "@grabbin/db";
 import {
+  createPageForUser,
+  hasPageForUser,
+  isPageHandleAvailable,
+  PageError,
+} from "@grabbin/db/repositories/page";
+import {
+  HANDLE_UNAVAILABLE_MESSAGE,
+  handleSchema,
+  type Handle,
+} from "@grabbin/domain/page";
+import {
   PAGE_CREATED_COOKIE_MAX_AGE_SECONDS,
   PAGE_CREATED_COOKIE_NAME,
   PAGE_CREATED_COOKIE_VALUE,
@@ -11,29 +22,38 @@ import {
 } from "@grabbin/subscription/creem";
 import { getProtocolFromSource, type BetterAuthOptions } from "better-auth";
 import { APIError, createAuthMiddleware, getOAuthState } from "better-auth/api";
+import * as v from "valibot";
 import type { ServerEnv } from "../env";
-import {
-  PagesService,
-  PAGE_SERVICE_STATUS,
-  type EnsurePageForUserResult,
-  type HandleAvailabilityResult,
-} from "../../services/pages.service";
 
-const throwIfPageOperationFailed = (
-  result: EnsurePageForUserResult | HandleAvailabilityResult,
-) => {
-  if (
-    result.status === PAGE_SERVICE_STATUS.invalidHandle ||
-    result.status === PAGE_SERVICE_STATUS.handleUnavailable
-  )
-    throw new APIError("BAD_REQUEST", { message: result.message });
+const ensureHandleAvailable = async (
+  database: Database,
+  rawHandle: unknown,
+): Promise<Handle> => {
+  const result = v.safeParse(handleSchema, rawHandle);
+  if (!result.success)
+    throw new PageError(
+      "invalid-handle",
+      result.issues.map((issue) => issue.message).join(" "),
+    );
+
+  if (!(await isPageHandleAvailable(database, result.output)))
+    throw new PageError("handle-unavailable", HANDLE_UNAVAILABLE_MESSAGE);
+  return result.output;
+};
+
+const withPageErrors = async <T>(onAction: () => Promise<T>): Promise<T> => {
+  try {
+    return await onAction();
+  } catch (error) {
+    if (error instanceof PageError)
+      throw new APIError("BAD_REQUEST", { message: error.message });
+    throw error;
+  }
 };
 
 export const createDatabaseHooks = (
   database: Database,
 ): NonNullable<BetterAuthOptions["databaseHooks"]> => {
-  const pagesService = new PagesService(database);
-
   return {
     user: {
       create: {
@@ -42,8 +62,9 @@ export const createDatabaseHooks = (
             context?.path === "/sign-in/email-otp"
               ? user.name
               : (await getOAuthState<{ handle?: unknown }>())?.handle;
-          const result = await pagesService.ensureHandleAvailable(rawHandle);
-          throwIfPageOperationFailed(result);
+          await withPageErrors(() =>
+            ensureHandleAvailable(database, rawHandle),
+          );
         },
       },
     },
@@ -51,8 +72,6 @@ export const createDatabaseHooks = (
 };
 
 export const createAuthHooks = (settings: ServerEnv, database: Database) => {
-  const pagesService = new PagesService(database);
-
   return {
     before: createCreemBeforeHook(
       getCreemProductIds(
@@ -68,10 +87,13 @@ export const createAuthHooks = (settings: ServerEnv, database: Database) => {
         userId: string,
         rawHandle: unknown,
       ): Promise<void> => {
-        const result = await pagesService.ensurePageForUser(userId, rawHandle);
-        throwIfPageOperationFailed(result);
+        const created = await withPageErrors(async () => {
+          if (await hasPageForUser(database, userId)) return false;
+          const handle = await ensureHandleAvailable(database, rawHandle);
+          return createPageForUser(database, userId, handle);
+        });
 
-        if (result.status === PAGE_SERVICE_STATUS.created) {
+        if (created) {
           const baseURL = ctx.context.options.baseURL;
           const baseURLProtocol =
             typeof baseURL === "string"

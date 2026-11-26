@@ -1,6 +1,6 @@
 "use client";
 
-import type { Handle } from "@grabbin/shared/schemas/page";
+import type { Handle } from "@grabbin/domain/page";
 import type { ReactElement } from "react";
 import { authClient } from "@/lib/auth-client";
 import { getQueryClient } from "@/lib/query-client";

@@ -3,7 +3,7 @@ import {
   HANDLE_UNAVAILABLE_MESSAGE,
   handleSchema,
   type Handle,
-} from "@grabbin/shared/schemas/page";
+} from "@grabbin/domain/page";
 import { useMutation } from "@tanstack/react-query";
 import { debounce } from "es-toolkit/function";
 import { useCallback, useEffect } from "react";

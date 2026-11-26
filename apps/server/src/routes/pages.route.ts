@@ -1,17 +1,25 @@
 import "server-only";
 import type { BentoItem } from "@grabbin/shared/schemas/bento-item";
-import { createDatabase } from "@grabbin/db";
+import { createDatabase, type Executor } from "@grabbin/db";
 import {
-  HANDLE_UNAVAILABLE_MESSAGE,
+  findOwnedPageId,
+  findOwnedPageImageKey,
+  findPageInfoByHandle,
+  findPageInfoByUserId,
+  hasOwnedPage,
+  isPageHandleAvailable,
+  PageError,
+  savePageForUser,
+} from "@grabbin/db/repositories/page";
+import {
   handleSchema,
   pageProfileResponseSchema,
   pageResponseSchema,
   pageSaveRequestSchema,
   profileImageUploadSchema,
-  pageUpdateSchema,
+  shouldResetImageCrop,
   type PageSaveRequest,
-  type PageUpdate,
-} from "@grabbin/shared/schemas/page";
+} from "@grabbin/domain/page";
 import { sValidator } from "@hono/standard-validator";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
@@ -30,32 +38,19 @@ import {
   requireSession,
 } from "../middleware/session.middleware";
 import { BentoMediaService } from "../services/bento-media.service";
-import { PagesService, PAGE_SERVICE_STATUS } from "../services/pages.service";
-import { bentoMediaRoute } from "./bento-media.route";
-
-const createPagesService = (connectionString: string) =>
-  new PagesService(createDatabase(connectionString));
-
-const pagePatchRequestSchema = v.union([
-  pageSaveRequestSchema,
-  pageUpdateSchema,
-]);
-
-const isPageSaveRequest = (
-  request: PageSaveRequest | PageUpdate,
-): request is PageSaveRequest => "page" in request || "bento" in request;
+import { BentoService } from "../services/bento.service";
+import { withPageErrors } from "./page-route-errors";
 
 const assertBentoMediaBatchIsReady = async (
-  pagesService: PagesService,
+  database: ReturnType<typeof createDatabase>,
   mediaService: BentoMediaService,
   userId: string,
   handle: string,
   items: readonly BentoItem[],
 ): Promise<void> => {
   if (!items.some((item) => item.type === "media")) return;
-  const pageId = await pagesService.findOwnedPageId(userId, handle);
-  if (pageId === undefined)
-    throw new HTTPException(404, { message: "Page not found" });
+  const pageId = await findOwnedPageId(database, userId, handle);
+  if (pageId === undefined) throw new PageError("not-found", "Page not found");
 
   try {
     await mediaService.assertBatchMediaUploaded(pageId, items);
@@ -66,24 +61,44 @@ const assertBentoMediaBatchIsReady = async (
   }
 };
 
+const saveBentoBatch = async (
+  executor: Executor,
+  pageId: string,
+  batch: PageSaveRequest["bento"],
+): Promise<readonly BentoItem[]> => {
+  const bentoService = new BentoService(executor);
+  if (batch === undefined) return bentoService.list(pageId);
+
+  const result = await bentoService.save(pageId, batch);
+  if (result.status === "invalid")
+    throw new PageError(
+      "invalid-bento-batch",
+      `Invalid Bento batch: ${result.reason}`,
+      result.reason,
+    );
+  return result.items;
+};
+
 export const pagesRoute = new Hono<{
   Bindings: ServerBindings;
 }>()
-  .get("/me", requireSession, async (c): Promise<Response> => {
-    const pagesService = createPagesService(c.env.HYPERDRIVE.connectionString);
-    const userId = c.get("session").user.id;
-    const page = await pagesService.findPageInfo({ userId });
-    if (page === undefined)
-      throw new HTTPException(404, { message: "Page not found" });
+  .get("/me", requireSession, (c): Promise<Response> =>
+    withPageErrors(async () => {
+      const database = createDatabase(c.env.HYPERDRIVE.connectionString);
+      const userId = c.get("session").user.id;
+      const page = await findPageInfoByUserId(database, userId);
+      if (page === undefined)
+        throw new PageError("not-found", "Page not found");
 
-    const { userId: ownerId, ...pageInfo } = page;
-    return c.json(
-      v.parse(pageProfileResponseSchema, {
-        ...pageInfo,
-        isOwner: ownerId === userId,
-      }),
-    );
-  })
+      const { userId: ownerId, ...pageInfo } = page;
+      return c.json(
+        v.parse(pageProfileResponseSchema, {
+          ...pageInfo,
+          isOwner: ownerId === userId,
+        }),
+      );
+    }),
+  )
   .post(
     "/handle",
     sValidator("json", v.object({ handle: handleSchema }), (result) => {
@@ -94,11 +109,8 @@ export const pagesRoute = new Hono<{
     }),
     async (c) => {
       const { handle: requestedHandle } = c.req.valid("json");
-      const pagesService = createPagesService(
-        c.env.HYPERDRIVE.connectionString,
-      );
-      const available =
-        await pagesService.isPageHandleAvailable(requestedHandle);
+      const database = createDatabase(c.env.HYPERDRIVE.connectionString);
+      const available = await isPageHandleAvailable(database, requestedHandle);
       return c.json({ available });
     },
   )
@@ -117,29 +129,28 @@ export const pagesRoute = new Hono<{
           message: result.error.map((issue) => issue.message).join(" "),
         });
     }),
-    async (c) => {
-      const { handle } = c.req.valid("param");
-      const { contentType } = c.req.valid("json");
-      const userId = c.get("session").user.id;
-      const page = await createPagesService(
-        c.env.HYPERDRIVE.connectionString,
-      ).findPageInfo({ handle });
-      if (page === undefined || page.userId !== userId)
-        throw new HTTPException(404, { message: "Page not found" });
+    (c) =>
+      withPageErrors(async () => {
+        const { handle } = c.req.valid("param");
+        const { contentType } = c.req.valid("json");
+        const userId = c.get("session").user.id;
+        const database = createDatabase(c.env.HYPERDRIVE.connectionString);
+        if (!(await hasOwnedPage(database, userId, handle)))
+          throw new PageError("not-found", "Page not found");
 
-      const upload = await createProfileImageUpload(
-        c.env,
-        c.req.url,
-        userId,
-        contentType,
-      );
-      if (upload === null)
-        throw new HTTPException(503, {
-          message: "Image uploads are unavailable",
-        });
+        const upload = await createProfileImageUpload(
+          c.env,
+          c.req.url,
+          userId,
+          contentType,
+        );
+        if (upload === null)
+          throw new HTTPException(503, {
+            message: "Image uploads are unavailable",
+          });
 
-      return c.json(upload);
-    },
+        return c.json(upload);
+      }),
   )
   .get(
     "/:handle",
@@ -150,25 +161,24 @@ export const pagesRoute = new Hono<{
           message: result.error.map((issue) => issue.message).join(" "),
         });
     }),
-    async (c): Promise<Response> => {
-      const pagesService = createPagesService(
-        c.env.HYPERDRIVE.connectionString,
-      );
-      const { handle } = c.req.valid("param");
-      const userId = c.get("session")?.user.id;
+    (c): Promise<Response> =>
+      withPageErrors(async () => {
+        const database = createDatabase(c.env.HYPERDRIVE.connectionString);
+        const { handle } = c.req.valid("param");
+        const userId = c.get("session")?.user.id;
 
-      const page = await pagesService.findPageInfo({ handle });
-      if (page === undefined)
-        throw new HTTPException(404, { message: "Page not found" });
+        const page = await findPageInfoByHandle(database, handle);
+        if (page === undefined)
+          throw new PageError("not-found", "Page not found");
 
-      const { userId: ownerId, ...pageInfo } = page;
-      return c.json(
-        v.parse(pageResponseSchema, {
-          ...pageInfo,
-          isOwner: ownerId === userId,
-        }),
-      );
-    },
+        const { userId: ownerId, ...pageInfo } = page;
+        return c.json(
+          v.parse(pageResponseSchema, {
+            ...pageInfo,
+            isOwner: ownerId === userId,
+          }),
+        );
+      }),
   )
   .patch(
     "/:handle",
@@ -179,50 +189,74 @@ export const pagesRoute = new Hono<{
           message: result.error.map((issue) => issue.message).join(" "),
         });
     }),
-    sValidator("json", pagePatchRequestSchema, (result) => {
+    sValidator("json", pageSaveRequestSchema, (result) => {
       if (!result.success)
         throw new HTTPException(400, {
           message: result.error.map((issue) => issue.message).join(" "),
         });
     }),
-    async (c) => {
-      const database = createDatabase(c.env.HYPERDRIVE.connectionString);
-      const pagesService = new PagesService(database);
-      const userId = c.get("session").user.id;
+    (c) =>
+      withPageErrors(async () => {
+        const database = createDatabase(c.env.HYPERDRIVE.connectionString);
+        const userId = c.get("session").user.id;
+        const { handle: currentHandle } = c.req.valid("param");
+        const request = c.req.valid("json");
+        const update = request.page;
+        let oldImageKey: string | null | undefined;
+        if (update?.imageKey !== undefined || update?.imageCrop !== undefined) {
+          oldImageKey = await findOwnedPageImageKey(
+            database,
+            userId,
+            currentHandle,
+          );
+          if (oldImageKey === undefined)
+            throw new PageError("not-found", "Page not found");
 
-      const { handle: currentHandle } = c.req.valid("param");
-      const request = c.req.valid("json");
+          const nextImageKey =
+            update?.imageKey === undefined ? oldImageKey : update.imageKey;
+          if (
+            update?.imageCrop !== undefined &&
+            update.imageCrop !== null &&
+            nextImageKey === null
+          )
+            throw new PageError(
+              "image-required",
+              "Upload a profile image before cropping it.",
+            );
+        }
 
-      if (isPageSaveRequest(request)) {
+        if (update?.imageKey !== undefined && update.imageKey !== null)
+          await ensureProfileImageIsValid(
+            c.env,
+            c.req.url,
+            userId,
+            update.imageKey,
+          );
+
+        const pageUpdate =
+          update !== undefined && shouldResetImageCrop(update)
+            ? { ...update, imageCrop: null }
+            : update;
+        const save =
+          pageUpdate === update ? request : { ...request, page: pageUpdate };
+
         if (request.bento !== undefined)
           await assertBentoMediaBatchIsReady(
-            pagesService,
+            database,
             new BentoMediaService(database, c.env, c.req.url),
             userId,
             currentHandle,
             request.bento.upserts,
           );
 
+        let savedPage: Awaited<ReturnType<typeof savePageForUser>>;
         try {
-          const savedPage = await pagesService.savePageForUser(
+          savedPage = await savePageForUser(
+            database,
             userId,
             currentHandle,
-            request,
-          );
-
-          if (savedPage.status === PAGE_SERVICE_STATUS.notFound)
-            throw new HTTPException(404, { message: "Page not found" });
-          if (savedPage.status === PAGE_SERVICE_STATUS.invalidBentoBatch)
-            throw new HTTPException(400, {
-              message: `Invalid Bento batch: ${savedPage.reason}`,
-            });
-
-          const { userId: ownerId, ...pageInfo } = savedPage.data;
-          return c.json(
-            v.parse(pageResponseSchema, {
-              ...pageInfo,
-              isOwner: ownerId === userId,
-            }),
+            save,
+            saveBentoBatch,
           );
         } catch (error) {
           if (error instanceof BentoItemPageConflictError)
@@ -233,57 +267,27 @@ export const pagesRoute = new Hono<{
             throw new HTTPException(error.status, { message: error.message });
           throw error;
         }
-      }
 
-      const update = request;
-      const pageBeforeImageUpdate = await pagesService.getPageBeforeImageUpdate(
-        userId,
-        currentHandle,
-        update,
-      );
-      if (pageBeforeImageUpdate.status === PAGE_SERVICE_STATUS.notFound)
-        throw new HTTPException(404, { message: "Page not found" });
-      if (pageBeforeImageUpdate.status === PAGE_SERVICE_STATUS.imageRequired)
-        throw new HTTPException(400, {
-          message: "Upload a profile image before cropping it.",
-        });
-      const pageBeforeUpdate = pageBeforeImageUpdate.page;
+        if (
+          update?.imageKey !== undefined &&
+          isProfileImageKeyOwnedByUser(userId, oldImageKey) &&
+          oldImageKey !== update.imageKey
+        ) {
+          c.executionCtx.waitUntil(
+            deleteProfileImageObject(c.env, c.req.url, oldImageKey).catch(
+              (error: unknown) => {
+                console.error("Could not remove previous profile image", error);
+              },
+            ),
+          );
+        }
 
-      if (update.imageKey !== undefined && update.imageKey !== null)
-        await ensureProfileImageIsValid(
-          c.env,
-          c.req.url,
-          userId,
-          update.imageKey,
+        const { userId: ownerId, ...pageInfo } = savedPage;
+        return c.json(
+          v.parse(pageResponseSchema, {
+            ...pageInfo,
+            isOwner: ownerId === userId,
+          }),
         );
-
-      const updatedPage = await pagesService.updatePageForUser(
-        userId,
-        currentHandle,
-        update,
-      );
-
-      if (updatedPage.status === PAGE_SERVICE_STATUS.notFound)
-        throw new HTTPException(404, { message: "Page not found" });
-      if (updatedPage.status === PAGE_SERVICE_STATUS.handleConflict)
-        throw new HTTPException(409, { message: HANDLE_UNAVAILABLE_MESSAGE });
-
-      const oldImageKey = pageBeforeUpdate?.imageKey;
-      if (
-        update.imageKey !== undefined &&
-        isProfileImageKeyOwnedByUser(userId, oldImageKey) &&
-        oldImageKey !== update.imageKey
-      ) {
-        c.executionCtx.waitUntil(
-          deleteProfileImageObject(c.env, c.req.url, oldImageKey).catch(
-            (error: unknown) => {
-              console.error("Could not remove previous profile image", error);
-            },
-          ),
-        );
-      }
-
-      return c.json(updatedPage.data);
-    },
-  )
-  .route("/", bentoMediaRoute);
+      }),
+  );

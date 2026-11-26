@@ -1,6 +1,6 @@
 "use client";
 
-import type { Handle } from "@grabbin/shared/schemas/page";
+import type { Handle } from "@grabbin/domain/page";
 import type { ReactElement } from "react";
 import Loading from "@grabbin/ui/components/loading";
 import { useIsMutating, useMutationState } from "@tanstack/react-query";

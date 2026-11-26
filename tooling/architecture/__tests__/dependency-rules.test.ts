@@ -16,6 +16,7 @@ const sourceRoots = [
   "apps/server/src/services",
   "apps/cron/src",
   "packages/db/src",
+  "packages/domain/src",
   "packages/subscription/src",
   "packages/ui/src",
   "packages/shared/src",
@@ -29,6 +30,7 @@ const tsconfig = JSON.stringify({
     paths: {
       "@/*": ["./apps/web/*"],
       "@grabbin/db": ["./packages/db/src/client.ts"],
+      "@grabbin/domain/*": ["./packages/domain/src/*"],
       "@grabbin/subscription/*": ["./packages/subscription/src/*"],
       "@grabbin/server": ["./apps/server/src/app.ts"],
       "@grabbin/ui/*": ["./packages/ui/src/*"],

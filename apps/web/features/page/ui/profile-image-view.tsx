@@ -1,5 +1,5 @@
 import type { ReactElement, ReactNode } from "react";
-import { getCropStyle } from "@grabbin/shared/lib/image-crop";
+import { getCropStyle } from "@grabbin/domain/image-crop";
 import { cn } from "@grabbin/ui/lib/utils";
 import Image from "next/image";
 import type { ProfilePageData } from "../queries";

@@ -4,12 +4,13 @@ import { readSchemaRegistry, type SchemaRegistry } from "./schema-registry.ts";
 
 /**
  * Drizzle layout: every pgTable/pgEnum lives in db/schema/<domain>.ts (the
- * pg-core import restriction is enforced by oxlint), and db/client.ts
- * registers each domain so relational queries and adapters see every table.
+ * pg-core import restriction is enforced by oxlint), repositories hold domain
+ * queries, and db/client.ts registers each schema domain.
  */
 export type DatabaseConfig = Readonly<{
   databaseDirectory: string;
   schemaDirectory: string;
+  repositoriesDirectory: string;
   clientFile: string;
   migrationsDirectory: string;
 }>;
@@ -18,9 +19,12 @@ const domainFile = /^[a-z0-9]+(?:-[a-z0-9]+)*\.ts$/u;
 
 function checkDatabaseRoot(config: DatabaseConfig): (root: string) => string[] {
   const allowed = new Set(
-    [config.clientFile, config.schemaDirectory, config.migrationsDirectory].map(
-      (path) => path.slice(config.databaseDirectory.length + 1),
-    ),
+    [
+      config.clientFile,
+      config.schemaDirectory,
+      config.repositoriesDirectory,
+      config.migrationsDirectory,
+    ].map((path) => path.slice(config.databaseDirectory.length + 1)),
   );
   return (root) =>
     readdirSync(join(root, config.databaseDirectory))

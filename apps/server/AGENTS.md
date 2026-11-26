@@ -15,6 +15,9 @@
   integrations. It accesses subscription records through Better Auth's adapter
   and does not import the database package.
 - Only `apps/server/src/**` and `apps/cron/src/**` may import `@grabbin/db`.
+- Keep domain coordination in `src/services/`; put database operations in
+  `packages/db/src/repositories/<domain>.ts`. Page routes call page repository
+  functions directly; do not add a `pages.service.ts` layer.
 
 ## Route permissions
 

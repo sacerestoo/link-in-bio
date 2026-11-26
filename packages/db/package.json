@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/client.ts",
+    "./repositories/*": "./src/repositories/*.ts",
     "./schema/*": "./src/schema/*.ts"
   },
   "scripts": {
@@ -15,6 +16,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@grabbin/domain": "workspace:*",
     "@grabbin/shared": "workspace:*",
     "drizzle-orm": "catalog:",
     "pg": "^8.23.1",

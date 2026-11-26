@@ -42,12 +42,11 @@
 | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `packages/shared/src/schemas/bento-layout.ts`                   | 기존 wide 4열·compact 2열, 9개 타입, 프리셋, 미지 타입 기본값과 결정적 충돌 재배치를 한 규칙으로 유지                                         |
 | `packages/shared/src/schemas/bento-item.ts`                     | 타입별 데이터·스타일·응답·일괄 요청/응답 계약과 추론 타입. DB 의존성 없음                                                                     |
-| `packages/shared/src/schemas/page.ts`                           | 페이지 응답과 페이지 전체 저장 요청을 정의. 저장 요청은 변경된 page 필드와 선택적 `bento` batch를 함께 받음                                   |
+| `packages/domain/src/page.ts`                                   | 페이지 응답과 페이지 전체 저장 요청을 정의. 저장 요청은 변경된 page 필드와 선택적 `bento` batch를 함께 받음                                   |
 | `packages/db/src/schema/bento-items.ts`                         | Bento 아이템 테이블과 관계. `type`은 text, `data`·`style`·`layouts`는 JSONB                                                                   |
 | `packages/db/src/schema/bento-media-assets.ts`                  | 업로드 예약 ID, object key, `pending → attached → pending_delete` 상태, URL 만료와 7일 보관 시각. 같은 예약 ID의 재요청은 같은 자산 행을 사용 |
-| `apps/server/src/routes/pages.route.ts`                         | 기존 페이지 경로와 응답을 유지하고, 인증·입력 검증·상태 코드 변환 담당                                                                        |
-| `apps/server/src/services/pages.service.ts`                     | 페이지 스냅샷 조회와 페이지 전체 저장 트랜잭션 조정. page 필드와 Bento 저장을 조합                                                            |
-| `apps/server/src/services/pages.repository.ts`                  | 호출자가 건넨 transaction으로 page의 수정 가능한 필드를 저장                                                                                  |
+| `apps/server/src/routes/pages.route.ts`                         | 인증·입력 검증·에러 변환과 page repository 호출, Bento 저장 조율 담당                                                                         |
+| `packages/db/src/repositories/page.ts`                          | 페이지 조회·수정 SQL과 page 및 Bento 저장 트랜잭션을 처리                                                                                     |
 | `apps/server/src/services/bento.service.ts`                     | 전달받은 transaction 안에서 순수 Bento 정책과 저장 함수를 조합                                                                                |
 | `apps/server/src/services/bento.repository.ts`                  | 페이지 스코프 벌크 변경 SQL 함수. 호출자가 건넨 DB/트랜잭션에서 동작                                                                          |
 | `apps/server/src/lib/bento-batch-policy.ts`                     | DB에 의존하지 않는 net-diff 적용, 중복 검사, 최종 스냅샷 구성                                                                                 |
@@ -331,21 +330,22 @@ transaction** 안에서 일을 요청하는지, Bento 저장이 실패하면 전
 1. **Bento 데이터 모양** — `packages/shared/src/schemas/bento-item.ts`에 항목
    하나의 데이터 모양을 적는다. 완료 기준: 올바른 항목은 통과하고 잘못된 항목은
    거부된다.
-2. **페이지 데이터 모양** — `packages/shared/src/schemas/page.ts`에 page와
-   `bento`를 함께 반환하는 조회 결과 및 저장 요청 모양을 적는다. 완료 기준:
-   page만, Bento만, 둘 다 바뀐 요청을 표현할 수 있다.
+2. **페이지 데이터 모양** — `packages/domain/src/page.ts`에 page와 `bento`를
+   함께 반환하는 조회 결과 및 저장 요청 모양을 적는다. 완료 기준: page만,
+   Bento만, 둘 다 바뀐 요청을 표현할 수 있다.
 3. **배치 규칙 연결** — 기존 `bento-layout.ts` 규칙을 저장 계약에 연결한다. 완료
    기준: wide/compact 위치와 크기를 같은 규칙으로 검사한다.
 4. **Bento 저장 칸** — `packages/db/src/schema/bento-items.ts`를 정의한다. 완료
    기준: DB client에 등록할 테이블과 page 관계가 정해진다.
 5. **미디어 기록 칸** — `bento-media-assets.ts`를 정의한다. 완료 기준: 파일
    key와 예약·첨부·삭제 대기 상태를 기록할 수 있다.
-6. **page+Bento 읽기 함수** — `pages.service.ts`의 `findPageInfo`가 handle로
-   LEFT JOIN 조회를 한다. 완료 기준: Bento가 0개거나 여러 개여도 한 DB 조회로
-   결과를 얻는다.
-7. **조회 결과 정리 함수** — `pages.service.ts`가 JOIN 행을 page 하나와 `bento`
-   배열로 묶는다. 완료 기준: 아이템이 없을 때도 page가 반환된다.
-8. **GET 경로 연결** — `pages.route.ts`가 조회 서비스를 부른다. 완료 기준:
+6. **page+Bento 읽기 함수** — `packages/db/src/repositories/page.ts`의
+   `findPageInfoByHandle`이 handle로 LEFT JOIN 조회를 한다. 완료 기준: Bento가
+   0개거나 여러 개여도 한 DB 조회로 결과를 얻는다.
+7. **조회 결과 정리 함수** — `packages/db/src/repositories/page.ts`가 JOIN 행을
+   page 하나와 `bento` 배열로 묶는다. 완료 기준: 아이템이 없을 때도 page가
+   반환된다.
+8. **GET 경로 연결** — `pages.route.ts`가 repository 함수를 부른다. 완료 기준:
    `GET /pages/:handle` 한 번으로 page와 `bento`를 받는다.
 9. **브라우저 조회 요청** — `features/page/api.ts`와 `queries.ts`에 handle
    조회를 연결한다. 완료 기준: 서버 선조회와 브라우저가 같은 query key를 쓴다.
@@ -361,10 +361,10 @@ transaction** 안에서 일을 요청하는지, Bento 저장이 실패하면 전
     없이 검사한다. 완료 기준: 중복 ID와 범위 밖 배치는 거부된다.
 14. **Bento 저장 연결** — `bento.service.ts`가 12번 DB 함수와 13번 규칙을
     연결한다. 완료 기준: 한 page의 Bento 변경만 저장된다.
-15. **page+Bento 한꺼번에 저장** — `pages.service.ts`가 page 필드와 Bento 저장을
-    한 transaction으로 묶는다. 완료 기준: 어느 한쪽이 실패하면 둘 다 저장되지
-    않는다.
-16. **PATCH 경로 연결** — `pages.route.ts`가 권한·입력 확인 후 저장 서비스를
+15. **page+Bento 한꺼번에 저장** — `packages/db/src/repositories/page.ts`가 page
+    필드와 Bento 저장을 한 transaction으로 묶는다. 완료 기준: 어느 한쪽이
+    실패하면 둘 다 저장되지 않는다.
+16. **PATCH 경로 연결** — `pages.route.ts`가 권한·입력 확인 후 repository 함수를
     부른다. 완료 기준: page만, Bento만, 둘 다 바뀐 요청이 같은 경로를 쓴다.
 17. **자동 저장 대기열** — `use-page-autosave.ts`가 page와 Bento 변경을 모아
     1.5초 뒤 16번 경로로 보낸다. 완료 기준: 같은 대기 시간 안의 두 변경이 PATCH

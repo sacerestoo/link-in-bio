@@ -10,6 +10,7 @@
   lint requires.
 - Import across this package with `@grabbin/ui/...`, the same paths apps use.
 - Never import `@grabbin/db`, `@grabbin/subscription`, or anything under
-  `apps/`. Client-safe types and schemas come from `@grabbin/shared`.
+  `apps/`. General types come from `@grabbin/shared`; business schemas come from
+  `@grabbin/domain`.
 - Keep CSS in `src/styles/`. New app folders that use Tailwind classes need an
   `@source` line in `globals.css`.

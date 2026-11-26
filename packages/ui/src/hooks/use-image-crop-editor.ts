@@ -1,11 +1,11 @@
 "use client";
 
-import type { ImageCrop } from "@grabbin/shared/schemas/image-crop";
+import type { ImageCrop } from "@grabbin/domain/page";
 import {
   getCenteredCrop,
   isCropCompatible,
   type ImageDimensions,
-} from "@grabbin/shared/lib/image-crop";
+} from "@grabbin/domain/image-crop";
 import {
   useCallback,
   useEffect,

@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@grabbin/db": "workspace:*",
+    "@grabbin/domain": "workspace:*",
     "@grabbin/email": "workspace:*",
     "@grabbin/shared": "workspace:*",
     "@grabbin/subscription": "workspace:*",

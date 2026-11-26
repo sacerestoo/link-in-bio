@@ -1,4 +1,4 @@
-import type { Handle, PageResponse } from "@grabbin/shared/schemas/page";
+import type { Handle, PageResponse } from "@grabbin/domain/page";
 import { api as browserApi } from "@/lib/api-client";
 import { toast } from "@grabbin/ui/components/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

@@ -1,7 +1,7 @@
 import {
   PROFILE_IMAGE_CACHE_CONTROL,
   type ProfileImageContentType,
-} from "@grabbin/shared/lib/profile-image";
+} from "@grabbin/domain/page";
 
 export const putProfileImage = async (
   uploadUrl: string,

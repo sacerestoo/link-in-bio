@@ -1,6 +1,6 @@
 import * as v from "valibot";
 import { describe, expect, it } from "vite-plus/test";
-import { handleSchema } from "../schemas/page.ts";
+import { handleSchema } from "../src/page.ts";
 
 describe("handleSchema", (): void => {
   it("accepts a lowercase handle", (): void => {

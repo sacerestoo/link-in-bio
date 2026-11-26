@@ -5,7 +5,7 @@ import {
   type Handle,
   type PageProfileResponse,
   type PageResponse,
-} from "@grabbin/shared/schemas/page";
+} from "@grabbin/domain/page";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { DetailedError } from "hono/client";
 import * as v from "valibot";

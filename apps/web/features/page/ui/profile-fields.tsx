@@ -2,7 +2,7 @@ import type { ReactElement } from "react";
 import {
   PAGE_BIO_MAX_LENGTH,
   PAGE_NAME_MAX_LENGTH,
-} from "@grabbin/shared/schemas/page";
+} from "@grabbin/domain/page";
 import {
   InputGroup,
   InputGroupTextarea,

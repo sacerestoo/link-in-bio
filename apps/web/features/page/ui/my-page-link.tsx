@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactElement } from "react";
-import { getCropStyle } from "@grabbin/shared/lib/image-crop";
+import { getCropStyle } from "@grabbin/domain/image-crop";
 import {
   Avatar,
   AvatarFallback,

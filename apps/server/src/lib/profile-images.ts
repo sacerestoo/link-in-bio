@@ -1,10 +1,9 @@
-import type { PageUpdate } from "@grabbin/shared/schemas/page";
 import {
   PROFILE_IMAGE_CACHE_CONTROL,
   isProfileImageContentType,
   PROFILE_IMAGE_MAX_SIZE,
   type ProfileImageContentType,
-} from "@grabbin/shared/lib/profile-image";
+} from "@grabbin/domain/page";
 import { HTTPException } from "hono/http-exception";
 import type { ServerBindings } from "./env";
 import { signR2Request } from "./r2";
@@ -15,9 +14,6 @@ export const isProfileImageKeyOwnedByUser = (
 ): imageKey is string =>
   typeof imageKey === "string" &&
   imageKey.startsWith(`profile-images/${userId}/`);
-
-export const shouldResetImageCrop = (update: PageUpdate): boolean =>
-  update.imageKey !== undefined && update.imageCrop === undefined;
 
 export const createProfileImageUpload = async (
   env: ServerBindings,

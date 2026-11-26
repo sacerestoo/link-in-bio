@@ -1,5 +1,5 @@
+import type { Handle } from "@grabbin/domain/page";
 import type { BentoMediaUploadResponse } from "@grabbin/shared/schemas/bento-media";
-import type { Handle } from "@grabbin/shared/schemas/page";
 import { bentoMediaUploadResponseContract } from "@/features/bento/contracts";
 import { api, type ApiClient } from "@/lib/api-client";
 import { readJson } from "@/shared/lib/contract";

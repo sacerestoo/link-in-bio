@@ -1,10 +1,11 @@
 import "server-only";
 import { createDatabase } from "@grabbin/db";
+import { findOwnedPageId } from "@grabbin/db/repositories/page";
+import { handleSchema } from "@grabbin/domain/page";
 import {
   bentoMediaUploadRequestSchema,
   bentoMediaUploadResponseSchema,
 } from "@grabbin/shared/schemas/bento-media";
-import { handleSchema } from "@grabbin/shared/schemas/page";
 import { sValidator } from "@hono/standard-validator";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
@@ -13,7 +14,6 @@ import type { ServerBindings } from "../lib/env";
 import { BentoMediaError } from "../lib/bento-media-error";
 import { requireSession } from "../middleware/session.middleware";
 import { BentoMediaService } from "../services/bento-media.service";
-import { PagesService } from "../services/pages.service";
 
 export const bentoMediaRoute = new Hono<{
   Bindings: ServerBindings;
@@ -36,8 +36,7 @@ export const bentoMediaRoute = new Hono<{
     const { handle } = c.req.valid("param");
     const userId = c.get("session").user.id;
     const database = createDatabase(c.env.HYPERDRIVE.connectionString);
-    const pagesService = new PagesService(database);
-    const pageId = await pagesService.findOwnedPageId(userId, handle);
+    const pageId = await findOwnedPageId(database, userId, handle);
     if (pageId === undefined)
       throw new HTTPException(404, { message: "Page not found" });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import type { PageResponse } from "@grabbin/shared/schemas/page";
+import type { PageResponse } from "@grabbin/domain/page";
 import type { ReactElement } from "react";
 import { usePageAutosave } from "../hooks/use-page-autosave";
 import { ProfileFields } from "./profile-fields";

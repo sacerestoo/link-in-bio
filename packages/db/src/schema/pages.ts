@@ -1,3 +1,4 @@
+import type { ImageCrop } from "@grabbin/domain/page";
 import { relations } from "drizzle-orm";
 import {
   jsonb,
@@ -19,12 +20,7 @@ export const pages = pgTable(
     name: text("name"),
     bio: text("bio"),
     imageKey: text("image_key"),
-    imageCrop: jsonb("image_crop").$type<{
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    } | null>(),
+    imageCrop: jsonb("image_crop").$type<ImageCrop | null>(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

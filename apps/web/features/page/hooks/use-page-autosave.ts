@@ -1,5 +1,5 @@
+import type { Handle, PageResponse } from "@grabbin/domain/page";
 import type { BentoItem } from "@grabbin/shared/schemas/bento-item";
-import type { Handle, PageResponse } from "@grabbin/shared/schemas/page";
 import {
   useMutation,
   useQueryClient,

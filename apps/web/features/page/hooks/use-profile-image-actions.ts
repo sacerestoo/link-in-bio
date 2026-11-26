@@ -1,9 +1,10 @@
-import type { Handle, PageResponse } from "@grabbin/shared/schemas/page";
 import {
   isProfileImageContentType,
   PROFILE_IMAGE_MAX_SIZE,
+  type Handle,
+  type PageResponse,
   type ProfileImageContentType,
-} from "@grabbin/shared/lib/profile-image";
+} from "@grabbin/domain/page";
 import { toast } from "@grabbin/ui/components/toast";
 import {
   useMutation,

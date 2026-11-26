@@ -1,5 +1,4 @@
-import type { ImageCrop } from "@grabbin/shared/schemas/image-crop";
-import type { Handle } from "@grabbin/shared/schemas/page";
+import type { Handle, ImageCrop } from "@grabbin/domain/page";
 import { toast } from "@grabbin/ui/components/toast";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";

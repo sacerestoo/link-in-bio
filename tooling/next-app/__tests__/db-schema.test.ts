@@ -5,6 +5,7 @@ import { checkDatabaseShape, type DatabaseConfig } from "../db-schema.ts";
 const config: DatabaseConfig = {
   databaseDirectory: "db",
   schemaDirectory: "db/schema",
+  repositoriesDirectory: "db/repositories",
   clientFile: "db/client.ts",
   migrationsDirectory: "db/migrations",
 };
@@ -20,6 +21,7 @@ const writeDatabase = (clientSource: string): string => {
   write("db/client.ts", clientSource);
   write("db/schema/auth.ts");
   write("db/schema/item-listing.ts");
+  write("db/repositories/page.ts");
   return root;
 };
 

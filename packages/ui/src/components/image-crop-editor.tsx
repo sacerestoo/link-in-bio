@@ -1,10 +1,7 @@
 "use client";
 
-import type { ImageCrop } from "@grabbin/shared/schemas/image-crop";
-import {
-  getCropStyle,
-  type ImageDimensions,
-} from "@grabbin/shared/lib/image-crop";
+import type { ImageCrop } from "@grabbin/domain/page";
+import { getCropStyle, type ImageDimensions } from "@grabbin/domain/image-crop";
 import Crop from "lucide-react/icons/crop";
 import X from "lucide-react/icons/x";
 import { useRef, type PointerEventHandler, type ReactElement } from "react";
@@ -125,7 +122,7 @@ function CropButton({
       aria-label={isOpen ? "Apply image crop" : "Crop image"}
       onClick={onClick}
       className={cn(
-        `pointer-events-auto absolute top-0 left-0 z-30 inline-flex size-9 items-center justify-center rounded-full opacity-0 shadow-large! transition-[opacity,transform,scale,background-color,color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover/image:scale-100 group-hover/image:opacity-100 hover:bg-secondary! focus-visible:scale-100 focus-visible:opacity-100 page-wide:top-2 page-wide:left-2 xl:size-10`,
+        `pointer-events-auto absolute top-0 left-0 z-30 inline-flex size-9! items-center justify-center rounded-full opacity-0 shadow-large! transition-[opacity,transform,scale,background-color,color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover/image:scale-100 group-hover/image:opacity-100 hover:bg-secondary! focus-visible:scale-100 focus-visible:opacity-100 page-wide:top-2 page-wide:left-2 xl:size-10!`,
         isOpen
           ? "cursor-pointer! bg-brand-green text-white! opacity-100 hover:bg-brand-green!"
           : "",
@@ -135,7 +132,6 @@ function CropButton({
       <Crop
         aria-hidden="true"
         className="size-5"
-        style={{ width: controlSize / 2, height: controlSize / 2 }}
       />
     </Button>
   );

@@ -1,5 +1,5 @@
 import "server-only";
-import type { Database } from "@grabbin/db";
+import type { Database, Executor } from "@grabbin/db";
 import { bentoMediaAssets } from "@grabbin/db/schema/bento-media-assets";
 import { and, eq, inArray } from "drizzle-orm";
 import { BentoMediaError } from "../lib/bento-media-error";
@@ -12,10 +12,6 @@ const BENTO_MEDIA_UPLOAD_URL_TTL_MS = 5 * 60 * 1000;
 const BENTO_MEDIA_RESERVATION_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 
 export type BentoMediaAsset = typeof bentoMediaAssets.$inferSelect;
-type BentoMediaDatabaseTransaction = Parameters<
-  Parameters<Database["transaction"]>[0]
->[0];
-
 export class BentoMediaAssetsService {
   constructor(private readonly database: Database) {}
 
@@ -80,7 +76,7 @@ export class BentoMediaAssetsService {
 }
 
 export const syncBentoMediaAssetReferences = async (
-  transaction: BentoMediaDatabaseTransaction,
+  transaction: Executor,
   pageId: string,
   previousObjectKeys: readonly string[],
   nextObjectKeys: readonly string[],

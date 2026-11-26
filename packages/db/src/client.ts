@@ -32,3 +32,7 @@ export const createDatabase = (connectionString: string): Database =>
     }),
     { schema },
   );
+
+export type Executor =
+  | Database
+  | Parameters<Parameters<Database["transaction"]>[0]>[0];

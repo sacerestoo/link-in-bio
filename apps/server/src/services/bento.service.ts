@@ -1,11 +1,11 @@
 import "server-only";
-import type { Database } from "@grabbin/db";
+import type { Executor } from "@grabbin/db";
 import type {
   BentoBatchRequest,
   BentoItem,
 } from "@grabbin/shared/schemas/bento-item";
 import { bentoItems } from "@grabbin/db/schema/bento-items";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import {
   applyBentoBatchPolicy,
   type BentoBatchPolicyError,
@@ -14,22 +14,18 @@ import { BentoItemPageConflictError } from "../lib/bento-item-page-conflict-erro
 import { syncBentoMediaAssetReferences } from "./bento-media-assets.service";
 import { getBentoMediaObjectKey } from "./bento-media.service";
 
-type BentoDatabaseTransaction = Parameters<
-  Parameters<Database["transaction"]>[0]
->[0];
-
 export type BentoSaveResult =
   | { status: "saved"; items: readonly BentoItem[] }
   | { status: "invalid"; reason: BentoBatchPolicyError };
 
 export class BentoService {
-  constructor(private readonly executor: BentoDatabaseTransaction) {}
+  constructor(private readonly executor: Executor) {}
 
   async save(
     pageId: string,
-    persistedItems: readonly BentoItem[],
     batch: BentoBatchRequest,
   ): Promise<BentoSaveResult> {
+    const persistedItems = await this.list(pageId);
     const policy = applyBentoBatchPolicy(persistedItems, batch);
     if (policy.status === "invalid") return policy;
 
@@ -75,6 +71,20 @@ export class BentoService {
       throw new BentoItemPageConflictError();
 
     return { status: "saved", items: policy.items };
+  }
+
+  list(pageId: string): Promise<BentoItem[]> {
+    return this.executor
+      .select({
+        id: bentoItems.id,
+        type: bentoItems.type,
+        data: bentoItems.data,
+        style: bentoItems.style,
+        layouts: bentoItems.layouts,
+      })
+      .from(bentoItems)
+      .where(eq(bentoItems.pageId, pageId))
+      .orderBy(asc(bentoItems.createdAt), asc(bentoItems.id));
   }
 
   private upsert(pageId: string, items: readonly BentoItem[]) {

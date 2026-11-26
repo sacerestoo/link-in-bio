@@ -1,4 +1,4 @@
-import type { ImageCrop } from "../schemas/image-crop";
+import type { ImageCrop } from "./page";
 
 export type ImageDimensions = Readonly<{ width: number; height: number }>;
 

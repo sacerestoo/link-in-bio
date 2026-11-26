@@ -1,4 +1,3 @@
-import type { ProfileImageContentType } from "@grabbin/shared/lib/profile-image";
 import { api, type ApiClient } from "@/lib/api-client";
 import {
   profileImageUploadResponseSchema,
@@ -7,7 +6,8 @@ import {
   type PageResponse,
   type PageSaveRequest,
   type PageUpdate,
-} from "@grabbin/shared/schemas/page";
+  type ProfileImageContentType,
+} from "@grabbin/domain/page";
 import { mutationOptions } from "@tanstack/react-query";
 import * as v from "valibot";
 import { putProfileImage } from "./api";
@@ -44,7 +44,7 @@ const updatePageHandle = async (
 ): Promise<Handle> => {
   await client.v1.pages[":handle"].$patch({
     param: { handle: currentHandle },
-    json: { handle: requestedHandle },
+    json: { page: { handle: requestedHandle } },
   });
   return requestedHandle;
 };
@@ -56,7 +56,7 @@ const updatePageProfile = async (
 ): Promise<void> => {
   await client.v1.pages[":handle"].$patch({
     param: { handle },
-    json: update,
+    json: { page: update },
   });
 };
 
@@ -74,7 +74,7 @@ const uploadProfileImage = async (
   await putProfileImage(uploadUrl, file, contentType);
   await api.v1.pages[":handle"].$patch({
     param: { handle },
-    json: { imageKey, imageCrop: null },
+    json: { page: { imageKey, imageCrop: null } },
   });
   return { imageKey, imageUrl: getProfileImageUrl(imageKey) };
 };
@@ -85,7 +85,7 @@ const removeProfileImage = async (
 ): Promise<void> => {
   await client.v1.pages[":handle"].$patch({
     param: { handle },
-    json: { imageKey: null, imageCrop: null },
+    json: { page: { imageKey: null, imageCrop: null } },
   });
 };
 

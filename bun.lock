@@ -42,6 +42,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@grabbin/db": "workspace:*",
+        "@grabbin/domain": "workspace:*",
         "@grabbin/email": "workspace:*",
         "@grabbin/shared": "workspace:*",
         "@grabbin/subscription": "workspace:*",
@@ -64,6 +65,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@creem_io/better-auth": "^2.0.5",
+        "@grabbin/domain": "workspace:*",
         "@grabbin/server": "workspace:*",
         "@grabbin/shared": "workspace:*",
         "@grabbin/ui": "workspace:*",
@@ -102,6 +104,7 @@
       "name": "@grabbin/db",
       "version": "0.0.0",
       "dependencies": {
+        "@grabbin/domain": "workspace:*",
         "@grabbin/shared": "workspace:*",
         "drizzle-orm": "catalog:",
         "pg": "^8.23.1",
@@ -110,6 +113,17 @@
       "devDependencies": {
         "@types/pg": "^8.23.1",
         "drizzle-kit": "^0.31.11",
+      },
+    },
+    "packages/domain": {
+      "name": "@grabbin/domain",
+      "version": "0.0.0",
+      "dependencies": {
+        "@grabbin/shared": "workspace:*",
+        "valibot": "catalog:",
+      },
+      "devDependencies": {
+        "vite-plus": "catalog:",
       },
     },
     "packages/email": {
@@ -145,6 +159,7 @@
       "dependencies": {
         "@base-ui/react": "^1.9.0",
         "@fontsource/open-runde": "^5.3.0",
+        "@grabbin/domain": "workspace:*",
         "@grabbin/shared": "workspace:*",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -396,6 +411,8 @@
     "@grabbin/cron": ["@grabbin/cron@workspace:apps/cron"],
 
     "@grabbin/db": ["@grabbin/db@workspace:packages/db"],
+
+    "@grabbin/domain": ["@grabbin/domain@workspace:packages/domain"],
 
     "@grabbin/email": ["@grabbin/email@workspace:packages/email"],
 

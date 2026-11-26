@@ -1,6 +1,6 @@
 "use client";
 
-import type { Handle } from "@grabbin/shared/schemas/page";
+import type { Handle } from "@grabbin/domain/page";
 import { Button } from "@grabbin/ui/components/button";
 import {
   Drawer,

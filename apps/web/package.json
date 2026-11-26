@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@creem_io/better-auth": "^2.0.5",
+    "@grabbin/domain": "workspace:*",
     "@grabbin/server": "workspace:*",
     "@grabbin/shared": "workspace:*",
     "@grabbin/ui": "workspace:*",

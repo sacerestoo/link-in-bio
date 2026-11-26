@@ -1,4 +1,4 @@
-import type { ImageDimensions } from "@grabbin/shared/lib/image-crop";
+import type { ImageDimensions } from "@grabbin/domain/image-crop";
 import { useState, type ChangeEvent } from "react";
 import type { ProfilePageData } from "../queries";
 import { useProfileImageActions } from "./use-profile-image-actions";

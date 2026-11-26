@@ -1,7 +1,7 @@
 "use client";
 
-import type { ImageCrop } from "@grabbin/shared/schemas/image-crop";
-import { moveCrop, type ImageDimensions } from "@grabbin/shared/lib/image-crop";
+import type { ImageCrop } from "@grabbin/domain/page";
+import { moveCrop, type ImageDimensions } from "@grabbin/domain/image-crop";
 import {
   useCallback,
   useEffect,
