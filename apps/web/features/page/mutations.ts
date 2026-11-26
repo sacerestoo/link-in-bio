@@ -33,6 +33,8 @@ type PageSaveContext = Readonly<{
 export const pageMutationKeys = {
   savePage: (handle: Handle) =>
     [...pageQueries.byHandle(handle), "save"] as const,
+  updateProfile: (handle: Handle) =>
+    [...pageQueries.byHandle(handle), "profile-update"] as const,
   uploadImage: (handle: Handle) =>
     [...pageQueries.byHandle(handle), "profile-image-upload"] as const,
 };
@@ -153,7 +155,7 @@ export const pageMutations = {
     }),
   updateProfile: (handle: Handle, options: UpdatePageOptions = {}) =>
     mutationOptions<void, Error, PageUpdate, UpdateProfileContext | null>({
-      mutationKey: [...pageQueries.byHandle(handle), "profile-update"],
+      mutationKey: pageMutationKeys.updateProfile(handle),
       mutationFn: (update: PageUpdate) =>
         updatePageProfile(handle, update, options.client),
       onMutate: async (update, { client: queryClient }) => {

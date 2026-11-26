@@ -10,6 +10,7 @@ import { pageMutationKeys } from "../mutations";
 export default function SavingIndicator(): ReactElement | null {
   const { handle } = useParams<{ handle: Handle }>();
   const mutationKey = pageMutationKeys.savePage(handle);
+  const profileUpdateMutationKey = pageMutationKeys.updateProfile(handle);
   const imageUploadMutationKey = pageMutationKeys.uploadImage(handle);
   const saveStates = useMutationState({
     filters: { mutationKey, exact: true },
@@ -29,9 +30,11 @@ export default function SavingIndicator(): ReactElement | null {
         : "Please try again."
       : null;
   const isPageSaving = useIsMutating({ mutationKey, exact: true }) > 0;
+  const isProfileUpdating =
+    useIsMutating({ mutationKey: profileUpdateMutationKey, exact: true }) > 0;
   const isImageUploading =
     useIsMutating({ mutationKey: imageUploadMutationKey, exact: true }) > 0;
-  const isSaving = isPageSaving || isImageUploading;
+  const isSaving = isPageSaving || isProfileUpdating || isImageUploading;
 
   if (errorMessage !== null)
     return (
