@@ -1,7 +1,6 @@
 import type { BentoItem } from "@grabbin/shared/schemas/bento-item";
 import type { Handle, PageResponse } from "@grabbin/shared/schemas/page";
 import {
-  useIsMutating,
   useMutation,
   useQueryClient,
   type QueryClient,
@@ -48,7 +47,6 @@ type SaveLatestDraftContext = Readonly<{
   debouncedSaveRef: DebouncedSaveRef;
   queryClient: QueryClient;
   saveRef: SaveRef;
-  setErrorMessage: (message: string | null) => void;
   mutateAsync: (variables: PageSaveVariables) => Promise<PageResponse>;
 }>;
 
@@ -58,7 +56,6 @@ const saveLatestDraft = async ({
   debouncedSaveRef,
   queryClient,
   saveRef,
-  setErrorMessage,
   mutateAsync,
 }: SaveLatestDraftContext): Promise<void> => {
   const state = stateRef.current;
@@ -80,16 +77,12 @@ const saveLatestDraft = async ({
     if (latestState.handle !== handle) return;
 
     latestState.saved = createPageSaveDraft(savedPage);
-    setErrorMessage(null);
-  } catch (cause: unknown) {
+  } catch {
     const latestState = stateRef.current;
     if (latestState.handle !== handle) return;
 
     debouncedSaveRef.current?.cancel();
     latestState.hasQueuedSave = false;
-    setErrorMessage(
-      cause instanceof Error ? cause.message : "Please try again.",
-    );
     return;
   }
 
@@ -107,7 +100,6 @@ export const usePageAutosave = (handle: Handle, initialPage: PageResponse) => {
   const queryClient = useQueryClient();
   const initialDraft = createPageSaveDraft(initialPage);
   const [draft, setDraft] = useState(initialDraft);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const stateRef = useRef(createPageAutosaveState(handle, initialDraft));
   const { mutateAsync } = useMutation(pageMutations.savePage(handle));
   const save = useCallback(
@@ -118,7 +110,6 @@ export const usePageAutosave = (handle: Handle, initialPage: PageResponse) => {
         debouncedSaveRef,
         queryClient,
         saveRef,
-        setErrorMessage,
         mutateAsync,
       }),
     [handle, mutateAsync, queryClient],
@@ -132,7 +123,6 @@ export const usePageAutosave = (handle: Handle, initialPage: PageResponse) => {
     state.draft = nextDraft;
     state.hasQueuedSave = false;
     setDraft(nextDraft);
-    setErrorMessage(null);
     debouncedSaveRef.current?.();
   }, []);
   const setName = useCallback(
@@ -176,18 +166,12 @@ export const usePageAutosave = (handle: Handle, initialPage: PageResponse) => {
     const nextDraft = createPageSaveDraft(initialPage);
     stateRef.current = createPageAutosaveState(handle, nextDraft);
     setDraft(nextDraft);
-    setErrorMessage(null);
   }, [handle, initialPage]);
-
-  const isSaving =
-    useIsMutating({ mutationKey: pageMutationKeys.savePage(handle) }) > 0;
 
   return {
     name: draft.name,
     bio: draft.bio,
     bento: draft.bento,
-    errorMessage,
-    isSaving,
     setName,
     setBio,
     setBento,

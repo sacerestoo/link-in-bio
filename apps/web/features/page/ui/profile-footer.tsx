@@ -6,8 +6,8 @@ import { ProfileActions } from "./profile-actions";
 import { ShareProfileDrawer } from "./share-profile-drawer";
 
 const ProfileSaveIndicator = dynamic(() =>
-  import("./indicator").then(
-    ({ default: IndicatorComponent }) => IndicatorComponent,
+  import("./saving-indicator").then(
+    ({ default: SavingIndicatorComponent }) => SavingIndicatorComponent,
   ),
 );
 
