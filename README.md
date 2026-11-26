@@ -7,8 +7,8 @@ for Cloudflare Workers. The previous implementation lives on the `v1` branch
 - `apps/web`: [vinext](https://github.com/cloudflare/vinext) (Next.js App Router
   on Vite) with a Hono API under `/v1/*` (via one catch-all route handler),
   served by one Worker.
-- `apps/cron`: a Worker with a `scheduled` handler, daily at 06:00 UTC (15:00
-  KST).
+- `apps/cron`: a Worker with a `scheduled` handler for weekly media cleanup,
+  Sundays at 07:00 UTC (16:00 KST).
 - `packages/db` (Drizzle), `packages/subscription` (Creem and subscription
   integrations), `packages/ui` (shadcn), `packages/shared` (types and schemas).
 

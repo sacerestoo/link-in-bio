@@ -4,23 +4,11 @@ import { and, asc, eq, gt, inArray, lte } from "drizzle-orm";
 
 const R2_DELETE_BATCH_SIZE = 1000;
 
-export const WEEKLY_MEDIA_CLEANUP_CRON = "0 7 * * SUN";
-
 export type JobResult = Readonly<{
   job: string;
   ok: boolean;
   usedDatabase: boolean;
 }>;
-
-/** Placeholder daily job. Receives the database so real jobs can query it. */
-export const runDailyJobs = async (
-  database?: Database,
-): Promise<readonly JobResult[]> => {
-  await Promise.resolve();
-  return [
-    { job: "daily-noop", ok: true, usedDatabase: database !== undefined },
-  ];
-};
 
 export const runWeeklyJobs = async (
   database: Database | undefined,
