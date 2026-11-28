@@ -8,8 +8,9 @@ URL 메타데이터 추출 전용 API입니다. API 서버가 `packages/contract
 
 - GET / 또는 GET /api/metadata: 상태 반환
 - POST /api/metadata: 전달받은 URL, provider, target으로 메타데이터 추출
-- `mode`는 선택이며 기본값은 `fetcher`; `session`을 지정하면 `FetcherSession`을
-  사용합니다.
+- `mode`는 선택이며 기본값은 `fetcher`; `session`을 지정하면 기본 Scrapling
+  source가 `FetcherSession`을 사용합니다. target이 전용 fetcher를 선언하면 그
+  fetcher를 사용하고 응답에도 이름을 기록합니다.
 
 요청 예시:
 
@@ -33,6 +34,11 @@ URL 메타데이터 추출 전용 API입니다. API 서버가 `packages/contract
   `CHZZK_CLIENT_ID`와 `CHZZK_CLIENT_SECRET`을 설정해야 합니다.
 - Discord의 `invite` target은 Discord API에서 초대의 서버·채널 정보와 근사 멤버
   수를 가져옵니다.
+- TikTok의 `profile`은 공개 페이지의 rehydration 데이터를 읽고, `video`는
+  yt-dlp로 메타데이터를 추출합니다. 동영상 파일은 다운로드하지 않으며 재생
+  주소는 응답에 포함하지 않습니다. 프로필 challenge 처리에 yt-dlp 내부 extractor
+  메서드를 쓰므로 의존성을 고정합니다. 두 target의 응답 `fetcher` 값은
+  `yt-dlp`입니다.
 
 ## URL 분류
 

@@ -8,6 +8,7 @@ dependencies = [
   "curl_cffi>=0.16.3,<0.17",
   "patchright==1.64.4",
   "browserforge>=1.2.4,<2",
+  "yt-dlp==2026.11.23",
 ]
 
 [project.optional-dependencies]
