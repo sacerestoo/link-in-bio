@@ -1,12 +1,16 @@
 import type { PluginOption } from "vite";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 
+function missingSetting(value: string | undefined): boolean {
+  return value === undefined || value === "";
+}
+
 export function sentryBuildPlugins(command: string): PluginOption[] {
   if (
     command !== "build" ||
-    !process.env.SENTRY_AUTH_TOKEN ||
-    !process.env.SENTRY_WEB_ORG ||
-    !process.env.SENTRY_WEB_PROJECT
+    missingSetting(process.env.SENTRY_AUTH_TOKEN) ||
+    missingSetting(process.env.SENTRY_WEB_ORG) ||
+    missingSetting(process.env.SENTRY_WEB_PROJECT)
   ) {
     return [];
   }
