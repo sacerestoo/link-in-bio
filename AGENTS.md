@@ -87,7 +87,7 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
 - Root `bun run dev` starts web on port 3000 and server on port 3001 as separate
   local Workers; the service binding connects them.
 - Start the Python Scrapper app separately with
-  `bun run --cwd apps/scrapper dev`; it listens on port 3002.
+  `bun run --cwd apps/scrapper dev`; Vercel Dev listens on port 3002.
 - Put domain Hono routers in `apps/server/src/http/<domain>.ts`. Route handlers
   coordinate domain logic and call `packages/db` repositories directly; focused
   external-integration helpers live directly in `apps/server/src/`. Do not add a
