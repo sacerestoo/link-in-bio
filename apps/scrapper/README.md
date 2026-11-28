@@ -24,6 +24,9 @@ URL 메타데이터 추출 전용 API입니다. API 서버가 `packages/contract
 - `GET /` 또는 `GET /api/metadata`는 상태를 반환합니다.
 - POST 요청은 내부 bearer token을 확인한 뒤 URL의 공개 주소 여부를 검사하고,
   전달받은 provider와 target에 맞는 Python handler로 추출합니다.
+- Twitch 인증은 API 서버가 전달한 `accessToken`과 `clientId`를 사용합니다.
+  YouTube, GitHub, Product Hunt 토큰은 만료 정책이 없어 Scrapper 환경변수에서
+  읽고 Durable Object가 관리하지 않습니다.
 - 성공 시 고정 응답 계약을 반환합니다. 잘못된 URL은 `400`, 공인 IP로 확인되지
   않는 주소는 `403`, HTML이 아닌 응답은 `415`, 큰 응답은 `413`을 반환합니다.
 - CHZZK의 `channel` target은 공식 Open API를 사용합니다. 실행 환경에
@@ -131,11 +134,22 @@ Vercel CLI가 필요합니다. Scrapper 프로젝트의 root directory가
 
 ## 배포
 
-Vercel 프로젝트의 production 환경에 `SCRAPPER_API_TOKEN`을 설정하고,
-`apps/server`의 `SERVER_ENV_PRODUCTION`에도 같은 토큰과 Scrapper endpoint URL을
-설정합니다. URL은 `/api/metadata` 경로까지 포함해야 합니다.
+Vercel 프로젝트에는 `SCRAPPER_API_TOKEN`, CHZZK의 `CHZZK_CLIENT_ID`와
+`CHZZK_CLIENT_SECRET`, 그리고 YouTube API 키, GitHub 토큰, Product Hunt 토큰을
+설정합니다. Twitch 앱의 `TWITCH_CLIENT_ID`와 `TWITCH_CLIENT_SECRET`, Token
+Manager 암호화 키 `TOKEN_ENCRYPTION_KEY`는 API Worker의
+`SERVER_ENV_PRODUCTION`에 두며, Token Manager는 Twitch access token을 Durable
+Object 저장소에 암호화합니다. `SCRAPPER_API_TOKEN`과 Scrapper endpoint URL은
+`apps/server`의 `SERVER_ENV_PRODUCTION`에도 설정하고, URL은 `/api/metadata`
+경로까지 포함해야 합니다.
 
 Vercel CLI 계정에 로그인한 뒤 `apps/scrapper` 프로젝트 루트에서 production
 deployment를 실행합니다.
 
     vercel deploy --prod
+
+Production 전환은 API Worker를 먼저 배포한 뒤 Scrapper를 배포합니다. 두 배포가
+적용된 다음 Vercel에서 `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `REDIS_URL`,
+`KV_URL`, `KV_REST_API_URL`, `KV_REST_API_TOKEN`,
+`KV_REST_API_READ_ONLY_TOKEN`을 제거합니다. YouTube, GitHub, Product Hunt 토큰은
+Scrapper 환경변수에 남깁니다.

@@ -1,5 +1,4 @@
 import json
-import os
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -7,7 +6,6 @@ from urllib.parse import unquote, urlencode, urlsplit
 
 from contracts.errors import MetadataRequestError
 from contracts.response import ExtractedMetadata
-from providers.twitch.token import request_with_access_token
 from sources.fetcher import FetchMode, fetch_page
 
 _API_BASE_URL = "https://api.twitch.tv/helix"
@@ -38,11 +36,11 @@ def _as_count(value: object) -> int | None:
     return None
 
 
-def _client_id() -> str:
-    client_id = os.environ.get("TWITCH_CLIENT_ID", "").strip()
-    if not client_id:
+def _client_id(client_id: str | None) -> str:
+    value = client_id.strip() if isinstance(client_id, str) else ""
+    if not value:
         raise MetadataRequestError("Twitch app credentials are not configured.", 503)
-    return client_id
+    return value
 
 
 def _profile_login(url: str) -> str:
@@ -65,19 +63,24 @@ def _video_id(url: str) -> str:
     return video_id
 
 
-def _request_api(url: str, mode: FetchMode):
-    def send(token: str):
-        return fetch_page(
-            url,
-            mode,
-            headers={
-                "Accept": "application/json",
-                "Client-Id": _client_id(),
-                "Authorization": f"Bearer {token}",
-            },
-        )
-
-    return request_with_access_token(send)
+def _request_api(
+    url: str,
+    mode: FetchMode,
+    access_token: str | None,
+    client_id: str | None,
+):
+    token = access_token.strip() if isinstance(access_token, str) else ""
+    if not token:
+        raise MetadataRequestError("Twitch API credentials are not configured.", 503)
+    return fetch_page(
+        url,
+        mode,
+        headers={
+            "Accept": "application/json",
+            "Client-Id": _client_id(client_id),
+            "Authorization": f"Bearer {token}",
+        },
+    )
 
 
 def _json_object(page: object) -> dict[str, object]:
@@ -113,10 +116,16 @@ def _synthetic_page(page: object, kind: str, **data: object) -> TwitchApiPage:
     )
 
 
-def _api_profile(url: str, mode: FetchMode, headers=None):
+def _api_profile(
+    url: str,
+    mode: FetchMode,
+    headers=None,
+    access_token: str | None = None,
+    client_id: str | None = None,
+):
     login = _profile_login(url)
     api_url = f"{_API_BASE_URL}/users?{urlencode({'login': login})}"
-    page = _request_api(api_url, mode)
+    page = _request_api(api_url, mode, access_token, client_id)
     if not 200 <= page.status < 300:
         return page
 
@@ -125,7 +134,7 @@ def _api_profile(url: str, mode: FetchMode, headers=None):
         raise MetadataRequestError("The Twitch API returned a different profile.", 502)
 
     followers_url = f"{_API_BASE_URL}/channels/followers?{urlencode({'broadcaster_id': user['id']})}"
-    followers_page = _request_api(followers_url, mode)
+    followers_page = _request_api(followers_url, mode, access_token, client_id)
     if not 200 <= followers_page.status < 300:
         return followers_page
     follower_count = _as_count(_json_object(followers_page).get("total"))
@@ -136,10 +145,16 @@ def _api_profile(url: str, mode: FetchMode, headers=None):
     return _synthetic_page(page, "profile", user=user, follower_count=follower_count)
 
 
-def _api_video(url: str, mode: FetchMode, headers=None):
+def _api_video(
+    url: str,
+    mode: FetchMode,
+    headers=None,
+    access_token: str | None = None,
+    client_id: str | None = None,
+):
     video_id = _video_id(url)
     api_url = f"{_API_BASE_URL}/videos?{urlencode({'id': video_id})}"
-    page = _request_api(api_url, mode)
+    page = _request_api(api_url, mode, access_token, client_id)
     if not 200 <= page.status < 300:
         return page
 

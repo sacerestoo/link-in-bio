@@ -44,19 +44,23 @@ def _send_json(
     start_response: StartResponse,
     status: int,
     payload: Mapping[str, object],
+    response_headers: Mapping[str, str] | None = None,
 ) -> list[bytes]:
     body = json.dumps(dict(payload), ensure_ascii=False).encode("utf-8")
+    headers = [
+        ("Content-Type", "application/json; charset=utf-8"),
+        ("Content-Length", str(len(body))),
+        ("Cache-Control", "no-store"),
+        ("X-Content-Type-Options", "nosniff"),
+        ("Access-Control-Allow-Origin", "*"),
+        ("Access-Control-Allow-Methods", "GET, POST, OPTIONS"),
+        ("Access-Control-Allow-Headers", "Authorization, Content-Type"),
+    ]
+    if response_headers is not None:
+        headers.extend(response_headers.items())
     _ = start_response(
         f"{status} {HTTPStatus(status).phrase}",
-        [
-            ("Content-Type", "application/json; charset=utf-8"),
-            ("Content-Length", str(len(body))),
-            ("Cache-Control", "no-store"),
-            ("X-Content-Type-Options", "nosniff"),
-            ("Access-Control-Allow-Origin", "*"),
-            ("Access-Control-Allow-Methods", "GET, POST, OPTIONS"),
-            ("Access-Control-Allow-Headers", "Authorization, Content-Type"),
-        ],
+        headers,
     )
     return [body]
 
@@ -154,6 +158,8 @@ def handler(environ: WsgiEnviron, start_response: StartResponse) -> list[bytes]:
             payload.get("provider"),
             payload.get("target"),
             payload.get("mode", "fetcher"),
+            payload.get("accessToken"),
+            payload.get("clientId"),
         )
     except URLNormalizationError as error:
         return _send_json(start_response, 400, {"error": str(error)})
@@ -167,6 +173,7 @@ def handler(environ: WsgiEnviron, start_response: StartResponse) -> list[bytes]:
                 "error": "The target page returned a non-success HTTP status.",
                 "target_status": error.status,
             },
+            response_headers={"X-Upstream-Status": str(error.status)},
         )
     except Exception:
         logger.exception("Metadata request failed.")

@@ -11,9 +11,19 @@ FETCH_MODES = (("fetcher", "Fetcher"), ("session", "FetcherSession"))
 
 @pytest.mark.live
 @pytest.mark.parametrize(("mode", "expected_fetcher"), FETCH_MODES)
-def test_twitch_profile_live_response_matches_contract(mode, expected_fetcher):
+def test_twitch_profile_live_response_matches_contract(
+    mode,
+    expected_fetcher,
+    twitch_credentials,
+):
+    access_token, client_id = twitch_credentials
     response = process_metadata_request(
-        LIVE_URL, provider="twitch", target="profile", mode=mode
+        LIVE_URL,
+        provider="twitch",
+        target="profile",
+        mode=mode,
+        access_token=access_token,
+        client_id=client_id,
     )
     provider_data = response["provider_data"]
 

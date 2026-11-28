@@ -18,9 +18,19 @@ FETCH_MODES = (("fetcher", "Fetcher"), ("session", "FetcherSession"))
         "are unavailable; this live test runs from South Korea."
     ),
 )
-def test_twitch_video_live_response_matches_contract(mode, expected_fetcher):
+def test_twitch_video_live_response_matches_contract(
+    mode,
+    expected_fetcher,
+    twitch_credentials,
+):
+    access_token, client_id = twitch_credentials
     response = process_metadata_request(
-        LIVE_URL, provider="twitch", target="video", mode=mode
+        LIVE_URL,
+        provider="twitch",
+        target="video",
+        mode=mode,
+        access_token=access_token,
+        client_id=client_id,
     )
     provider_data = response["provider_data"]
 

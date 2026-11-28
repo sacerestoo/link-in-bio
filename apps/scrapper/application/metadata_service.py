@@ -5,27 +5,38 @@ from routing import validate_public_url
 from sources.fetcher import FetchMode
 from sources.selector import select_source
 
+_TOKEN_PROVIDERS = {"twitch"}
+
 
 def process_metadata_request(
     url: object,
     provider: object,
     target: object,
     mode: object = "fetcher",
+    access_token: object = None,
+    client_id: object = None,
 ) -> MetadataResponse:
     if not isinstance(mode, str) or mode not in ("fetcher", "session"):
         raise MetadataRequestError("mode must be either fetcher or session.")
     if not isinstance(provider, str) or not isinstance(target, str):
         raise MetadataRequestError("provider and target must be strings.")
+    if access_token is not None and not isinstance(access_token, str):
+        raise MetadataRequestError("accessToken must be a string.")
+    if client_id is not None and not isinstance(client_id, str):
+        raise MetadataRequestError("clientId must be a string.")
+    if client_id is not None and provider != "twitch":
+        raise MetadataRequestError("clientId is only supported for Twitch.")
 
     source = select_source(provider, target)
     requested_url = url.strip() if isinstance(url, str) else ""
     normalized_url = validate_public_url(url)
     fetch_mode: FetchMode = "session" if mode == "session" else "fetcher"
-    page = source.fetch(
-        normalized_url,
-        fetch_mode,
-        headers=source.headers,
-    )
+    fetch_options: dict[str, object] = {"headers": source.headers}
+    if provider in _TOKEN_PROVIDERS:
+        fetch_options["access_token"] = access_token
+    if provider == "twitch":
+        fetch_options["client_id"] = client_id
+    page = source.fetch(normalized_url, fetch_mode, **fetch_options)
 
     if not 200 <= page.status < 300:
         raise UpstreamResponseError(page.status)
