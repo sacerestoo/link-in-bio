@@ -19,6 +19,7 @@
     "deploy:production": "bun run check:prod-keys && bun run --cwd apps/cron deploy && bun run --cwd apps/server deploy && bun run --cwd apps/web deploy",
     "dev": "vp run --parallel --filter @grabbin/web --filter @grabbin/server dev",
     "dev:cron": "vp -C apps/cron dev",
+    "dev:scrapper": "uv run --env-file apps/scrapper/.env.local -- vercel dev --listen 3002 apps/scrapper",
     "lint": "vp lint",
     "prepare": "vp config --no-agent",
     "push:checked": "bun run tooling/push-checked.ts",
