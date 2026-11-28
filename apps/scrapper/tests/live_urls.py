@@ -1,6 +1,12 @@
 """Real public URLs used by provider target live tests."""
 
 LIVE_TARGET_URLS = {
+    "buy_me_a_coffee": {
+        "creator": "https://buymeacoffee.com/dslrdiy",
+    },
+    "ko_fi": {
+        "creator": "https://ko-fi.com/B0B4ECB8Z/",
+    },
     "product_hunt": {
         "product": "https://www.producthunt.com/products/cursor",
         "legacy_product": "https://www.producthunt.com/posts/userwatch-2",
