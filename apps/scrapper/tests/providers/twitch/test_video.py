@@ -19,7 +19,9 @@ FETCH_MODES = (("fetcher", "Fetcher"), ("session", "FetcherSession"))
     ),
 )
 def test_twitch_video_live_response_matches_contract(mode, expected_fetcher):
-    response = process_metadata_request(LIVE_URL, mode=mode)
+    response = process_metadata_request(
+        LIVE_URL, provider="twitch", target="video", mode=mode
+    )
     provider_data = response["provider_data"]
 
     assert_common_response(response, LIVE_URL)

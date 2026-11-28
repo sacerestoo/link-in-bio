@@ -1,6 +1,3 @@
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(
-    target_type="post",
-    rules=(PathRule(path_pattern="/(?P<post_slug>[^/]+)/?"),),
-)
+TARGET = ProviderTarget(target_type="post")

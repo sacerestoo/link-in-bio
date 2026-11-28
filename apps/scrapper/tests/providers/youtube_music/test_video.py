@@ -14,7 +14,9 @@ VIDEO_ID = "9dobJDxPEzM"
     (("fetcher", "Fetcher"), ("session", "FetcherSession")),
 )
 def test_youtube_music_video_live_response_matches_contract(mode, expected_fetcher):
-    response = process_metadata_request(LIVE_URL, mode=mode)
+    response = process_metadata_request(
+        LIVE_URL, provider="youtube_music", target="video", mode=mode
+    )
 
     assert_common_response(response, LIVE_URL)
     assert response["provider"] == "youtube_music"

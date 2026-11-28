@@ -1,6 +1,3 @@
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(
-    target_type="project",
-    rules=(PathRule(path_pattern="/gallery/(?P<project_id>[^/]+)/(?P<slug>[^/]+)/?"),),
-)
+TARGET = ProviderTarget(target_type="project")

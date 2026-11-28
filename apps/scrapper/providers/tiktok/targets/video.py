@@ -1,6 +1,3 @@
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(
-    target_type="video",
-    rules=(PathRule(path_pattern="/@(?P<handle>[^/]+)/video/(?P<video_id>[^/]+)/?"),),
-)
+TARGET = ProviderTarget(target_type="video")

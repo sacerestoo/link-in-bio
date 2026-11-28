@@ -10,7 +10,7 @@ USERNAME = "threads"
 
 @pytest.mark.live
 def test_threads_profile_live_response_matches_contract():
-    response = process_metadata_request(LIVE_URL)
+    response = process_metadata_request(LIVE_URL, provider="threads", target="profile")
     provider_data = response["provider_data"]
 
     assert_common_response(response, LIVE_URL)

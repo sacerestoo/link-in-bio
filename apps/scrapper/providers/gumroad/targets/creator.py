@@ -1,6 +1,3 @@
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(
-    target_type="creator",
-    rules=(PathRule(path_pattern="/(?P<creator>[^/]+)/?", requires_host_param=False),),
-)
+TARGET = ProviderTarget(target_type="creator")

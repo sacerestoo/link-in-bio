@@ -1,5 +1,5 @@
 from contracts.source import MetadataSource
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
 from ..api import (
     extract_repository_metadata,
@@ -7,16 +7,8 @@ from ..api import (
     fetch_repository,
 )
 
-TARGET = PathTarget(
+TARGET = ProviderTarget(
     target_type="repository",
-    rules=(
-        PathRule(
-            path_pattern=(
-                "/(?P<owner>[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)"
-                "/(?P<repository>[^/]+)/?"
-            ),
-        ),
-    ),
     source=MetadataSource(
         fetch=fetch_repository,
         accepted_content_types=("application/json",),

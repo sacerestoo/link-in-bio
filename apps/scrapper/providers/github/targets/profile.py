@@ -1,19 +1,10 @@
 from contracts.source import MetadataSource
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-from ..api import (
-    extract_profile_metadata,
-    extract_profile_provider_data,
-    fetch_profile,
-)
+from ..api import extract_profile_metadata, extract_profile_provider_data, fetch_profile
 
-TARGET = PathTarget(
+TARGET = ProviderTarget(
     target_type="profile",
-    rules=(
-        PathRule(
-            path_pattern="/(?P<username>[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)/?"
-        ),
-    ),
     source=MetadataSource(
         fetch=fetch_profile,
         accepted_content_types=("application/json",),

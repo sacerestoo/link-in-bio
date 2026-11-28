@@ -1,3 +1,3 @@
-from routing.path_target import PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(target_type="webpage", match_any=True)
+TARGET = ProviderTarget(target_type="webpage")

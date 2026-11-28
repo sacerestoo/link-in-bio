@@ -13,7 +13,9 @@ LIVE_URL = LIVE_TARGET_URLS["x"]["profile"]
     (("fetcher", "Fetcher"), ("session", "FetcherSession")),
 )
 def test_x_profile_live_response_matches_contract(mode, expected_fetcher):
-    response = process_metadata_request(LIVE_URL, mode=mode)
+    response = process_metadata_request(
+        LIVE_URL, provider="x", target="profile", mode=mode
+    )
     provider_data = response["provider_data"]
 
     assert_common_response(response, LIVE_URL)

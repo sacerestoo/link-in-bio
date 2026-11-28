@@ -7,10 +7,11 @@ and the complete suite before pushing.
 
 Each implemented provider target must have a real public URL in
 `tests/live_urls.py` and a matching test module under
-`tests/providers/<provider>/`. Tests call the application with that URL and
-validate its provider, target type, shared response, and target-specific fields.
-The live suite covers CHZZK channel, Instagram profile and post, Threads profile
-and post, YouTube channel and video, and X profile and tweet targets.
+`tests/providers/<provider>/`. Tests call the application with that URL and the
+provider and target selected by the API server, then validate the shared
+response and target-specific fields. The live suite covers CHZZK channel,
+Instagram profile and post, Threads profile and post, YouTube channel and video,
+and X profile and tweet targets.
 
 For a known intentional failure, use
 `@pytest.mark.xfail(strict=True, reason="...")` on that target test and explain

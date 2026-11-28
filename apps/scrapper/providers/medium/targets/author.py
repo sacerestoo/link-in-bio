@@ -1,6 +1,3 @@
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(
-    target_type="author",
-    rules=(PathRule(path_pattern="/@(?P<author>[^/]+)/?"),),
-)
+TARGET = ProviderTarget(target_type="author")

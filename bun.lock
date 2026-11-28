@@ -45,6 +45,7 @@
       "name": "@grabbin/server",
       "version": "0.0.0",
       "dependencies": {
+        "@grabbin/contracts": "workspace:*",
         "@grabbin/db": "workspace:*",
         "@grabbin/domain": "workspace:*",
         "@grabbin/email": "workspace:*",
@@ -102,6 +103,16 @@
         "@types/react-dom": "catalog:",
         "@vitejs/plugin-react": "^6.3.0",
         "@vitejs/plugin-rsc": "^0.5.39",
+      },
+    },
+    "packages/contracts": {
+      "name": "@grabbin/contracts",
+      "version": "0.0.0",
+      "dependencies": {
+        "valibot": "catalog:",
+      },
+      "devDependencies": {
+        "vite-plus": "catalog:",
       },
     },
     "packages/db": {
@@ -411,15 +422,17 @@
 
     "@fontsource/open-runde": ["@fontsource/open-runde@5.3.0", "", {}, "sha512-htjSGuJ/cq2DARGqEvXhkghhRXxIz3gzw+tbB0xt6zidL0mvDrR/VQCfDeCCw7wp0x5ar6dTLWD5iOF0EDqaGA=="],
 
-    "@grabbin/cron": ["@grabbin/cron@workspace:apps/cron"],
+    "@grabbin/contracts": ["@grabbin/contracts@workspace:packages/contracts"],
 
-    "@grabbin/scrapper": ["@grabbin/scrapper@workspace:apps/scrapper"],
+    "@grabbin/cron": ["@grabbin/cron@workspace:apps/cron"],
 
     "@grabbin/db": ["@grabbin/db@workspace:packages/db"],
 
     "@grabbin/domain": ["@grabbin/domain@workspace:packages/domain"],
 
     "@grabbin/email": ["@grabbin/email@workspace:packages/email"],
+
+    "@grabbin/scrapper": ["@grabbin/scrapper@workspace:apps/scrapper"],
 
     "@grabbin/server": ["@grabbin/server@workspace:apps/server"],
 

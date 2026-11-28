@@ -1,11 +1,3 @@
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(
-    target_type="pin",
-    rules=(
-        PathRule(
-            path_pattern="/pin/(?P<pin_id>[^/]+)/?",
-            host_patterns=("pinterest.com", "www.pinterest.com"),
-        ),
-    ),
-)
+TARGET = ProviderTarget(target_type="pin")

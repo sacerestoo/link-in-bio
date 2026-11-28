@@ -1,10 +1,3 @@
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(
-    target_type="song",
-    rules=(
-        PathRule(
-            path_pattern="/(?P<country>[a-z]{2}(?:-[a-z]{2})?)/song/(?P<name>[^/]+)/(?P<song_id>[^/]+)/?"
-        ),
-    ),
-)
+TARGET = ProviderTarget(target_type="song")

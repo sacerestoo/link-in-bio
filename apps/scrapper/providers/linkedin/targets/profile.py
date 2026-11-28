@@ -1,6 +1,3 @@
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(
-    target_type="profile",
-    rules=(PathRule(path_pattern="/in/(?P<person_slug>[^/]+)/?"),),
-)
+TARGET = ProviderTarget(target_type="profile")

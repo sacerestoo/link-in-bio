@@ -12,7 +12,9 @@ FETCH_MODES = (("fetcher", "Fetcher"), ("session", "FetcherSession"))
 @pytest.mark.live
 @pytest.mark.parametrize(("mode", "expected_fetcher"), FETCH_MODES)
 def test_twitch_profile_live_response_matches_contract(mode, expected_fetcher):
-    response = process_metadata_request(LIVE_URL, mode=mode)
+    response = process_metadata_request(
+        LIVE_URL, provider="twitch", target="profile", mode=mode
+    )
     provider_data = response["provider_data"]
 
     assert_common_response(response, LIVE_URL)

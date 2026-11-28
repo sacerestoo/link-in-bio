@@ -1,19 +1,11 @@
 from contracts.source import MetadataSource
-from providers.youtube.api import (
-    _api_channel,
-    _extract_channel_metadata,
-)
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
+from providers.youtube.api import _api_channel, _extract_channel_metadata
 
 from ..api import _extract_channel_data
 
-TARGET = PathTarget(
+TARGET = ProviderTarget(
     target_type="channel",
-    rules=(
-        PathRule(path_pattern="/@(?P<handle>[^/]+)/?"),
-        PathRule(path_pattern="/user/(?P<username>[^/]+)/?"),
-        PathRule(path_pattern="/channel/(?P<channel_id>[^/]+)/?"),
-    ),
     source=MetadataSource(
         fetch=_api_channel,
         accepted_content_types=("application/json",),

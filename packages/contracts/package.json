@@ -1,0 +1,22 @@
+{
+  "name": "@grabbin/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/resolve-target.ts",
+    "./metadata": "./src/metadata.ts",
+    "./provider-targets.json": "./src/provider-targets.json"
+  },
+  "scripts": {
+    "lint": "vp lint",
+    "test": "vp test run --passWithNoTests",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "valibot": "catalog:"
+  },
+  "devDependencies": {
+    "vite-plus": "catalog:"
+  }
+}

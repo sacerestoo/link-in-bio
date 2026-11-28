@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "uv build",
-    "dev": "vercel dev --listen 3002",
+    "dev": "uv run --env-file .env.local python dev_server.py",
     "lint": "uv run --extra lint ruff check .",
     "test": "uv run --extra test pytest",
     "typecheck": "uv run --with basedpyright --all-extras basedpyright"

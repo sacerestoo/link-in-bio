@@ -14,7 +14,9 @@ ARTIST_ID = "UCiGm_E4ZwYSHV3bcW1pnSeQ"
     (("fetcher", "Fetcher"), ("session", "FetcherSession")),
 )
 def test_youtube_music_artist_live_response_matches_contract(mode, expected_fetcher):
-    response = process_metadata_request(LIVE_URL, mode=mode)
+    response = process_metadata_request(
+        LIVE_URL, provider="youtube_music", target="artist", mode=mode
+    )
 
     assert_common_response(response, LIVE_URL)
     assert response["provider"] == "youtube_music"

@@ -1,22 +1,25 @@
 from contracts.errors import MetadataRequestError, UpstreamResponseError
 from contracts.response import FetcherName, MetadataResponse, build_metadata_response
 from contracts.settings import MAX_HTML_BYTES
-from routing import resolve_target, validate_public_url
+from routing import validate_public_url
 from sources.fetcher import FetchMode
 from sources.selector import select_source
 
 
 def process_metadata_request(
     url: object,
-    mode: str = "fetcher",
+    provider: object,
+    target: object,
+    mode: object = "fetcher",
 ) -> MetadataResponse:
-    if mode not in ("fetcher", "session"):
+    if not isinstance(mode, str) or mode not in ("fetcher", "session"):
         raise MetadataRequestError("mode must be either fetcher or session.")
+    if not isinstance(provider, str) or not isinstance(target, str):
+        raise MetadataRequestError("provider and target must be strings.")
 
+    source = select_source(provider, target)
     requested_url = url.strip() if isinstance(url, str) else ""
     normalized_url = validate_public_url(url)
-    route = resolve_target(normalized_url)
-    source = select_source(route.target)
     fetch_mode: FetchMode = "session" if mode == "session" else "fetcher"
     page = source.fetch(
         normalized_url,
@@ -43,12 +46,12 @@ def process_metadata_request(
         )
 
     final_url = str(getattr(page, "url", None) or normalized_url)
-    metadata = source.extract_metadata(page, requested_url, final_url, route.provider)
+    metadata = source.extract_metadata(page, requested_url, final_url, provider)
     provider_data = source.extract_provider_data(page, metadata)
     fetcher: FetcherName = "FetcherSession" if fetch_mode == "session" else "Fetcher"
     return build_metadata_response(
         metadata,
         fetcher=fetcher,
-        target_type=route.target_type,
+        target_type=target,
         provider_data=provider_data,
     )

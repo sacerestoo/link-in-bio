@@ -1,0 +1,1743 @@
+{
+  "version": 1,
+  "providers": [
+    {
+      "provider": "apple_music",
+      "hosts": ["music.apple.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "artist",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([a-z]{2}(?:-[a-z]{2})?)/artist/([^/]+)/([^/]+)/?",
+              "captureNames": ["country", "name", "artist_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "album",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([a-z]{2}(?:-[a-z]{2})?)/album/([^/]+)/([^/]+)/?",
+              "captureNames": ["country", "name", "album_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "song",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([a-z]{2}(?:-[a-z]{2})?)/song/([^/]+)/([^/]+)/?",
+              "captureNames": ["country", "name", "song_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "playlist",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([a-z]{2}(?:-[a-z]{2})?)/playlist/([^/]+)/([^/]+)/?",
+              "captureNames": ["country", "name", "playlist_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "app_store",
+      "hosts": ["apps.apple.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "app",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([a-z]{2}(?:-[a-z]{2})?)/app/([^/]+)/id(\\d+)/?",
+              "captureNames": ["country", "slug", "app_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "behance",
+      "hosts": ["behance.net", "www.behance.net"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "project",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/gallery/([^/]+)/([^/]+)/?",
+              "captureNames": ["project_id", "slug"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "profile",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["username"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "buy_me_a_coffee",
+      "hosts": ["buymeacoffee.com", "www.buymeacoffee.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "creator",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["creator"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "chzzk",
+      "hosts": ["chzzk.naver.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "channel",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["channel_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "discord",
+      "hosts": [
+        "discord.gg",
+        "www.discord.gg",
+        "discord.com",
+        "www.discord.com"
+      ],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "invite",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/invite/([^/]+)/?",
+              "captureNames": ["invite_code"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["invite_code"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": ["discord.gg", "www.discord.gg"],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "dribbble",
+      "hosts": ["dribbble.com", "www.dribbble.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "shot",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/shots/([^/-]+)-([^/]+)/?",
+              "captureNames": ["shot_id", "slug"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "profile",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["username"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "facebook",
+      "hosts": ["facebook.com", "www.facebook.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "page_or_profile",
+          "matchAny": true,
+          "rules": []
+        }
+      ],
+      "defaultTarget": null
+    },
+    {
+      "provider": "figma",
+      "hosts": ["figma.com", "www.figma.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "community_file",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/community/file/([^/]+)/([^/]+)/?",
+              "captureNames": ["file_id", "slug"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "design",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/design/([^/]+)/([^/]+)/?",
+              "captureNames": ["file_id", "file_name"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "file",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/file/([^/]+)/([^/]+)/?",
+              "captureNames": ["file_id", "file_name"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "proto",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/proto/([^/]+)/([^/]+)/?",
+              "captureNames": ["file_id", "file_name"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "profile",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/@([^/]+)/?",
+              "captureNames": ["username"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "team",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/team/([^/]+)/([^/]+)/?",
+              "captureNames": ["team_id", "team_name"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "github",
+      "hosts": ["github.com", "www.github.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "repository",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)/([^/]+)/?",
+              "captureNames": ["owner", "repository"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "profile",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)/?",
+              "captureNames": ["username"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "google_play",
+      "hosts": ["play.google.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "app",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/store/apps/details/?",
+              "captureNames": [],
+              "queryParameter": "id",
+              "queryParameterName": "package_name",
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "gumroad",
+      "hosts": ["gumroad.com", "www.gumroad.com", "*.gumroad.com"],
+      "hostParam": "creator",
+      "targets": [
+        {
+          "target": "product",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/l/([^/]+)/?",
+              "captureNames": ["product_slug"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["product_slug"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": true,
+              "hostPatterns": ["*.gumroad.com"],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "creator",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["creator"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": false,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "hashnode",
+      "hosts": ["*.hashnode.dev"],
+      "hostParam": "publication",
+      "targets": [
+        {
+          "target": "publication",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/?",
+              "captureNames": [],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "post",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["post_slug"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "ghost",
+      "hosts": ["*.ghost.io"],
+      "hostParam": "publication",
+      "targets": [
+        {
+          "target": "publication",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/?",
+              "captureNames": [],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "post",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["post_slug"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "instagram",
+      "hosts": ["instagram.com", "www.instagram.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "post",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/p/([A-Za-z0-9_-]+)/?",
+              "captureNames": ["shortcode"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/[A-Za-z0-9._]{1,30}/p/([A-Za-z0-9_-]+)/?",
+              "captureNames": ["shortcode"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "profile",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([A-Za-z0-9._]{1,30})/?",
+              "captureNames": ["handle"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "ko_fi",
+      "hosts": ["ko-fi.com", "www.ko-fi.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "creator",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["creator"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "linkedin",
+      "hosts": ["linkedin.com", "www.linkedin.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "profile",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/in/([^/]+)/?",
+              "captureNames": ["person_slug"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "company",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/company/([^/]+)/?",
+              "captureNames": ["organization_slug"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "medium",
+      "hosts": ["medium.com", "www.medium.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "author",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/@([^/]+)/?",
+              "captureNames": ["author"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "article",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/([^/]+)/?",
+              "captureNames": ["publication", "article_slug"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "publication",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["publication"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "note",
+      "hosts": ["note.com", "www.note.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "post",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/n/([^/]+)/?",
+              "captureNames": ["creator", "note_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "creator",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["creator"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "patreon",
+      "hosts": ["patreon.com", "www.patreon.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "post",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/posts/([^/]+)/?",
+              "captureNames": ["post_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "creator",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["creator"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "pinterest",
+      "hosts": ["pinterest.com", "www.pinterest.com", "pin.it"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "pin",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/pin/([^/]+)/?",
+              "captureNames": ["pin_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": ["pinterest.com", "www.pinterest.com"],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "profile",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/_created/?",
+              "captureNames": ["username"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {
+                "view": "created"
+              }
+            },
+            {
+              "pathPattern": "/([^/]+)/_saved/?",
+              "captureNames": ["username"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {
+                "view": "saved"
+              }
+            },
+            {
+              "pathPattern": "/([^/]+)/pins/?",
+              "captureNames": ["username"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {
+                "view": "pins"
+              }
+            },
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["username"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": ["pinterest.com", "www.pinterest.com"],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "board",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/([^/]+)/?",
+              "captureNames": ["username", "board"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "short_link",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["short_code"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": ["pin.it"],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "product_hunt",
+      "hosts": ["producthunt.com", "www.producthunt.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "product",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/(?:products|posts)/([^/]+)(?:/(?:launches|reviews|prelaunch))?/?",
+              "captureNames": ["slug"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "maker",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/@([^/]+)/?",
+              "captureNames": ["username"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "reddit",
+      "hosts": ["reddit.com", "www.reddit.com", "old.reddit.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "post",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/r/([^/]+)/comments/([^/]+)(?:/[^/]+)?/?",
+              "captureNames": ["subreddit", "post_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "subreddit",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/r/([^/]+)/?",
+              "captureNames": ["subreddit"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "user",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/(?:user|u)/([^/]+)/?",
+              "captureNames": ["username"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "rss",
+      "hosts": ["*"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "feed",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/feed/?",
+              "captureNames": [],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/rss/?",
+              "captureNames": [],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/.+\\.xml/?",
+              "captureNames": [],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": null
+    },
+    {
+      "provider": "soundcloud",
+      "hosts": ["soundcloud.com", "www.soundcloud.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "playlist",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/sets/([^/]+)/?",
+              "captureNames": ["username", "playlist_slug"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "track",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/([^/]+)/?",
+              "captureNames": ["username", "track_slug"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "user",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["username"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "soop",
+      "hosts": ["sooplive.com", "www.sooplive.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "channel",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/station/([^/]+)/?",
+              "captureNames": ["user_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "spotify",
+      "hosts": ["open.spotify.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "artist",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/artist/([^/]+)/?",
+              "captureNames": ["id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "album",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/album/([^/]+)/?",
+              "captureNames": ["id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "track",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/track/([^/]+)/?",
+              "captureNames": ["id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "playlist",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/playlist/([^/]+)/?",
+              "captureNames": ["id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "show",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/show/([^/]+)/?",
+              "captureNames": ["id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "episode",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/episode/([^/]+)/?",
+              "captureNames": ["id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "substack",
+      "hosts": ["*.substack.com"],
+      "hostParam": "publication",
+      "targets": [
+        {
+          "target": "post",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/p/([^/]+)/?",
+              "captureNames": ["post_slug"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "subscribe",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/subscribe/?",
+              "captureNames": [],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "publication",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/?",
+              "captureNames": [],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "threads",
+      "hosts": [
+        "threads.net",
+        "www.threads.net",
+        "threads.com",
+        "www.threads.com"
+      ],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "post",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/@([A-Za-z0-9._]{1,30})/post/([A-Za-z0-9_-]{1,64})/?",
+              "captureNames": ["handle", "post_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "profile",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/@([A-Za-z0-9._]{1,30})/?",
+              "captureNames": ["handle"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "tiktok",
+      "hosts": ["tiktok.com", "www.tiktok.com", "m.tiktok.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "video",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/@([^/]+)/video/([^/]+)/?",
+              "captureNames": ["handle", "video_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "profile",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/@([^/]+)/?",
+              "captureNames": ["handle"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "twitch",
+      "hosts": ["twitch.tv", "www.twitch.tv"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "video",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/videos/([^/]+)/?",
+              "captureNames": ["video_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "profile",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["login"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "x",
+      "hosts": ["x.com", "www.x.com", "twitter.com", "www.twitter.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "tweet",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/i/status/(\\d+)/?",
+              "captureNames": ["tweet_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/([A-Za-z0-9_]+)/status/(\\d+)/?",
+              "captureNames": ["handle", "tweet_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "profile",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([A-Za-z0-9_]+)/?",
+              "captureNames": ["handle"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "youtube",
+      "hosts": ["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "channel",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/@([^/]+)/?",
+              "captureNames": ["handle"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [
+                "youtube.com",
+                "www.youtube.com",
+                "m.youtube.com"
+              ],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/channel/([^/]+)/?",
+              "captureNames": ["channel_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [
+                "youtube.com",
+                "www.youtube.com",
+                "m.youtube.com"
+              ],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/user/([^/]+)/?",
+              "captureNames": ["username"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [
+                "youtube.com",
+                "www.youtube.com",
+                "m.youtube.com"
+              ],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "video",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/watch/?",
+              "captureNames": [],
+              "queryParameter": "v",
+              "queryParameterName": "video_id",
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [
+                "youtube.com",
+                "www.youtube.com",
+                "m.youtube.com"
+              ],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/(?:shorts|embed|live)/([^/]+)/?",
+              "captureNames": ["video_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [
+                "youtube.com",
+                "www.youtube.com",
+                "m.youtube.com"
+              ],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["video_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": ["youtu.be"],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    },
+    {
+      "provider": "youtube_music",
+      "hosts": ["music.youtube.com"],
+      "hostParam": null,
+      "targets": [
+        {
+          "target": "album",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/browse/(MPRE[^/]+)/?",
+              "captureNames": ["album_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/playlist/?",
+              "captureNames": [],
+              "queryParameter": "list",
+              "queryParameterName": "album_id",
+              "queryParameterPattern": "OLAK5uy_[A-Za-z0-9_-]+",
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "artist",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/channel/(UC[^/]+)/?",
+              "captureNames": ["artist_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/browse/(UC[^/]+)/?",
+              "captureNames": ["artist_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "playlist",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/playlist/?",
+              "captureNames": [],
+              "queryParameter": "list",
+              "queryParameterName": null,
+              "queryParameterPattern": "(?!OLAK5uy_)[A-Za-z0-9_-]+",
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "channel",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/@([^/]+)/?",
+              "captureNames": ["handle"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/user/([^/]+)/?",
+              "captureNames": ["username"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/channel/([^/]+)/?",
+              "captureNames": ["channel_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "video",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/watch/?",
+              "captureNames": [],
+              "queryParameter": "v",
+              "queryParameterName": "video_id",
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/(?:shorts|embed|live)/([^/]+)/?",
+              "captureNames": ["video_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        }
+      ],
+      "defaultTarget": "webpage"
+    }
+  ],
+  "fallback": {
+    "provider": "generic",
+    "hosts": ["*"],
+    "hostParam": null,
+    "targets": [
+      {
+        "target": "webpage",
+        "matchAny": true,
+        "rules": []
+      }
+    ],
+    "defaultTarget": null
+  }
+}

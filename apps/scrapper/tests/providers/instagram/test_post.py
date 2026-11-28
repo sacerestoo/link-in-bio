@@ -10,7 +10,7 @@ SHORTCODE = "DgPNN61i4EO"
 
 @pytest.mark.live
 def test_instagram_post_live_response_matches_contract():
-    response = process_metadata_request(LIVE_URL)
+    response = process_metadata_request(LIVE_URL, provider="instagram", target="post")
     provider_data = response["provider_data"]
 
     assert_common_response(response, LIVE_URL)

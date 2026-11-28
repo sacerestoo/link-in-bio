@@ -1,6 +1,3 @@
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(
-    target_type="show",
-    rules=(PathRule(path_pattern="/show/(?P<id>[^/]+)/?"),),
-)
+TARGET = ProviderTarget(target_type="show")

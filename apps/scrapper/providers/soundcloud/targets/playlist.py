@@ -1,8 +1,3 @@
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(
-    target_type="playlist",
-    rules=(
-        PathRule(path_pattern="/(?P<username>[^/]+)/sets/(?P<playlist_slug>[^/]+)/?"),
-    ),
-)
+TARGET = ProviderTarget(target_type="playlist")

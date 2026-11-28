@@ -1,8 +1,3 @@
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(
-    target_type="short_link",
-    rules=(
-        PathRule(path_pattern="/(?P<short_code>[^/]+)/?", host_patterns=("pin.it",)),
-    ),
-)
+TARGET = ProviderTarget(target_type="short_link")

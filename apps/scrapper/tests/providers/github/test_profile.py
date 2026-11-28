@@ -15,7 +15,9 @@ FETCH_MODES = (("fetcher", "Fetcher"), ("session", "FetcherSession"))
 @pytest.mark.live
 @pytest.mark.parametrize(("mode", "expected_fetcher"), FETCH_MODES)
 def test_github_user_profile_live_response_matches_contract(mode, expected_fetcher):
-    response = process_metadata_request(USER_PROFILE_URL, mode=mode)
+    response = process_metadata_request(
+        USER_PROFILE_URL, provider="github", target="profile", mode=mode
+    )
     provider_data = response["provider_data"]
 
     assert_common_response(response, USER_PROFILE_URL)
@@ -37,7 +39,9 @@ def test_github_organization_profile_live_response_matches_contract(
     mode,
     expected_fetcher,
 ):
-    response = process_metadata_request(ORGANIZATION_PROFILE_URL, mode=mode)
+    response = process_metadata_request(
+        ORGANIZATION_PROFILE_URL, provider="github", target="profile", mode=mode
+    )
     provider_data = response["provider_data"]
 
     assert_common_response(response, ORGANIZATION_PROFILE_URL)

@@ -1,12 +1,3 @@
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(
-    target_type="app",
-    rules=(
-        PathRule(
-            path_pattern="/store/apps/details/?",
-            query_parameter="id",
-            query_param_name="package_name",
-        ),
-    ),
-)
+TARGET = ProviderTarget(target_type="app")

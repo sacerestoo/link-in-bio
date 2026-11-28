@@ -1,6 +1,3 @@
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(
-    target_type="shot",
-    rules=(PathRule(path_pattern="/shots/(?P<shot_id>[^/-]+)-(?P<slug>[^/]+)/?"),),
-)
+TARGET = ProviderTarget(target_type="shot")

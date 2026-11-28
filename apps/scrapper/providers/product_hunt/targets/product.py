@@ -1,22 +1,10 @@
 from contracts.source import MetadataSource
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-from ..api import (
-    _extract_metadata,
-    extract_product_provider_data,
-    fetch_product,
-)
+from ..api import _extract_metadata, extract_product_provider_data, fetch_product
 
-TARGET = PathTarget(
+TARGET = ProviderTarget(
     target_type="product",
-    rules=(
-        PathRule(
-            path_pattern=(
-                "/(?:products|posts)/(?P<slug>[^/]+)"
-                "(?:/(?:launches|reviews|prelaunch))?/?"
-            ),
-        ),
-    ),
     source=MetadataSource(
         fetch=fetch_product,
         accepted_content_types=("application/json",),

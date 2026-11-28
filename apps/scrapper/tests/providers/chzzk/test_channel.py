@@ -23,7 +23,9 @@ CHANNEL_ID = "a6c4ddb09cdb160478996007bff35296"
     (("fetcher", "Fetcher"), ("session", "FetcherSession")),
 )
 def test_chzzk_channel_live_response_matches_contract(mode, expected_fetcher):
-    response = process_metadata_request(LIVE_URL, mode=mode)
+    response = process_metadata_request(
+        LIVE_URL, provider="chzzk", target="channel", mode=mode
+    )
     provider_data = response["provider_data"]
 
     assert_common_response(response, LIVE_URL)

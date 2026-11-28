@@ -19,6 +19,7 @@
     "typegen": "wrangler types --include-runtime=false"
   },
   "dependencies": {
+    "@grabbin/contracts": "workspace:*",
     "@grabbin/db": "workspace:*",
     "@grabbin/domain": "workspace:*",
     "@grabbin/email": "workspace:*",

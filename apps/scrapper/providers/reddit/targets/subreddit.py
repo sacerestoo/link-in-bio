@@ -1,6 +1,3 @@
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(
-    target_type="subreddit",
-    rules=(PathRule(path_pattern="/r/(?P<subreddit>[^/]+)/?"),),
-)
+TARGET = ProviderTarget(target_type="subreddit")

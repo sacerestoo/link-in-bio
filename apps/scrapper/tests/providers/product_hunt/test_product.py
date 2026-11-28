@@ -27,7 +27,9 @@ def test_product_hunt_product_live_response_matches_contract(
     mode,
     expected_fetcher,
 ):
-    response = process_metadata_request(live_url, mode=mode)
+    response = process_metadata_request(
+        live_url, provider="product_hunt", target="product", mode=mode
+    )
     provider_data = response["provider_data"]
 
     assert_common_response(response, live_url)

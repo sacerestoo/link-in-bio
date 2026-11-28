@@ -14,7 +14,9 @@ CHANNEL_ID = "UCXZCJLdBC09xxGZ6gcdrc6A"
     (("fetcher", "Fetcher"), ("session", "FetcherSession")),
 )
 def test_youtube_music_channel_live_response_matches_contract(mode, expected_fetcher):
-    response = process_metadata_request(LIVE_URL, mode=mode)
+    response = process_metadata_request(
+        LIVE_URL, provider="youtube_music", target="channel", mode=mode
+    )
 
     assert_common_response(response, LIVE_URL)
     assert response["provider"] == "youtube_music"

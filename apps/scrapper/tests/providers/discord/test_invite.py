@@ -9,7 +9,7 @@ LIVE_URL = LIVE_TARGET_URLS["discord"]["invite"]
 
 @pytest.mark.live
 def test_discord_invite_live_response_matches_contract():
-    response = process_metadata_request(LIVE_URL)
+    response = process_metadata_request(LIVE_URL, provider="discord", target="invite")
     provider_data = response["provider_data"]
 
     assert_common_response(response, LIVE_URL)

@@ -14,7 +14,9 @@ PLAYLIST_ID = "PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI"
     (("fetcher", "Fetcher"), ("session", "FetcherSession")),
 )
 def test_youtube_music_playlist_live_response_matches_contract(mode, expected_fetcher):
-    response = process_metadata_request(LIVE_URL, mode=mode)
+    response = process_metadata_request(
+        LIVE_URL, provider="youtube_music", target="playlist", mode=mode
+    )
 
     assert_common_response(response, LIVE_URL)
     assert response["provider"] == "youtube_music"

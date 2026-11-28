@@ -14,7 +14,9 @@ USER_ID = "devil0108"
     (("fetcher", "Fetcher"), ("session", "FetcherSession")),
 )
 def test_soop_channel_live_response_matches_contract(mode, expected_fetcher):
-    response = process_metadata_request(LIVE_URL, mode=mode)
+    response = process_metadata_request(
+        LIVE_URL, provider="soop", target="channel", mode=mode
+    )
     provider_data = response["provider_data"]
 
     assert_common_response(response, LIVE_URL)

@@ -1,6 +1,3 @@
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
-TARGET = PathTarget(
-    target_type="track",
-    rules=(PathRule(path_pattern="/(?P<username>[^/]+)/(?P<track_slug>[^/]+)/?"),),
-)
+TARGET = ProviderTarget(target_type="track")

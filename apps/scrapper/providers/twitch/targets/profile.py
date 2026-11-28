@@ -1,5 +1,5 @@
 from contracts.source import MetadataSource
-from routing.path_target import PathRule, PathTarget
+from providers.base import ProviderTarget
 
 from ..api import (
     _api_profile,
@@ -7,9 +7,8 @@ from ..api import (
     _extract_profile_provider_data,
 )
 
-TARGET = PathTarget(
+TARGET = ProviderTarget(
     target_type="profile",
-    rules=(PathRule(path_pattern="/(?P<login>[^/]+)/?"),),
     source=MetadataSource(
         fetch=_api_profile,
         accepted_content_types=("application/json",),

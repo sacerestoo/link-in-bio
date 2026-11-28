@@ -22,7 +22,9 @@ ALBUM_URLS = (
 def test_youtube_music_album_live_response_matches_contract(
     mode, expected_fetcher, live_url, album_id
 ):
-    response = process_metadata_request(live_url, mode=mode)
+    response = process_metadata_request(
+        live_url, provider="youtube_music", target="album", mode=mode
+    )
 
     assert_common_response(response, live_url)
     assert response["provider"] == "youtube_music"

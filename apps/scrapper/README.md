@@ -1,25 +1,29 @@
 # Scrapper API
 
-URL 메타데이터 API를 provider별 모듈 구조로 구현하는 프로젝트입니다. 공통 응답
-계약과 provider별 URL 분류를 바탕으로 source selector가 수집기를 고르고, 기본
-Scrapling Fetcher가 페이지와 공통 메타데이터를 가져옵니다.
+URL 메타데이터 추출 전용 API입니다. API 서버가 `packages/contracts`의 URL
+규칙으로 provider와 target을 판별해 전달하면, Scrapper가 해당 Python handler를
+골라 페이지와 공통 메타데이터를 가져옵니다.
 
 ## Endpoint
 
 - GET / 또는 GET /api/metadata: 상태 반환
-- GET /api/metadata?url={URL}: 공통 메타데이터 추출
+- POST /api/metadata: 전달받은 URL, provider, target으로 메타데이터 추출
 - `mode`는 선택이며 기본값은 `fetcher`; `session`을 지정하면 `FetcherSession`을
   사용합니다.
 
 요청 예시:
 
-    GET /api/metadata?url=https%3A%2F%2Fexample.com
+    POST /api/metadata
+    Authorization: Bearer <SCRAPPER_API_TOKEN>
+    Content-Type: application/json
+
+    {"url":"https://example.com","provider":"generic","target":"webpage","mode":"fetcher"}
 
 ## 동작
 
 - `GET /` 또는 `GET /api/metadata`는 상태를 반환합니다.
-- URL이 포함된 요청은 `application/metadata_service.py`에서 URL 검증, provider
-  분류, 공용 Fetcher, 공통 메타데이터 추출을 순서대로 처리합니다.
+- POST 요청은 내부 bearer token을 확인한 뒤 URL의 공개 주소 여부를 검사하고,
+  전달받은 provider와 target에 맞는 Python handler로 추출합니다.
 - 성공 시 고정 응답 계약을 반환합니다. 잘못된 URL은 `400`, 공인 IP로 확인되지
   않는 주소는 `403`, HTML이 아닌 응답은 `415`, 큰 응답은 `413`을 반환합니다.
 - CHZZK의 `channel` target은 공식 Open API를 사용합니다. 실행 환경에
@@ -29,11 +33,11 @@ Scrapling Fetcher가 페이지와 공통 메타데이터를 가져옵니다.
 
 ## URL 분류
 
-`providers/<provider>/provider.py`는 해당 provider가 처리할 호스트와 target
-객체를 등록합니다. URL 종류별 규칙은 `providers/<provider>/targets/<type>.py`에
-두고, 공통 `ProviderDefinition`과 `PathTarget`이 서로 위임해 분류합니다.
-provider를 추가할 때는 디렉터리 안에 provider 및 필요한 target 모듈을 만들고
-`providers/registry.py`에 등록합니다.
+URL host, path, query 규칙은 `packages/contracts/src/provider-targets.json` 한
+곳에 있습니다. API 서버의 `@grabbin/contracts` matcher가 이 규칙으로 provider,
+target, params를 고릅니다. Scrapper의 `providers/<provider>/targets/<type>.py`는
+provider별 가져오기와 추출 함수만 등록하며, `sources/selector.py`가 전달된
+provider와 target으로 handler를 선택합니다.
 
 Threads의 `profile`과 `post` target은 `threads.com` 및 `threads.net`의 `@handle`
 경로를 인식합니다. 프로필 응답은 `username`, `profile_url`을 담고, 페이지
@@ -42,24 +46,22 @@ Threads의 `profile`과 `post` target은 `threads.com` 및 `threads.net`의 `@ha
 담습니다. `text`는 페이지 설명에서 가져오므로 빈 문자열일 수 있습니다. 축약된
 팔로워 수를 정수로 환산하면 `follower_count_approximate: true`도 반환합니다.
 
-`api/metadata.py`는 HTTP 진입점이고 `application/metadata_service.py`는 요청
-검증, provider·target 분류, 공통 추출, 응답 생성을 조정합니다.
-`routing/resolver.py`가 등록된 provider 객체에 target 선택을 위임하고,
-`provider`, `target_type`, 경로 파라미터를 반환합니다. 알려진 provider에서
-target 규칙과 일치하지 않으면 해당 provider의 `webpage` 유형을 반환합니다. 알 수
-없는 호스트는 `generic` provider의 `webpage` 유형으로 분류하며, 미등록 호스트의
-`/feed`, `/rss`, `.xml` 경로는 RSS feed로 분류합니다. `pin.it` 같은 단축 주소는
-현재 리다이렉트를 따라가지 않고 `short_link`로 분류합니다.
+`api/metadata.py`는 POST body와 bearer token을 확인하는 HTTP 진입점입니다.
+`application/metadata_service.py`는 URL 공개 주소 검증, 전달받은 Python handler
+선택, 공통 추출과 응답 생성을 조정합니다. 알려진 provider의 target 규칙이
+일치하지 않으면 설정된 기본 target을, 미등록 host는 `generic/webpage`를
+사용합니다. 미등록 host의 `/feed`, `/rss`, `.xml` 경로는 RSS feed로 분류하며
+`pin.it`은 리다이렉트를 따라가지 않고 `short_link`로 분류합니다.
 
 `routing/url_safety.py`는 URL을 정규화하고 DNS 응답이 모두 공인 IP인지
-확인합니다. 선택된 target은 필요할 때 `contracts/source.py`의 `MetadataSource`로
-전용 fetcher나 추출 함수를 선언합니다. `sources/selector.py`는 target의 설정을
-공용 기본값과 합치며, target이 별도 source를 선언하지 않으면 기본 Scrapling
-Fetcher와 공통 HTML 추출기를 사용합니다. `sources/fetcher.py`는 Scrapling의
-`Fetcher`와 `FetcherSession`을 호출하고, `sources/html_metadata.py`는 응답에서
-공통 Open Graph, Twitter, title 및 link 필드를 추출합니다. X 프로필 target은
-HTML에서 팔로워 수를 추가합니다. Instagram의 `post`와 `profile` target은 공식
-API를 호출하지 않습니다. 프로필 페이지가 로그인으로 리다이렉트되면 공개 프로필
+확인합니다. Python target은 `contracts/source.py`의 `MetadataSource`로 전용
+fetcher나 추출 함수를 선언합니다. `sources/selector.py`는 target의 설정을 공용
+기본값과 합치며, target이 별도 source를 선언하지 않으면 기본 Scrapling Fetcher와
+공통 HTML 추출기를 사용합니다. `sources/fetcher.py`는 Scrapling의 `Fetcher`와
+`FetcherSession`을 호출하고, `sources/html_metadata.py`는 응답에서 공통 Open
+Graph, Twitter, title 및 link 필드를 추출합니다. X 프로필 target은 HTML에서
+팔로워 수를 추가합니다. Instagram의 `post`와 `profile` target은 공식 API를
+호출하지 않습니다. 프로필 페이지가 로그인으로 리다이렉트되면 공개 프로필
 `/embed/` HTML을 읽고 최신 항목부터 최대 4개의 `recent_posts`를 반환합니다. 각
 항목에는 shortcode, permalink, thumbnail URL이 있습니다. Instagram이 제공하지
 않는 값은 `provider_data`에서 생략합니다.
@@ -115,7 +117,7 @@ provider별 추가 값은 `provider_data`에 담습니다. 해당 target에 추�
 
 ## 로컬 실행
 
-uv와 Vercel CLI가 필요합니다. uv로 Python 3.12 환경을 만들 수 있습니다.
+uv가 필요합니다. uv로 Python 3.12 환경을 만들 수 있습니다.
 
     uv python install 3.12
     uv venv --python 3.12 .venv
@@ -123,7 +125,13 @@ uv와 Vercel CLI가 필요합니다. uv로 Python 3.12 환경을 만들 수 있�
     uv pip install -e .
     bun run dev
 
+개발 서버는 Scrapper WSGI handler를 `http://localhost:3002`에서 실행합니다.
+
 ## 배포
+
+Vercel 프로젝트의 production 환경에 `SCRAPPER_API_TOKEN`을 설정하고,
+`apps/server`의 `SERVER_ENV_PRODUCTION`에도 같은 토큰과 Scrapper endpoint URL을
+설정합니다. URL은 `/api/metadata` 경로까지 포함해야 합니다.
 
 Vercel CLI 계정에 로그인한 뒤 `apps/scrapper` 프로젝트 루트에서 production
 deployment를 실행합니다.

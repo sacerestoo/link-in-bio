@@ -18,7 +18,9 @@ FETCH_MODES = (("fetcher", "Fetcher"), ("session", "FetcherSession"))
 )
 @pytest.mark.parametrize(("mode", "expected_fetcher"), FETCH_MODES)
 def test_product_hunt_maker_live_response_matches_contract(mode, expected_fetcher):
-    response = process_metadata_request(LIVE_URL, mode=mode)
+    response = process_metadata_request(
+        LIVE_URL, provider="product_hunt", target="maker", mode=mode
+    )
     provider_data = response["provider_data"]
 
     assert_common_response(response, LIVE_URL)
