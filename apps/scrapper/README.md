@@ -117,16 +117,16 @@ provider별 추가 값은 `provider_data`에 담습니다. 해당 target에 추�
 
 ## 로컬 실행
 
-uv와 Vercel CLI가 필요합니다. uv로 Python 3.12 환경을 만들 수 있습니다.
+Vercel CLI가 필요합니다. Scrapper 프로젝트의 root directory가
+`apps/scrapper`이므로 monorepo 루트에서 개발 서버를 시작합니다.
 
     uv python install 3.12
-    uv venv --python 3.12 .venv
-    source .venv/bin/activate
-    uv pip install -e .
-    bun run dev
+    uv venv --python 3.12 apps/scrapper/.venv
+    source apps/scrapper/.venv/bin/activate
+    uv pip install -e apps/scrapper
+    vercel dev --listen 3002 apps/scrapper
 
-개발 서버는 Vercel Dev를 `http://localhost:3002`에서 실행합니다. monorepo의
-Vercel root directory 설정을 한 번만 적용하도록 `bun run dev`를 사용합니다.
+개발 서버는 `http://localhost:3002`에서 실행됩니다.
 
 ## 배포
 
