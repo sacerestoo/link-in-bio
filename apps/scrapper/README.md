@@ -118,13 +118,14 @@ provider별 추가 값은 `provider_data`에 담습니다. 해당 target에 추�
 ## 로컬 실행
 
 Vercel CLI가 필요합니다. Scrapper 프로젝트의 root directory가
-`apps/scrapper`이므로 monorepo 루트에서 개발 서버를 시작합니다.
+`apps/scrapper`이므로 monorepo 루트에서 로컬 환경 변수를 전달해 개발 서버를
+시작합니다.
 
     uv python install 3.12
     uv venv --python 3.12 apps/scrapper/.venv
     source apps/scrapper/.venv/bin/activate
     uv pip install -e apps/scrapper
-    vercel dev --listen 3002 apps/scrapper
+    uv run --env-file apps/scrapper/.env.local -- vercel dev --listen 3002 apps/scrapper
 
 개발 서버는 `http://localhost:3002`에서 실행됩니다.
 
