@@ -33,6 +33,7 @@ def fetch_page(
     *,
     stealthy_headers: bool | None = None,
     timeout: float | None = None,
+    session: FetcherSession | None = None,
 ):
     request_options = {}
     if headers:
@@ -43,8 +44,10 @@ def fetch_page(
         request_options["timeout"] = timeout
 
     if mode == "session":
-        with FetcherSession(**FETCH_OPTIONS) as session:
+        if session is not None:
             return session.get(url, **request_options)
+        with FetcherSession(**FETCH_OPTIONS) as fetcher_session:
+            return fetcher_session.get(url, **request_options)
 
     return Fetcher.get(url, **{**FETCH_OPTIONS, **request_options})
 
@@ -54,6 +57,8 @@ def post_page(
     mode: FetchMode,
     json_body: Mapping[str, object],
     headers: Mapping[str, str] | None = None,
+    *,
+    session: FetcherSession | None = None,
 ):
     request_options = {
         "json": json_body,
@@ -66,7 +71,9 @@ def post_page(
     }
 
     if mode == "session":
-        with FetcherSession(**FETCH_OPTIONS) as session:
+        if session is not None:
             return session.post(url, **request_options)
+        with FetcherSession(**FETCH_OPTIONS) as fetcher_session:
+            return fetcher_session.post(url, **request_options)
 
     return Fetcher.post(url, **{**FETCH_OPTIONS, **request_options})

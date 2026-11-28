@@ -3,6 +3,8 @@ import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 
+from scrapling.fetchers import FetcherSession
+
 from contracts.errors import MetadataRequestError, UpstreamResponseError
 from contracts.response import ExtractedMetadata
 from contracts.settings import MAX_HTML_BYTES
@@ -10,7 +12,7 @@ from providers.youtube.api import (
     _extract_channel_provider_data,
     _extract_video_provider_data,
 )
-from sources.fetcher import FetchMode, fetch_page, post_page
+from sources.fetcher import FETCH_OPTIONS, FetchMode, fetch_page, post_page
 
 _API_BASE_URL = "https://music.youtube.com/youtubei/v1"
 _CLIENT_NAME_ID = "67"  # WEB_REMIX
@@ -62,6 +64,7 @@ def _api_request(
     config: Mapping[str, object],
     mode: FetchMode,
     referer: str,
+    session: FetcherSession | None = None,
 ):
     context = _mapping(config.get("INNERTUBE_CONTEXT"))
     client = _mapping(context.get("client"))
@@ -84,6 +87,7 @@ def _api_request(
             "Origin": "https://music.youtube.com",
             "Referer": referer,
         },
+        session=session,
     )
     if not 200 <= response.status < 300:
         raise UpstreamResponseError(response.status)
@@ -102,12 +106,13 @@ def _api_request(
     return data
 
 
-def fetch_youtube_music_page(
+def _fetch_youtube_music_page(
     url: str,
     mode: FetchMode,
     headers: Mapping[str, str] | None = None,
+    session: FetcherSession | None = None,
 ):
-    html_page = fetch_page(url, mode, headers)
+    html_page = fetch_page(url, mode, headers, session=session)
     if not 200 <= html_page.status < 300:
         return html_page
 
@@ -123,7 +128,7 @@ def fetch_youtube_music_page(
             if key in browse_endpoint
         }
         api_data["browse"] = _api_request(
-            "browse", payload, config, mode, html_page.url
+            "browse", payload, config, mode, html_page.url, session
         )
     else:
         watch_endpoint = _mapping(initial_endpoint.get("watchEndpoint"))
@@ -133,10 +138,10 @@ def fetch_youtube_music_page(
                 "YouTube Music page data could not be read.", 502
             )
         api_data["player"] = _api_request(
-            "player", {"videoId": video_id}, config, mode, html_page.url
+            "player", {"videoId": video_id}, config, mode, html_page.url, session
         )
         api_data["next"] = _api_request(
-            "next", {"videoId": video_id}, config, mode, html_page.url
+            "next", {"videoId": video_id}, config, mode, html_page.url, session
         )
 
     return YouTubeMusicPage(
@@ -147,6 +152,18 @@ def fetch_youtube_music_page(
         html_page=html_page,
         api_data=api_data,
     )
+
+
+def fetch_youtube_music_page(
+    url: str,
+    mode: FetchMode,
+    headers: Mapping[str, str] | None = None,
+):
+    if mode != "session":
+        return _fetch_youtube_music_page(url, mode, headers)
+
+    with FetcherSession(**FETCH_OPTIONS) as session:
+        return _fetch_youtube_music_page(url, mode, headers, session)
 
 
 def _extract_channel_data(
