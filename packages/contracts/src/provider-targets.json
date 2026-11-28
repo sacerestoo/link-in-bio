@@ -266,13 +266,115 @@
     },
     {
       "provider": "facebook",
-      "hosts": ["facebook.com", "www.facebook.com"],
+      "hosts": ["facebook.com", "www.facebook.com", "m.facebook.com"],
       "hostParam": null,
       "targets": [
         {
-          "target": "page_or_profile",
-          "matchAny": true,
-          "rules": []
+          "target": "post",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/(?:pages|people)/([^/]+)/([^/]+)/posts/([^/]+)(?:/([^/]+))?/?",
+              "captureNames": [
+                "profile_name",
+                "profile_id",
+                "post_id",
+                "post_numeric_id"
+              ],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/([^/]+)/posts/([^/]+)(?:/([^/]+))?/?",
+              "captureNames": ["profile", "post_id", "post_numeric_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/permalink.php",
+              "captureNames": [],
+              "queryParameter": "story_fbid",
+              "queryParameterName": "post_id",
+              "queryParameterPattern": "[A-Za-z0-9_-]+",
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/story.php",
+              "captureNames": [],
+              "queryParameter": "story_fbid",
+              "queryParameterName": "post_id",
+              "queryParameterPattern": "[A-Za-z0-9_-]+",
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/photo.php",
+              "captureNames": [],
+              "queryParameter": "fbid",
+              "queryParameterName": "post_id",
+              "queryParameterPattern": "\\d+",
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/photo/?",
+              "captureNames": [],
+              "queryParameter": "fbid",
+              "queryParameterName": "post_id",
+              "queryParameterPattern": "\\d+",
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "profile",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/(?:pages|people)/([^/]+)/([^/]+)/?",
+              "captureNames": ["profile_name", "profile_id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/profile.php",
+              "captureNames": [],
+              "queryParameter": "id",
+              "queryParameterName": "profile_id",
+              "queryParameterPattern": "\\d+",
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/(?!(?:about|ads|business|events|gaming|groups|help|login|marketplace|pages|people|photo|photos|places|profile\\.php|public|reel|reels|search|share|stories|videos|watch)$)([A-Za-z0-9._-]+)/?",
+              "captureNames": ["username"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
         }
       ],
       "defaultTarget": null

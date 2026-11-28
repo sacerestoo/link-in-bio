@@ -49,6 +49,10 @@ LIVE_TARGET_URLS = {
         "profile": "https://www.instagram.com/stelliveofficial/",
         "post": "https://www.instagram.com/stelliveofficial/p/DgPNN61i4EO/",
     },
+    "facebook": {
+        "profile": "https://www.facebook.com/NASA",
+        "post": "https://www.facebook.com/NASA/posts/pfbid0RpqAr7hXeV7eGfXaShPfv5NGXx9yDWuUigSUUhrNqeN4L1hzg4cKZnjybzFCCgpnl",
+    },
     "threads": {
         "profile": "https://www.threads.com/@threads",
         "post": "https://www.threads.com/@threads/post/DCkkKl_OGb1",

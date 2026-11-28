@@ -55,6 +55,16 @@ Threads의 `profile`과 `post` target은 `threads.com` 및 `threads.net`의 `@ha
 담습니다. `text`는 페이지 설명에서 가져오므로 빈 문자열일 수 있습니다. 축약된
 팔로워 수를 정수로 환산하면 `follower_count_approximate: true`도 반환합니다.
 
+Facebook은 `profile`과 `post` URL만 처리합니다. 프로필은 공개 페이지의 Open
+Graph 정보를 읽어 이름, 소개, 프로필 이미지, 팔로워 수와 이야기 중인 사람 수를
+반환합니다. 게시물은 소유자 프로필 페이지에 공개 피드 데이터가 포함된 경우 이를
+읽어 작성자, 게시 시각, 이미지, 본문, 280자 미리보기, 좋아요·전체 반응·댓글·공유
+수를 반환합니다. `like_count`는 좋아요 반응만 세고, `reaction_count`는 모든
+반응을 합산합니다. 공개 HTML에 대상 게시물이 없거나 접근이 제한되면
+`provider_data.available`은 `false`입니다. 게시물 URL을 직접 가져오지 않는
+이유는 로그인 없이 받은 직접 페이지가 4 MB 제한을 넘는 경우가 있어서이며, Graph
+API·oEmbed API·로그인 쿠키는 사용하지 않습니다.
+
 `api/metadata.py`는 POST body와 bearer token을 확인하는 HTTP 진입점입니다.
 `application/metadata_service.py`는 URL 공개 주소 검증, 전달받은 Python handler
 선택, 공통 추출과 응답 생성을 조정합니다. 알려진 provider의 target 규칙이
