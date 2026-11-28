@@ -10,11 +10,13 @@ function settingsFromExample(path: string): Record<string, string> {
       key,
       key === "BETTER_AUTH_URL"
         ? "https://grabbin.me"
-        : key === "BETTER_AUTH_SECRET"
-          ? "test-secret-that-is-at-least-32-characters"
-          : key === "CREEM_TEST_MODE" || key === "CRON_DRY_RUN"
-            ? "false"
-            : "configured-test-value",
+        : key === "SCRAPPER_API_URL"
+          ? "http://localhost:3002/api/metadata"
+          : key === "BETTER_AUTH_SECRET"
+            ? "test-secret-that-is-at-least-32-characters"
+            : key === "CREEM_TEST_MODE" || key === "CRON_DRY_RUN"
+              ? "false"
+              : "configured-test-value",
     ]),
   );
 }
