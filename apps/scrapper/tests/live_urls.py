@@ -6,6 +6,12 @@ LIVE_TARGET_URLS = {
         "legacy_product": "https://www.producthunt.com/posts/userwatch-2",
         "maker": "https://www.producthunt.com/@levelsio",
     },
+    "app_store": {
+        "app": "https://apps.apple.com/us/app/spotify-music-and-podcasts/id324684580",
+    },
+    "google_play": {
+        "app": "https://play.google.com/store/apps/details?id=com.spotify.music&hl=en&gl=US",
+    },
     "github": {
         "user_profile": "https://github.com/torvalds",
         "organization_profile": "https://github.com/vercel",
