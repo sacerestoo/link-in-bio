@@ -1,8 +1,8 @@
 import "server-only";
 import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
-import type { ServerBindings } from "./env";
 import { getAuth, type Auth } from "./auth";
+import { isServerDevelopment, type ServerBindings } from "./env";
 
 type Session = NonNullable<Awaited<ReturnType<Auth["api"]["getSession"]>>>;
 
@@ -25,6 +25,20 @@ export const requireSession = createMiddleware<SessionEnv>(async (c, next) => {
     throw new HTTPException(401, { message: "Unauthorized" });
 
   c.set("session", session);
+  await next();
+});
+
+export const requireSessionUnlessDevelopment = createMiddleware<{
+  Bindings: ServerBindings;
+}>(async (c, next) => {
+  if (isServerDevelopment()) {
+    await next();
+    return;
+  }
+
+  if ((await readSession(c.req.raw.headers, c.env)) === null)
+    throw new HTTPException(401, { message: "Unauthorized" });
+
   await next();
 });
 

@@ -9,6 +9,7 @@ import type { ServerBindings } from "./env";
 import { authRoute } from "./http/auth";
 import { bentoMediaRoute } from "./http/bento-media";
 import { healthRoute } from "./http/health";
+import { metadataRoute } from "./http/metadata";
 import { pagesRoute } from "./http/pages";
 
 initLogger({ env: { service: "grabbin-server" } });
@@ -49,6 +50,7 @@ const app = new Hono<{
     ),
   )
   .route("/health", healthRoute)
+  .route("/metadata", metadataRoute)
   .route("/pages", pagesRoute)
   .route("/pages", bentoMediaRoute)
   .route("/auth", authRoute);

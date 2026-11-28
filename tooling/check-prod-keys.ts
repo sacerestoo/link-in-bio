@@ -47,6 +47,7 @@ export const productionSecretKeys = {
   cron: new Set(["SENTRY_DSN", "CLOUDFLARE_SAAS_API_TOKEN", "CREEM_API_KEY"]),
   server: new Set([
     "BETTER_AUTH_SECRET",
+    "SCRAPPER_API_TOKEN",
     "RESEND_API_KEY",
     "SENTRY_DSN",
     "CREEM_API_KEY",

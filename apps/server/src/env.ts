@@ -28,6 +28,8 @@ export const serverEnvSchema = v.object({
   R2_ACCESS_KEY_ID: optionalSetting,
   R2_SECRET_ACCESS_KEY: optionalSetting,
   R2_BUCKET_NAME: optionalSetting,
+  SCRAPPER_API_URL: v.optional(v.pipe(v.string(), v.url())),
+  SCRAPPER_API_TOKEN: optionalSetting,
   CREEM_TEST_MODE: v.optional(
     v.pipe(
       v.string(),
@@ -62,8 +64,12 @@ export type ServerBindings = {
   R2_ACCESS_KEY_ID?: string;
   R2_SECRET_ACCESS_KEY?: string;
   R2_BUCKET_NAME?: string;
+  SCRAPPER_API_URL?: string;
+  SCRAPPER_API_TOKEN?: string;
   CREEM_TEST_MODE?: string;
 };
 
 export const readServerEnv = (bindings: Readonly<object>): ServerEnv =>
   v.parse(serverEnvSchema, bindings);
+
+export const isServerDevelopment = (): boolean => import.meta.env.DEV;

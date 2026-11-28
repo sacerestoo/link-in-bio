@@ -36,6 +36,9 @@ authenticated session's user ID. Current routes:
   type and size.
 - `POST /v1/pages/handle`: no permission; public lookup returns only whether the
   handle is available.
+- `GET /v1/metadata`: signed-in session in production; development bypasses
+  session auth through middleware. Resolve the URL with `@grabbin/contracts` and
+  forward the URL, provider and target to Scrapper.
 - `GET /v1/auth/session`: signed-in session; return only the current user's
   session and subscriptions (`referenceId` matches the user ID).
 - `ALL /v1/auth/*`: Better Auth owns these endpoints. Public sign-in, sign-up,
