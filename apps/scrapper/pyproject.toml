@@ -1,0 +1,38 @@
+[project]
+name = "scrapper"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "certifi>=2024.2.2",
+  "scrapling==0.5.1",
+  "curl_cffi>=0.16.3,<0.17",
+  "patchright==1.64.4",
+  "browserforge>=1.2.4,<2",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8,<9", "python-dotenv>=1,<2"]
+lint = ["ruff>=0.17,<0.18"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.vercel]
+entrypoint = "api.metadata:handler"
+
+[tool.pytest.ini_options]
+markers = ["live: requires network access to a real provider URL"]
+
+[tool.setuptools.packages.find]
+include = [
+  "api*",
+  "application*",
+  "contracts*",
+  "providers*",
+  "routing*",
+  "sources*",
+]

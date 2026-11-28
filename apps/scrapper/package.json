@@ -1,0 +1,12 @@
+{
+  "name": "@grabbin/scrapper",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "uv build",
+    "dev": "vercel dev --listen 3002",
+    "lint": "uv run --extra lint ruff check .",
+    "test": "uv run --extra test pytest",
+    "typecheck": "uv run --with basedpyright --all-extras basedpyright"
+  }
+}

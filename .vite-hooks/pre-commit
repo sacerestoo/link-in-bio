@@ -2,6 +2,30 @@
 
 set -e
 
+git diff --cached --name-only --diff-filter=ACMR -- '*.py' |
+while IFS= read -r file; do
+  case "$file" in
+    apps/scrapper/*) ;;
+    *) continue ;;
+  esac
+
+  if ! git diff --quiet -- "$file"; then
+    printf 'Cannot auto-fix %s because it also has unstaged changes. Stage or stash them first.\n' "$file" >&2
+    exit 1
+  fi
+
+  scrapper_file="${file#apps/scrapper/}"
+  lint_status=0
+  format_status=0
+  (cd apps/scrapper && uv run --extra lint ruff check --fix "$scrapper_file") || lint_status=$?
+  (cd apps/scrapper && uv run --extra lint ruff format "$scrapper_file") || format_status=$?
+  git add -- "$file"
+
+  if [ "$lint_status" -ne 0 ] || [ "$format_status" -ne 0 ]; then
+    exit 1
+  fi
+done
+
 vp staged
 bun run check:fix
 vp staged

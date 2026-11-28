@@ -37,6 +37,10 @@
         "server-only": "catalog:",
       },
     },
+    "apps/scrapper": {
+      "name": "@grabbin/scrapper",
+      "version": "0.0.0",
+    },
     "apps/server": {
       "name": "@grabbin/server",
       "version": "0.0.0",
@@ -408,6 +412,8 @@
     "@fontsource/open-runde": ["@fontsource/open-runde@5.3.0", "", {}, "sha512-htjSGuJ/cq2DARGqEvXhkghhRXxIz3gzw+tbB0xt6zidL0mvDrR/VQCfDeCCw7wp0x5ar6dTLWD5iOF0EDqaGA=="],
 
     "@grabbin/cron": ["@grabbin/cron@workspace:apps/cron"],
+
+    "@grabbin/scrapper": ["@grabbin/scrapper@workspace:apps/scrapper"],
 
     "@grabbin/db": ["@grabbin/db@workspace:packages/db"],
 

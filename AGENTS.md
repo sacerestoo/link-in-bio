@@ -31,6 +31,7 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
 | `apps/web`              | vinext (Next.js App Router on Vite), routes `/v1/*` to the server Worker |
 | `apps/server`           | Hono API and Better Auth on its own Cloudflare Worker                    |
 | `apps/cron`             | Cloudflare Worker, weekly media cleanup Sundays at 07:00 UTC (16:00 KST) |
+| `apps/scrapper`         | Python URL metadata API, deployed on Vercel                              |
 | `packages/db`           | Drizzle schema, repositories and client. Server-only                     |
 | `packages/domain`       | Business rules and schemas grouped by domain                             |
 | `packages/subscription` | Server-side Creem and subscription integrations                          |
@@ -42,9 +43,10 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
   `tooling/architecture/project.ts`; `bun run check:architecture` rejects
   unapproved packages, stray `package.json` files and extra config files.
 - Each workspace package defines its own `lint`, `test` and `typecheck` scripts
-  (and `build`, `dev`, `typegen` for apps), so `vp run -r <task>` reaches all of
-  them. Shared lint and format settings live only in the root `vite.config.ts`;
-  never add a `lint` or `fmt` block to a package config.
+  (and `build`, `dev`, `typegen` for JavaScript apps), so `vp run -r <task>`
+  reaches all of them. `apps/scrapper` is Python, uses `uv` for app tasks, and
+  has no generated types. Shared lint and format settings live only in the root
+  `vite.config.ts`; never add a `lint` or `fmt` block to a package config.
 - Declare every workspace import in that package's `package.json`
   (`"@grabbin/x": "workspace:*"`). Bun's isolated linker leaves undeclared
   imports unresolved, and dependency-cruiser fails on an unresolved `@grabbin/*`
@@ -83,6 +85,8 @@ Vite+ (`vp`) monorepo on Bun workspaces (isolated linker), Node `>=22.18`.
   `SERVER` service binding.
 - Root `bun run dev` starts web on port 3000 and server on port 3001 as separate
   local Workers; the service binding connects them.
+- Start the Python Scrapper app separately with
+  `bun run --cwd apps/scrapper dev`; Vercel Dev listens on port 3002.
 - Put domain Hono routers in `apps/server/src/http/<domain>.ts`. Route handlers
   coordinate domain logic and call `packages/db` repositories directly; focused
   external-integration helpers live directly in `apps/server/src/`. Do not add a
@@ -183,6 +187,9 @@ needed.
 
 - Keep commit hooks enabled. Do not use `VP_GIT_HOOKS=0`, `HUSKY=0`, or
   `git commit --no-verify` to get a commit through.
+- Use the repository's top-level `.vite-hooks` for every app. Scrapper's Ruff
+  auto-fix and validation run through these hooks; do not install app-local Git
+  hooks.
 - If a hook fails, fix its formatting, lint, type, or architecture errors, then
   retry the commit.
 - Pushing `main` must not deploy by itself; deploys are an explicit step.

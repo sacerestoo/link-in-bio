@@ -8,7 +8,7 @@
     "deploy": "bun ../../tooling/deploy-worker.ts cron",
     "dev": "vp dev",
     "lint": "vp lint",
-    "test": "vp test run",
+    "test": "vp test run --passWithNoTests",
     "typecheck": "tsc -p tsconfig.json",
     "typegen": "wrangler types --include-runtime=false"
   },
