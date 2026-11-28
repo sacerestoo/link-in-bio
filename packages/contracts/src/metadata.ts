@@ -12,6 +12,10 @@ export const scrapperMetadataRequestSchema = v.strictObject({
   provider: v.pipe(v.string(), v.minLength(1)),
   target: v.pipe(v.string(), v.minLength(1)),
   mode: v.picklist(["fetcher", "session"]),
+  accessToken: v.optional(
+    v.pipe(v.string(), v.minLength(1), v.maxLength(4096)),
+  ),
+  clientId: v.optional(v.pipe(v.string(), v.minLength(1), v.maxLength(256))),
 });
 
 export type ScrapperMetadataRequest = v.InferOutput<

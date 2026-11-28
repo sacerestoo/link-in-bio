@@ -1,5 +1,6 @@
 import type { Hyperdrive } from "@cloudflare/workers-types";
 import * as v from "valibot";
+import type { TokenManager } from "./token-manager";
 
 const optionalSetting = v.optional(
   v.pipe(
@@ -17,6 +18,9 @@ export const serverEnvSchema = v.object({
   LINE_CLIENT_SECRET: optionalSetting,
   TWITTER_CLIENT_ID: optionalSetting,
   TWITTER_CLIENT_SECRET: optionalSetting,
+  TWITCH_CLIENT_ID: optionalSetting,
+  TWITCH_CLIENT_SECRET: optionalSetting,
+  TOKEN_ENCRYPTION_KEY: optionalSetting,
   RESEND_API_KEY: optionalSetting,
   RESEND_FROM_EMAIL: optionalSetting,
   SENTRY_DSN: optionalSetting,
@@ -53,6 +57,10 @@ export type ServerBindings = {
   LINE_CLIENT_SECRET?: string;
   TWITTER_CLIENT_ID?: string;
   TWITTER_CLIENT_SECRET?: string;
+  TWITCH_CLIENT_ID?: string;
+  TWITCH_CLIENT_SECRET?: string;
+  TOKEN_ENCRYPTION_KEY?: string;
+  TOKEN_MANAGER: DurableObjectNamespace<TokenManager>;
   RESEND_API_KEY?: string;
   RESEND_FROM_EMAIL?: string;
   SENTRY_DSN?: string;

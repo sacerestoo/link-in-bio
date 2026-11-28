@@ -52,6 +52,8 @@ export const productionSecretKeys = {
     "SENTRY_DSN",
     "CREEM_API_KEY",
     "CREEM_WEBHOOK_SECRET",
+    "TWITCH_CLIENT_SECRET",
+    "TOKEN_ENCRYPTION_KEY",
   ]),
 } as const;
 

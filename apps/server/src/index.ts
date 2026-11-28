@@ -2,6 +2,9 @@ import { API_VERSION } from "@grabbin/shared/api-version";
 import { sentryPrivacyOptions } from "@grabbin/shared/observability";
 import * as Sentry from "@sentry/cloudflare";
 import app from "./app";
+import { TokenManager as TokenManagerImplementation } from "./token-manager";
+
+export class TokenManager extends TokenManagerImplementation {}
 
 const worker = {
   fetch: (
