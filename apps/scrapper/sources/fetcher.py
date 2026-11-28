@@ -32,12 +32,15 @@ def fetch_page(
     headers: Mapping[str, str] | None = None,
     *,
     stealthy_headers: bool | None = None,
+    timeout: float | None = None,
 ):
     request_options = {}
     if headers:
         request_options["headers"] = {**FETCH_OPTIONS["headers"], **headers}
     if stealthy_headers is not None:
         request_options["stealthy_headers"] = stealthy_headers
+    if timeout is not None:
+        request_options["timeout"] = timeout
 
     if mode == "session":
         with FetcherSession(**FETCH_OPTIONS) as session:

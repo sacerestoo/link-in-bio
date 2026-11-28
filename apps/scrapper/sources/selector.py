@@ -1,9 +1,9 @@
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
 from contracts.errors import MetadataRequestError
-from contracts.response import ExtractedMetadata
+from contracts.response import ExtractedMetadata, FetcherName
 from contracts.source import (
     MetadataExtractor,
     MetadataSource,
@@ -25,8 +25,10 @@ class SelectedMetadataSource:
     fetch: PageFetcher
     headers: Mapping[str, str] | None
     accepted_content_types: tuple[str, ...]
+    fetcher_name: FetcherName | None
     extract_metadata: MetadataExtractor
     extract_provider_data: ProviderDataExtractor
+    resolve_target_type: Callable[[Any, ExtractedMetadata], str | None] | None
 
 
 def select_source(provider: object, target_type: object) -> SelectedMetadataSource:
@@ -71,6 +73,7 @@ def select_source(provider: object, target_type: object) -> SelectedMetadataSour
             if source and source.accepted_content_types
             else ("text/html", "application/xhtml+xml")
         ),
+        fetcher_name=source.fetcher_name if source else None,
         extract_metadata=(
             source.extract_metadata
             if source and source.extract_metadata
@@ -81,4 +84,5 @@ def select_source(provider: object, target_type: object) -> SelectedMetadataSour
             if source and source.extract_provider_data
             else _no_provider_data
         ),
+        resolve_target_type=(source.resolve_target_type if source else None),
     )

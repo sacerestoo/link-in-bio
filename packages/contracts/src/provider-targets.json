@@ -1075,9 +1075,25 @@
     },
     {
       "provider": "soundcloud",
-      "hosts": ["soundcloud.com", "www.soundcloud.com"],
+      "hosts": ["soundcloud.com", "www.soundcloud.com", "on.soundcloud.com"],
       "hostParam": null,
       "targets": [
+        {
+          "target": "short_link",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/([^/]+)/?",
+              "captureNames": ["short_code"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": ["on.soundcloud.com"],
+              "staticParams": {}
+            }
+          ]
+        },
         {
           "target": "playlist",
           "matchAny": false,
@@ -1155,7 +1171,7 @@
     },
     {
       "provider": "spotify",
-      "hosts": ["open.spotify.com"],
+      "hosts": ["open.spotify.com", "play.spotify.com", "embed.spotify.com"],
       "hostParam": null,
       "targets": [
         {
@@ -1163,13 +1179,23 @@
           "matchAny": false,
           "rules": [
             {
-              "pathPattern": "/artist/([^/]+)/?",
+              "pathPattern": "/(?:intl-[^/]+/)?(?:embed/)?artist/([^/]+)/?",
               "captureNames": ["id"],
               "queryParameter": null,
               "queryParameterName": null,
               "queryParameterPattern": null,
               "requiresHostParam": null,
               "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/",
+              "captureNames": [],
+              "queryParameter": "uri",
+              "queryParameterName": "uri",
+              "queryParameterPattern": "spotify:artist:[A-Za-z0-9]+",
+              "requiresHostParam": null,
+              "hostPatterns": ["embed.spotify.com"],
               "staticParams": {}
             }
           ]
@@ -1179,13 +1205,23 @@
           "matchAny": false,
           "rules": [
             {
-              "pathPattern": "/album/([^/]+)/?",
+              "pathPattern": "/(?:intl-[^/]+/)?(?:embed/)?album/([^/]+)/?",
               "captureNames": ["id"],
               "queryParameter": null,
               "queryParameterName": null,
               "queryParameterPattern": null,
               "requiresHostParam": null,
               "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/",
+              "captureNames": [],
+              "queryParameter": "uri",
+              "queryParameterName": "uri",
+              "queryParameterPattern": "spotify:album:[A-Za-z0-9]+",
+              "requiresHostParam": null,
+              "hostPatterns": ["embed.spotify.com"],
               "staticParams": {}
             }
           ]
@@ -1195,13 +1231,23 @@
           "matchAny": false,
           "rules": [
             {
-              "pathPattern": "/track/([^/]+)/?",
+              "pathPattern": "/(?:intl-[^/]+/)?(?:embed/)?track/([^/]+)/?",
               "captureNames": ["id"],
               "queryParameter": null,
               "queryParameterName": null,
               "queryParameterPattern": null,
               "requiresHostParam": null,
               "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/",
+              "captureNames": [],
+              "queryParameter": "uri",
+              "queryParameterName": "uri",
+              "queryParameterPattern": "spotify:track:[A-Za-z0-9]+",
+              "requiresHostParam": null,
+              "hostPatterns": ["embed.spotify.com"],
               "staticParams": {}
             }
           ]
@@ -1211,13 +1257,33 @@
           "matchAny": false,
           "rules": [
             {
-              "pathPattern": "/playlist/([^/]+)/?",
+              "pathPattern": "/(?:intl-[^/]+/)?(?:embed/)?playlist/([^/]+)/?",
               "captureNames": ["id"],
               "queryParameter": null,
               "queryParameterName": null,
               "queryParameterPattern": null,
               "requiresHostParam": null,
               "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/(?:intl-[^/]+/)?user/([^/]+)/playlist/([^/]+)/?",
+              "captureNames": ["owner_id", "id"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": null,
+              "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/",
+              "captureNames": [],
+              "queryParameter": "uri",
+              "queryParameterName": "uri",
+              "queryParameterPattern": "spotify:(?:playlist:[A-Za-z0-9]+|user:[^:]+:playlist:[^:]+)",
+              "requiresHostParam": null,
+              "hostPatterns": ["embed.spotify.com"],
               "staticParams": {}
             }
           ]
@@ -1227,13 +1293,23 @@
           "matchAny": false,
           "rules": [
             {
-              "pathPattern": "/show/([^/]+)/?",
+              "pathPattern": "/(?:intl-[^/]+/)?(?:embed/)?show/([^/]+)/?",
               "captureNames": ["id"],
               "queryParameter": null,
               "queryParameterName": null,
               "queryParameterPattern": null,
               "requiresHostParam": null,
               "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/",
+              "captureNames": [],
+              "queryParameter": "uri",
+              "queryParameterName": "uri",
+              "queryParameterPattern": "spotify:show:[A-Za-z0-9]+",
+              "requiresHostParam": null,
+              "hostPatterns": ["embed.spotify.com"],
               "staticParams": {}
             }
           ]
@@ -1243,13 +1319,23 @@
           "matchAny": false,
           "rules": [
             {
-              "pathPattern": "/episode/([^/]+)/?",
+              "pathPattern": "/(?:intl-[^/]+/)?(?:embed/)?episode/([^/]+)/?",
               "captureNames": ["id"],
               "queryParameter": null,
               "queryParameterName": null,
               "queryParameterPattern": null,
               "requiresHostParam": null,
               "hostPatterns": [],
+              "staticParams": {}
+            },
+            {
+              "pathPattern": "/",
+              "captureNames": [],
+              "queryParameter": "uri",
+              "queryParameterName": "uri",
+              "queryParameterPattern": "spotify:episode:[A-Za-z0-9]+",
+              "requiresHostParam": null,
+              "hostPatterns": ["embed.spotify.com"],
               "staticParams": {}
             }
           ]
@@ -1259,7 +1345,7 @@
     },
     {
       "provider": "substack",
-      "hosts": ["*.substack.com"],
+      "hosts": ["*.substack.com", "substack.com"],
       "hostParam": "publication",
       "targets": [
         {
@@ -1290,6 +1376,38 @@
               "queryParameterPattern": null,
               "requiresHostParam": null,
               "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "feed",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/feed/?",
+              "captureNames": [],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": true,
+              "hostPatterns": [],
+              "staticParams": {}
+            }
+          ]
+        },
+        {
+          "target": "profile",
+          "matchAny": false,
+          "rules": [
+            {
+              "pathPattern": "/@([^/]+)/?",
+              "captureNames": ["handle"],
+              "queryParameter": null,
+              "queryParameterName": null,
+              "queryParameterPattern": null,
+              "requiresHostParam": false,
+              "hostPatterns": ["substack.com"],
               "staticParams": {}
             }
           ]

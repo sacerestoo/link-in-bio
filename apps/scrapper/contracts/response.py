@@ -2,7 +2,7 @@ import re
 from collections.abc import Mapping
 from typing import Literal, TypedDict
 
-FetcherName = Literal["Fetcher", "FetcherSession"]
+FetcherName = Literal["Fetcher", "FetcherSession", "yt-dlp"]
 
 
 class ExtractedMetadata(TypedDict):

@@ -59,10 +59,15 @@ def process_metadata_request(
     final_url = str(getattr(page, "url", None) or normalized_url)
     metadata = source.extract_metadata(page, requested_url, final_url, provider)
     provider_data = source.extract_provider_data(page, metadata)
-    fetcher: FetcherName = "FetcherSession" if fetch_mode == "session" else "Fetcher"
+    response_target = target
+    if source.resolve_target_type is not None:
+        response_target = source.resolve_target_type(page, metadata) or target
+    fetcher: FetcherName = source.fetcher_name or (
+        "FetcherSession" if fetch_mode == "session" else "Fetcher"
+    )
     return build_metadata_response(
         metadata,
         fetcher=fetcher,
-        target_type=target,
+        target_type=response_target,
         provider_data=provider_data,
     )

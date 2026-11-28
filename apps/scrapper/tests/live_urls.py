@@ -17,6 +17,19 @@ LIVE_TARGET_URLS = {
     "soop": {
         "channel": "https://www.sooplive.com/station/devil0108",
     },
+    "soundcloud": {
+        "track": "https://soundcloud.com/forss/flickermood",
+        "user": "https://soundcloud.com/forss",
+        "playlist": "https://soundcloud.com/forss/sets/soulhack",
+        "short_link": "https://on.soundcloud.com/S8f3akSpkJ331AAv5",
+    },
+    "substack": {
+        "post": "https://astralcodexten.substack.com/p/book-review-contest-2026-winners",
+        "feed": "https://astralcodexten.substack.com/feed",
+        "profile": "https://substack.com/@astralcodexten",
+        "subscribe": "https://astralcodexten.substack.com/subscribe",
+        "publication": "https://astralcodexten.substack.com/",
+    },
     "discord": {
         "invite": "https://discord.gg/discord-developers",
     },
@@ -44,8 +57,20 @@ LIVE_TARGET_URLS = {
         "album_playlist": "https://music.youtube.com/playlist?list=OLAK5uy_kunInnOpcKECWIBQGB0Qj6ZjquxDvfckg",
         "playlist": "https://music.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI",
     },
+    "spotify": {
+        "artist": "https://open.spotify.com/artist/5a2w2tgpLwv26BYJf2qYwu",
+        "album": "https://open.spotify.com/album/00x7wb3nZ4UCqAjOMhaN9P",
+        "track": "https://open.spotify.com/track/5nTtCOCds6I0PHMNtqelas",
+        "playlist": "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
+        "show": "https://open.spotify.com/show/2MAi0BvDc6GTFvKFPXnkCL",
+        "episode": "https://open.spotify.com/episode/3pMbOrsJ33K61lgOBsUrq5",
+    },
     "twitch": {
         "profile": "https://www.twitch.tv/twitch",
         "video": "https://www.twitch.tv/videos/2844385157",
+    },
+    "tiktok": {
+        "profile": "https://www.tiktok.com/@nike",
+        "video": "https://www.tiktok.com/@hankgreen1/video/7047596209028074758",
     },
 }
