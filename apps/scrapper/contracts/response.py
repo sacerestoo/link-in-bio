@@ -23,6 +23,7 @@ class MetadataResponse(ExtractedMetadata):
     target_type: str | None
     provider_data: dict[str, object]
     fetcher: FetcherName
+    is_fallback: bool
 
 
 def _snake_case_key(key: object) -> str:
@@ -57,10 +58,12 @@ def build_metadata_response(
     fetcher: FetcherName,
     target_type: str | None = None,
     provider_data: Mapping[str, object] | None = None,
+    is_fallback: bool = False,
 ) -> MetadataResponse:
     return {
         **metadata,
         "target_type": target_type,
         "provider_data": _normalize_provider_data(provider_data or {}),
         "fetcher": fetcher,
+        "is_fallback": is_fallback,
     }

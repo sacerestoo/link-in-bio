@@ -98,9 +98,11 @@ IP를 향하는 리다이렉트를 거부합니다. Fetcher는 확인된 DNS 주
 
 아래는 성공 응답 계약 예시입니다. `target_type`은 URL 분류기의 결과이고,
 provider별 추가 값은 `provider_data`에 담습니다. 해당 target에 추가 데이터가
-없으면 빈 객체를 반환합니다. 기존 `type`은 Open Graph의 `og:type` 값으로
-유지합니다. Instagram과 X 프로필 수치는 JSON 숫자로 제공하고, 축약된 원본
-수치에서 환산했다면 해당 필드에 `_approximate: true`를 함께 제공합니다.
+없으면 빈 객체를 반환합니다. `is_fallback`은 upstream 요청이나 메타데이터 추출이
+실패해 기본 메타데이터를 반환했는지 표시합니다. 기존 `type`은 Open Graph의
+`og:type` 값으로 유지합니다. Instagram과 X 프로필 수치는 JSON 숫자로 제공하고,
+축약된 원본 수치에서 환산했다면 해당 필드에 `_approximate: true`를 함께
+제공합니다.
 
     {
       "requested_url": "https://www.instagram.com/stelliveofficial",
@@ -115,6 +117,7 @@ provider별 추가 값은 `provider_data`에 담습니다. 해당 target에 추�
       "canonical_url": "https://www.instagram.com/stelliveofficial/",
       "favicon_url": "...",
       "target_type": "profile",
+      "is_fallback": false,
       "provider_data": {
         "username": "stelliveofficial",
         "follower_count": 39000,
