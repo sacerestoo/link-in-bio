@@ -1,3 +1,5 @@
 from providers.base import ProviderTarget
 
-TARGET = ProviderTarget(target_type="album")
+from ..api import SOURCE
+
+TARGET = ProviderTarget(target_type="album", source=SOURCE)

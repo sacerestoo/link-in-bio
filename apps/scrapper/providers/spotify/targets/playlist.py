@@ -1,3 +1,5 @@
 from providers.base import ProviderTarget
 
-TARGET = ProviderTarget(target_type="playlist")
+from ..api import SOURCE
+
+TARGET = ProviderTarget(target_type="playlist", source=SOURCE)
